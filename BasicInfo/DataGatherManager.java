@@ -1,4 +1,5 @@
 package com.github.ryan6073.Seriously.BasicInfo;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 public class DataGatherManager {//单例模式
@@ -60,7 +61,18 @@ public class DataGatherManager {//单例模式
             case RECEIVED -> recPapers.add(paper);
         }
     }
-    private DataGatherManager(){}
+    private DataGatherManager(){
+        this.dicAuthorPaper = new HashMap<>();
+        this.dicDoiPaper = new HashMap<>();
+        this.dicOrcidAuthor = new HashMap<>();
+        this.dicEliteAuthorPaper = new HashMap<>();
+        recPapers = new Vector<>();
+        accPapers = new Vector<>();
+        revPapers = new Vector<>();
+        pubPapers = new Vector<>();
+        journals = new Vector<>();
+        institutions = new Vector<>();
+    }
 
 }
 //arraylist和vector的区别
