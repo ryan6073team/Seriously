@@ -1,4 +1,4 @@
-package com.github.ryan6073.Seriously.BasicInfo;
+package com.github.ryan6073.Seriously.src.BasicInfo;
 
 public enum CitingStatusTypes {
     PUBLISHED,

@@ -1,6 +1,6 @@
-package com.github.ryan6073.Seriously.Impact;
+package com.github.ryan6073.Seriously.src.Impact;
 
-import com.github.ryan6073.Seriously.Graph.GraphManager;
+import com.github.ryan6073.Seriously.src.Graph.GraphManager;
 
 import java.util.Vector;
 

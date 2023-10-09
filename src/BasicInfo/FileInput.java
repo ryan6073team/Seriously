@@ -1,4 +1,4 @@
-package com.github.ryan6073.Seriously.BasicInfo;
+package com.github.ryan6073.Seriously.src.BasicInfo;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -8,7 +8,7 @@ import java.util.Vector;
 public class FileInput {
     public static void init(DataGatherManager dataGatherManager) {
         // 文件路径
-        String filePath = "C:\\Users\\21333\\Desktop\\mywork\\Java_work\\untitled\\src\\com\\github\\ryan6073\\Seriously\\test.txt";
+        String filePath = "D:\\Gitcode\\Seriously\\test.txt";
         Vector<Author> authors = new Vector<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
