@@ -106,7 +106,7 @@ public class FileInput {
                 }
                 dataGatherManager.addDicDA(author, author_papers);
             }
-            reader.close();
+                reader.close();
 
 
         } catch (IOException e) {
