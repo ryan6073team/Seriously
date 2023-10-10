@@ -81,10 +81,13 @@ public class FileInput {
                     journal.journalPapers.add(paper.doi);
 
                     // 判断paper是否已经存在于datagathermanager的papers列表中，如果存在则直接添加作者，否则创建新的paper对象
-                    if(dataGatherManager.papers.contains(paper)){
-                        paper = dataGatherManager.papers.get(dataGatherManager.papers.indexOf(paper));
+                    if(dataGatherManager.paperFind(paperDoi)){
+
+                        paper = dataGatherManager.paperGet(paperDoi);
+
                         paper.authorIDList.add(orcid);
                     }
+
                     else{
                         dataGatherManager.addPaper(paper);
                     }
@@ -102,9 +105,6 @@ public class FileInput {
                     reader.readLine();//读取空行
                 }
                 dataGatherManager.addDicDA(author, author_papers);
-
-
-
             }
             reader.close();
 

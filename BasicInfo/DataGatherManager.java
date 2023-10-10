@@ -31,6 +31,16 @@ public class DataGatherManager {//单例模式
     public void addDicDP(Paper paper) {
         dicDoiPaper.put(paper.doi, paper);
     }
+    public boolean paperFind(String doi){
+        return dicDoiPaper.containsKey(doi);
+    }
+    public Paper paperGet(String doi){
+        //遍历papers,找到doi对应的paper
+        for(Paper paper:papers){
+            if(paper.doi.equals(doi)) return paper;
+        }
+        return null;
+    }
     public void addDicOA(Author author) {
         dicOrcidAuthor.put(author.orcid, author);
     }

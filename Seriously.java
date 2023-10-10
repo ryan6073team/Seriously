@@ -14,7 +14,9 @@ public class Seriously {
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         //BasicDataInit.initDate(dataGatherManager);  我的fileinput已经把这个初始化的工作做了，所以这里不需要再初始化了
         FileInput.init(dataGatherManager);
-        System.out.println(dataGatherManager.dicAuthorPaper.size());//测试
+        //打印paper1的作者列表
+        //System.out.println(dataGatherManager.papers.indexOf(dataGatherManager.dicDoiPaper.get("10.1109/ICECET55527.2022.9872831")));
+        System.out.println(dataGatherManager.dicDoiPaper.get("10.1109/ICECET55527.2022.9872831").getAuthorIDList());
 //        GraphManager graphManager = GraphManager.getInstance();
 //        GraphInit.initGraph(graphManager,dataGatherManager);
 //        Vector<Double> ans = CalImpact.getImpact(graphManager,dataGatherManager);
