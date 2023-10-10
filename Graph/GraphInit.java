@@ -1,6 +1,6 @@
-package com.github.ryan6073.Seriously.src.Graph;
+package com.github.ryan6073.Seriously.Graph;
 
-import com.github.ryan6073.Seriously.src.BasicInfo.*;
+import com.github.ryan6073.Seriously.BasicInfo.*;
 import com.mxgraph.layout.mxCircleLayout;
 import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.util.mxCellRenderer;

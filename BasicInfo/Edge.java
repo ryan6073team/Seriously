@@ -1,6 +1,6 @@
-package com.github.ryan6073.Seriously.src.BasicInfo;
+package com.github.ryan6073.Seriously.BasicInfo;
 
-import static com.github.ryan6073.Seriously.src.BasicInfo.CitingStatusTypes.*;
+import static com.github.ryan6073.Seriously.BasicInfo.CitingStatusTypes.*;
 
 public class Edge {
     Double citingKey= 0.0;

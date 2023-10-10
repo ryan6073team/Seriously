@@ -1,5 +1,5 @@
-package com.github.ryan6073.Seriously.src.Graph;
-import com.github.ryan6073.Seriously.src.BasicInfo.*;
+package com.github.ryan6073.Seriously.Graph;
+import com.github.ryan6073.Seriously.BasicInfo.*;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 

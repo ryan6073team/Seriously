@@ -1,4 +1,4 @@
-package com.github.ryan6073.Seriously.src.BasicInfo;
+package com.github.ryan6073.Seriously.BasicInfo;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
