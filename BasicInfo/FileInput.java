@@ -46,7 +46,7 @@ public class FileInput {
 
                 int paperCount = Integer.parseInt(insInfo[insCount + 1]);//论文数量
 
-                Vector<Paper> papers = new Vector<>();
+                Vector<Paper> author_papers = new Vector<>();
 
                 // 解析每篇论文信息
                 for (int i = 0; i < paperCount; i++) {
@@ -65,9 +65,9 @@ public class FileInput {
                         citedPapers.add(citedPaperDoi);
                     }
 
-                    // 创建Paper对象并添加到papers列表
                     Paper paper = new Paper();
                     Journal journal = new Journal();
+
                     paper.paperName = paperName;
                     paper.doi = paperDoi;
                     paper.journals.add(paperJournal);
@@ -80,17 +80,31 @@ public class FileInput {
                     journal.journalName = paperJournal;
                     journal.journalPapers.add(paper.doi);
 
+                    // 判断paper是否已经存在于datagathermanager的papers列表中，如果存在则直接添加作者，否则创建新的paper对象
+                    if(dataGatherManager.papers.contains(paper)){
+                        paper = dataGatherManager.papers.get(dataGatherManager.papers.indexOf(paper));
+                        paper.authorIDList.add(orcid);
+                    }
+                    else{
+                        dataGatherManager.addPaper(paper);
+                    }
                     dataGatherManager.addDicDP(paper);
                     dataGatherManager.addToPaper(paper);
                     dataGatherManager.authorNum = authors.size();//如果分批读取再做修改，改成+=即可
-                    dataGatherManager.addJournal(journal);
-                    papers.add(paper);
+                    if(dataGatherManager.journals.contains(journal)){
+                        journal = dataGatherManager.journals.get(dataGatherManager.journals.indexOf(journal));
+                        journal.journalPapers.add(paper.doi);
+                    }
+                    else{
+                        dataGatherManager.addJournal(journal);
+                    }
+                    author_papers.add(paper);
                     reader.readLine();//读取空行
                 }
-                dataGatherManager.addDicDA(author, papers);
+                dataGatherManager.addDicDA(author, author_papers);
 
 
-                //journal和institution类的初始化先不写
+
             }
             reader.close();
 

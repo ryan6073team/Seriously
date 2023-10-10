@@ -13,6 +13,7 @@ public class DataGatherManager {//单例模式
     public Vector<Paper> recPapers,accPapers,revPapers,pubPapers;
     public Vector<Journal> journals;
     public Vector<Institution> institutions;
+    public Vector<Paper> papers;
     public void addJournal(Journal journal) {
         if(journals.contains(journal)) return;
         journals.add(journal);
@@ -22,6 +23,10 @@ public class DataGatherManager {//单例模式
         if(institutions.contains(institution)) return;
         institutions.add(institution);
         //同上
+    }
+    public void addPaper(Paper paper) {
+        if(papers.contains(paper)) return;
+        papers.add(paper);
     }
     public void addDicDP(Paper paper) {
         dicDoiPaper.put(paper.doi, paper);
@@ -72,6 +77,7 @@ public class DataGatherManager {//单例模式
         pubPapers = new Vector<>();
         journals = new Vector<>();
         institutions = new Vector<>();
+        papers = new Vector<>();
     }
 
 }
