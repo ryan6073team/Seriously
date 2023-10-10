@@ -22,6 +22,12 @@ import java.util.Vector;
 public class GraphInit {
     private static DirectedGraph<Paper, DefaultEdge> paperGraph = new DefaultDirectedGraph<>(DefaultEdge.class);  //创建一个论文的图用以检验是否存在环
 
+    public static void culCitedTimes(){
+        for (Paper vertex : paperGraph.vertexSet()) {
+            int inDegree = paperGraph.inDegreeOf(vertex);
+            vertex.setCitedTimes(inDegree);
+        }
+    }
     //检查是否存在环
     public static void DetectCycles(DirectedGraph<Paper,DefaultEdge> detectGraph) {
         CycleDetector<Paper, DefaultEdge> cycleDetector
@@ -95,6 +101,7 @@ public class GraphInit {
                 }
             }
         }
+        culCitedTimes();
     }
     public static void givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist() throws IOException {
 
@@ -110,4 +117,5 @@ public class GraphInit {
 
         assert(imgFile.exists());
     }
+
 }
