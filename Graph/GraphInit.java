@@ -1,12 +1,8 @@
 package com.github.ryan6073.Seriously.Graph;
 
 import com.github.ryan6073.Seriously.BasicInfo.*;
-import com.mxgraph.layout.mxCircleLayout;
-import com.mxgraph.layout.mxIGraphLayout;
-import com.mxgraph.util.mxCellRenderer;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
-import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -25,7 +21,6 @@ public class GraphInit {
     public static void culCitedTimes(){
         for (Paper vertex : paperGraph.vertexSet()) {
             int inDegree = paperGraph.inDegreeOf(vertex);
-            vertex.setCitedTimes(inDegree);
         }
     }
     //检查是否存在环
@@ -94,8 +89,7 @@ public class GraphInit {
                             }
                             //创建边
                             double citingKey = (double) 1 /(startNum * endNum);
-                            Edge edge = new Edge(citingKey, paper.getPaperStatus().ordinal()+1, paper.getPublishedYear());  //论文状态为此篇论文状态
-                            graphManager.Graph.addEdge(entry.getKey(),endAuthor,edge);
+
                         }
                     }
                 }
@@ -103,19 +97,6 @@ public class GraphInit {
         }
         culCitedTimes();
     }
-    public static void givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist() throws IOException {
 
-        JGraphXAdapter<Author,Edge> graphAdapter =
-                new JGraphXAdapter<>(GraphManager.getInstance().Graph);
-        mxIGraphLayout layout = new mxCircleLayout(graphAdapter);
-        layout.execute(graphAdapter.getDefaultParent());
-
-        BufferedImage image =
-                mxCellRenderer.createBufferedImage(graphAdapter, null, 2, Color.WHITE, true, null);
-        File imgFile = new File("src/graph.png");
-        ImageIO.write(image, "PNG", imgFile);
-
-        assert(imgFile.exists());
-    }
 
 }

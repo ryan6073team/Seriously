@@ -14,15 +14,10 @@ public class DataGatherManager {//单例模式
     public Vector<Paper> papers;
     public Vector<Journal> journals;
     public Vector<Institution> institutions;
-    public Vector<Paper> papers;
     public void addJournal(Journal journal) {
         if(journals.contains(journal)) return;
         journals.add(journal);
         //这里我感觉同名的期刊没有被筛掉，可能需要再次遍历去除同名期刊并合并期刊的论文集合
-    }
-    public void addPaper(Paper paper) {
-        if(papers.contains(paper)) return;
-        papers.add(paper);
     }
     public void addInstitution(Institution institution) {
         if(institutions.contains(institution)) return;
