@@ -3,7 +3,7 @@ package com.github.ryan6073.Seriously.BasicInfo;
 import java.util.Vector;
 
 public class Author {
-    String authorName,orcid;
+    String authorName,orcid;//
     Vector<String> authorInstitution;
     boolean flag;//是否存在于数据源中
     public Author(String _authorName,String _orcid,String _authorInstitution){

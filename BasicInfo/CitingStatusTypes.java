@@ -3,7 +3,7 @@ package com.github.ryan6073.Seriously.BasicInfo;
 public enum CitingStatusTypes {
     PUBLISHED,
     RECEIVED,
-    ACCEPTED,
+    ACCEPTED,//
     REVISED;
     static int totalCount( ) { return values().length; }
     static CitingStatusTypes choiceTypes(int _citingStatus){

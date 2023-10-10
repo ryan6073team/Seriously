@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-public class GraphInit {
+public class GraphInit {//
     private static DirectedGraph<Paper, DefaultEdge> paperGraph = new DefaultDirectedGraph<>(DefaultEdge.class);  //创建一个论文的图用以检验是否存在环
 
     public static void culCitedTimes(){
