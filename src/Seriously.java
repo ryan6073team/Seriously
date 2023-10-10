@@ -24,5 +24,6 @@ public class Seriously {
             throw new RuntimeException(e);
         }
         Vector<Double> ans = CalImpact.getImpact(graphManager,dataGatherManager);
+        //haoye
     }
 }
