@@ -5,7 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
-public class FileInput {//
+public class FileInput {
     public static void init(DataGatherManager dataGatherManager) {
         // 文件路径
         String filePath = "D:\\Gitcode\\Seriously\\test.txt";

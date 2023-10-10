@@ -4,7 +4,7 @@ import com.github.ryan6073.Seriously.BasicInfo.DataGatherManager;
 import com.github.ryan6073.Seriously.BasicInfo.Paper;
 import java.util.Vector;
 
-public class CalSubmissionCycle {//
+public class CalSubmissionCycle {
     public static Vector<Double> getRecCycleImpact(DataGatherManager dataGatherManager){
         return null;
     }

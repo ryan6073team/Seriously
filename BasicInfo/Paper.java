@@ -2,7 +2,7 @@ package com.github.ryan6073.Seriously.BasicInfo;
 
 import java.util.Vector;
 
-public class Paper {//
+public class Paper {
     String paperName,doi;
     CitingStatusTypes paperStatus;
 
