@@ -27,4 +27,16 @@ public class Paper {//
     }
     public Vector<String> getCitingList(){return citingList;}
     public Vector<String> getAuthorIDList(){return authorIDList;}//这个我觉得可以考虑使用map,有的作者属性就是一作，有的共一作，有的二作，有的是通讯作者，这一篇论文赋予扮演不同角色的作者的影响力也不同
+
+    public CitingStatusTypes getPaperStatus() {
+        return paperStatus;
+    }
+
+    public void setCitedTimes(int inDegree) {
+        citedTimes = inDegree;
+    }
+
+    public int getPublishedYear() {
+        return publishedYear;
+    }
 }
