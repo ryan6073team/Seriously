@@ -5,7 +5,7 @@ import java.util.Vector;
 public class Paper {
     String paperName,doi;
     CitingStatusTypes paperStatus;
-
+    Double paperImpact=0.0;//保存文章的影响力
     int  publishedYear=0;//不设置默认值，因为必须有，但是按照表结构似乎不是这样，先假设可以有默认值，方便运行
     int  acceptedYear=0,reviseYear=0,receivedYear=0;//如果没有记载则为0
     Vector<String> citingList,authorIDList;
@@ -39,4 +39,6 @@ public class Paper {
     public int getPublishedYear() {
         return publishedYear;
     }
+    public Double getPaperImpact(){return paperImpact;}
+    public void setPaperImpact(Double _paperImpact){paperImpact = _paperImpact;}
 }

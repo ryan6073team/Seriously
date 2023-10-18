@@ -11,4 +11,7 @@ public class Edge {
         citingStatus = choiceTypes(_citingStatus);
         year = _year;
     }
+    public Double getCitingKey(){return citingKey;}
+    public CitingStatusTypes getCitingStatus(){return citingStatus;}
 }
+

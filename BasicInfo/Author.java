@@ -5,6 +5,7 @@ import java.util.Vector;
 public class Author {
     String authorName,orcid;
     Vector<String> authorInstitution;
+    Double authorImpact = 0.0;
     boolean flag;//是否存在于数据源中
     public Author(String _authorName,String _orcid,String _authorInstitution){
         authorName = _authorName;
@@ -31,4 +32,8 @@ public class Author {
 //    }
     //我觉得需要一个papers向量数据成员，来存放一个作者的文章集合
     public boolean getFlag(){return flag;}
+    public String getOrcid(){return orcid;}
+    public String getAuthorName(){return authorName;}
+    public Double getAuthorImpact(){return authorImpact;}
+    public void setAuthorImpact(Double _authorImpact){authorImpact = _authorImpact;}
 }

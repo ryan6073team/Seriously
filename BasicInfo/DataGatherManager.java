@@ -10,23 +10,34 @@ public class DataGatherManager {//单例模式
     public Map<String,Paper> dicDoiPaper ;//doi->paperName,
     public Map<String,Author> dicOrcidAuthor ;//orcid->authorName
     public Map<Author,Vector<Paper>> dicEliteAuthorPaper ;//作者的精英论文集合
+    public Map<String, Integer> dicOrcidMatrixOrder;//doi到矩阵下标的映射
     public Vector<Paper> recPapers,accPapers,revPapers,pubPapers;
     public Vector<Paper> papers;
     public Vector<Journal> journals;
     public Vector<Institution> institutions;
+
+    //暂时辅助矩阵用
+    public void initMatrixOrder(){
+        dicOrcidMatrixOrder = new HashMap<>();
+        int order=0;
+        for(String orcid:dicOrcidAuthor.keySet()) {
+            dicOrcidMatrixOrder.put(orcid, order);
+            order++;
+        }
+    }
     public void addJournal(Journal journal) {
         if(journals.contains(journal)) return;
         journals.add(journal);
         //这里我感觉同名的期刊没有被筛掉，可能需要再次遍历去除同名期刊并合并期刊的论文集合
     }
+    public void addPaper(Paper paper) {
+        if(papers.contains(paper)) return;
+        papers.add(paper);
+    }
     public void addInstitution(Institution institution) {
         if(institutions.contains(institution)) return;
         institutions.add(institution);
         //同上
-    }
-    public void addPaper(Paper paper) {
-        if(papers.contains(paper)) return;
-        papers.add(paper);
     }
     public void addDicDP(Paper paper) {
         dicDoiPaper.put(paper.doi, paper);
@@ -44,7 +55,7 @@ public class DataGatherManager {//单例模式
     public void addDicOA(Author author) {
         dicOrcidAuthor.put(author.orcid, author);
     }
-//    public void addDicAP(Author author, Paper paper) {
+    //    public void addDicAP(Author author, Paper paper) {
 //        if (dicAuthorPaper.containsKey(author)) {
 //            dicAuthorPaper.get(author).add(paper);
 //        } else {

@@ -6,8 +6,8 @@ public class Journal {
     String journalName;
     Vector<String> journalPapers;//用DOI唯一标识
     Double journalImpact=0.0;//不知道计算方法
-    public Journal(){
-        journalPapers = new Vector<>();
-
-    }
+    public Journal(){journalPapers = new Vector<>();}
+    public Double getJournalImpact(){return journalImpact;}
+    public void setJournalImpact(Double _journalImpact){journalImpact = _journalImpact;}
+    public Vector<String> getJournalPapers(){return journalPapers;}
 }

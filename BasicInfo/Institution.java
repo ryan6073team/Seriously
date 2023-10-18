@@ -9,4 +9,20 @@ public class Institution {
     public Institution(){
         institutionAuthors = new Vector<>();
     }
+
+    public String getInstitutionName() {
+        return institutionName;
+    }
+
+    public Double getInstitutionImpact() {
+        return institutionImpact;
+    }
+
+    public void setInstitutionImpact(Double institutionImpact) {
+        this.institutionImpact = institutionImpact;
+    }
+
+    public Vector<String> getInstitutionAuthors() {
+        return institutionAuthors;
+    }
 }
