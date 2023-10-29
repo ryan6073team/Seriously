@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Vector;
 public class FileInput {
     public static void init(DataGatherManager dataGatherManager) {
@@ -22,16 +23,16 @@ public class FileInput {
                 String[] insInfo = authorInfo[2].split(" ");
                 int insCount = Integer.parseInt(insInfo[0]);//机构数量
                 Author author;
-                if(insCount==0) {
+                if (insCount == 0) {
                     author = new Author(authorName, orcid, "");
-                } else if(insCount==1) {
+                } else if (insCount == 1) {
                     String authorInstitution = insInfo[1];
                     author = new Author(authorName, orcid, authorInstitution);
                     Institution institution = new Institution();
                     institution.institutionName = authorInstitution;
                     institution.institutionAuthors.add(orcid);
                     dataGatherManager.addInstitution(institution);
-                } else{
+                } else {
                     Vector<String> authorInstitution = new Vector<>(Arrays.asList(insInfo).subList(1, insCount + 1));
                     author = new Author(authorName, orcid, authorInstitution);
                     for (String institutionName : authorInstitution) {
@@ -81,24 +82,21 @@ public class FileInput {
                     journal.journalPapers.add(paper.doi);
 
                     // 判断paper是否已经存在于datagathermanager的papers列表中，如果存在则直接添加作者，否则创建新的paper对象
-                    if(dataGatherManager.paperFind(paperDoi)){
+                    if (dataGatherManager.paperFind(paperDoi)) {
 
                         paper = dataGatherManager.paperGet(paperDoi);
 
                         paper.authorIDList.add(orcid);
-                    }
-
-                    else{
+                    } else {
                         dataGatherManager.addPaper(paper);
                     }
                     dataGatherManager.addDicDP(paper);
                     dataGatherManager.addToPaper(paper);
                     dataGatherManager.authorNum = authors.size();//如果分批读取再做修改，改成+=即可
-                    if(dataGatherManager.journals.contains(journal)){
+                    if (dataGatherManager.journals.contains(journal)) {
                         journal = dataGatherManager.journals.get(dataGatherManager.journals.indexOf(journal));
                         journal.journalPapers.add(paper.doi);
-                    }
-                    else{
+                    } else {
                         dataGatherManager.addJournal(journal);
                     }
                     author_papers.add(paper);
@@ -106,11 +104,26 @@ public class FileInput {
                 }
                 dataGatherManager.addDicDA(author, author_papers);
             }
-                reader.close();
+            reader.close();
 
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        //  对期刊进行等级划分
+        for(Journal item:dataGatherManager.journals){
+            item.setIF(0.0);//让其随机生成一个IF测试用
+        }
+        Collections.sort(dataGatherManager.journals);// 根据IF进行排序
+        for(int i=0;i<dataGatherManager.journals.size();++i){
+            if(i<dataGatherManager.journals.size()/4) dataGatherManager.journals.get(i).setRank(1);
+            else if (i<dataGatherManager.journals.size()/2) dataGatherManager.journals.get(i).setRank(2);
+            else if (i<dataGatherManager.journals.size()*3/4) dataGatherManager.journals.get(i).setRank(3);
+            else dataGatherManager.journals.get(i).setRank(4);
+
+//            System.out.println(dataGatherManager.journals.get(i).getIF());
+//            System.out.println(dataGatherManager.journals.get(i).getRank());
         }
     }
 }
