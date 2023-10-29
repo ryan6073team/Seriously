@@ -1,12 +1,12 @@
 <component name="libraryTable">
   <library name="jgrapht.ext" type="repository">
-    <properties maven-id="org.jgrapht:jgrapht-ext:1.5.2" />
+    <properties maven-id="org.jgrapht:jgrapht-ext:1.0.1" />
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jgrapht/jgrapht-ext/1.5.2/jgrapht-ext-1.5.2.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/jgrapht/jgrapht-core/1.5.2/jgrapht-core-1.5.2.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/jheaps/jheaps/0.14/jheaps-0.14.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/apfloat/apfloat/1.10.1/apfloat-1.10.1.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/com/github/vlsi/mxgraph/jgraphx/4.2.2/jgraphx-4.2.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jgrapht/jgrapht-ext/1.0.1/jgrapht-ext-1.0.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jgrapht/jgrapht-core/1.0.1/jgrapht-core-1.0.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/tinyjee/jgraphx/jgraphx/2.0.0.1/jgraphx-2.0.0.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/jgraph/jgraph/5.13.0.0/jgraph-5.13.0.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.5.3/antlr4-runtime-4.5.3.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

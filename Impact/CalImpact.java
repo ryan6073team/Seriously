@@ -21,12 +21,21 @@ public class CalImpact {
     public static void updatePaperImpact(){
         Vector<Paper> papers = DataGatherManager.getInstance().pubPapers;
         Iterator<Paper> paperIterator = papers.iterator();
-        while(paperIterator.hasNext()){
+        //一重循环遍历所有的论文，并依次计算它们的影响力大小
+        while (paperIterator.hasNext()){
             Paper paperItem = paperIterator.next();
-            Vector<String> authors = paperItem.getAuthorIDList();
+            Vector<String> citedDois = paperItem.getCitedList();
             Double sumImpact = 0.0;
-            for(String orcid:authors){
-                sumImpact+=DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getAuthorImpact();
+            //二重循环遍历被引论文，计算并累加它们的平均作者影响力
+            for(String doi:citedDois){
+                Paper citedPaper = DataGatherManager.getInstance().dicDoiPaper.get(doi);
+                Vector<String> authors = citedPaper.getAuthorIDList();
+                Double citedPaperImpact = 0.0;
+                for(String orcid:authors){
+                    citedPaperImpact+=DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getAuthorImpact();
+                }
+                citedPaperImpact = citedPaperImpact/authors.size();
+                sumImpact+=citedPaperImpact;
             }
             paperItem.setPaperImpact(sumImpact);
         }
