@@ -18,10 +18,6 @@ public class CalSubmissionCycle {
     }
     public static Vector<Double> getSubmissionCycleImpact(DataGatherManager dataGatherManager){
         /*在进入周期影响力的计算函数之前，网络中各作者、期刊、文章、机构的影响力已被算出*/
-        Vector<Paper> recPaperVector = dataGatherManager.recPapers;
-        Vector<Paper> accPaperVector = dataGatherManager.accPapers;
-        Vector<Paper> revPaperVector = dataGatherManager.revPapers;
-        Vector<Paper> pubPaperVector = dataGatherManager.pubPapers;
         Vector<Double> recImpact = getRecCycleImpact(dataGatherManager);//received
         Vector<Double> accImpact = getAccCycleImpact(dataGatherManager);//accepted
         Vector<Double> revImpact = getRevCycleImpact(dataGatherManager);//revised

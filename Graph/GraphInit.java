@@ -103,6 +103,14 @@ public class GraphInit {
         }
         culCitedTimes();
     }
+    //新增函数，意在替换原函数，仅将x年y月之前的作者引用关系而不是所有作者引用关系构造为一张图
+    public static void initGraph(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){}
+    //新增函数，即将x年y月的作者引用关系构成一张图并将其存储再GraphItems中
+    public static void initGraphItem(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){}
+    //新增函数，根据paperGraph将dataGatherManager中所有paper的citedList初始化，citedList是Paper新增成员变量
+    //指的是引用该论文的论文集合，所以对于该论文来说是被动语态cited
+    //可以将culCitedTimes和该函数合并成initCitedInfo
+    public static void initCitedList(DataGatherManager dataGatherManager){}
     public static void givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist() throws IOException {
 
         JGraphXAdapter<Author,Edge> graphAdapter =

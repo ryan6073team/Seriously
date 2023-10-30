@@ -19,7 +19,7 @@ public class CalImpact {
         }
     }
     public static void updatePaperImpact(){
-        Vector<Paper> papers = DataGatherManager.getInstance().pubPapers;
+        Vector<Paper> papers = DataGatherManager.getInstance().papers;
         Iterator<Paper> paperIterator = papers.iterator();
         //一重循环遍历所有的论文，并依次计算它们的影响力大小
         while (paperIterator.hasNext()){

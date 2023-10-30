@@ -6,12 +6,14 @@ public class DataGatherManager {//单例模式
     private static DataGatherManager mDataGatherManager = new DataGatherManager();
     public static DataGatherManager getInstance(){return mDataGatherManager;}
     public int authorNum;
+    public int startYear,startMonth,finalYear,finalMonth;
+    //新增，由用户自行设定，startYear和Month代表Graph累计包含至该时间点为止的引用关系，
+    //finalYear和Month代表GraphItem的时间跨度，即从s.Year.Month到f.Year.Month这么多个月每个月都应有一个GraphItem
     public Map<Author,Vector<Paper>> dicAuthorPaper ;//作者的论文集合
     public Map<String,Paper> dicDoiPaper ;//doi->paperName,
     public Map<String,Author> dicOrcidAuthor ;//orcid->authorName
     public Map<Author,Vector<Paper>> dicEliteAuthorPaper ;//作者的精英论文集合
     public Map<String, Integer> dicOrcidMatrixOrder;//doi到矩阵下标的映射
-    public Vector<Paper> recPapers,accPapers,revPapers,pubPapers;
     public Vector<Paper> papers;
     public Vector<Journal> journals;
     public Vector<Institution> institutions;
@@ -79,23 +81,12 @@ public class DataGatherManager {//单例模式
         //中间对影响力进行计算，选出精英论文集
         return elitePapers;
     }//根据dicAuthorPaper获得dicEliteAuthorPaper,我认为这个类型应该返回一个map，key是作者，value是论文集合，所以对于精英论文集我可以写成： dicEliteAuthorPaper = HashMap<Author,getElite(Vector(Paper))>();
-    public void addToPaper(Paper paper){
-        switch (paper.paperStatus) {
-            case PUBLISHED -> pubPapers.add(paper);
-            case ACCEPTED -> accPapers.add(paper);
-            case REVISED -> revPapers.add(paper);
-            case RECEIVED -> recPapers.add(paper);
-        }
-    }
+
     private DataGatherManager(){
         this.dicAuthorPaper = new HashMap<>();
         this.dicDoiPaper = new HashMap<>();
         this.dicOrcidAuthor = new HashMap<>();
         this.dicEliteAuthorPaper = new HashMap<>();
-        recPapers = new Vector<>();
-        accPapers = new Vector<>();
-        revPapers = new Vector<>();
-        pubPapers = new Vector<>();
         journals = new Vector<>();
         institutions = new Vector<>();
         papers = new Vector<>();
