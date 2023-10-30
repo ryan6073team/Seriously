@@ -3,10 +3,29 @@ package com.github.ryan6073.Seriously.BasicInfo;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Vector;
 public class FileInput {
+    public static void initJournalToIF(DataGatherManager dataGatherManager){
+        // 创建 reader
+        try (BufferedReader br = Files.newBufferedReader(Paths.get("SuPZ_JCR_JournalResults_10_2023.csv"))) {
+            // CSV文件的分隔符
+            String DELIMITER = ",";
+            // 按行读取
+            String line;
+            while ((line = br.readLine()) != null) {
+                // 分割
+                String[] columns = line.split(DELIMITER);
+                dataGatherManager.dicJournalIF.put(columns[0], Double.valueOf(columns[1]));
+                // 打印行
+                System.out.println(String.join(", ", columns));
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
     public static Author initAuthor(DataGatherManager dataGatherManager, String firstLine, Vector<Author> authors) {
         // 解析作者信息
         //两个空格隔开从而将初始化信息分为三段
@@ -108,22 +127,22 @@ public class FileInput {
         dataGatherManager.addDicDA(author, author_papers);
     }
 
-    public static void rankJournal(DataGatherManager dataGatherManager){
-        //  对期刊进行等级划分
-        for (Journal item : dataGatherManager.journals) {
-            item.setIF(0.0);//让其随机生成一个IF测试用
-        }
-        Collections.sort(dataGatherManager.journals);// 根据IF进行排序
-        for (int i = 0; i < dataGatherManager.journals.size(); ++i) {
-            if (i < dataGatherManager.journals.size() / 4) dataGatherManager.journals.get(i).setRank(1);
-            else if (i < dataGatherManager.journals.size() / 2) dataGatherManager.journals.get(i).setRank(2);
-            else if (i < dataGatherManager.journals.size() * 3 / 4) dataGatherManager.journals.get(i).setRank(3);
-            else dataGatherManager.journals.get(i).setRank(4);
-
-//            System.out.println(dataGatherManager.journals.get(i).getIF());
-//            System.out.println(dataGatherManager.journals.get(i).getRank());
-        }
-    }
+//    public static void rankJournal(DataGatherManager dataGatherManager){
+//        //  对期刊进行等级划分
+//        for (Journal item : dataGatherManager.journals) {
+//            item.setIF(0.0);//让其随机生成一个IF测试用
+//        }
+//        Collections.sort(dataGatherManager.journals);// 根据IF进行排序
+//        for (int i = 0; i < dataGatherManager.journals.size(); ++i) {
+//            if (i < dataGatherManager.journals.size() / 4) dataGatherManager.journals.get(i).setRank(1);
+//            else if (i < dataGatherManager.journals.size() / 2) dataGatherManager.journals.get(i).setRank(2);
+//            else if (i < dataGatherManager.journals.size() * 3 / 4) dataGatherManager.journals.get(i).setRank(3);
+//            else dataGatherManager.journals.get(i).setRank(4);
+//
+////            System.out.println(dataGatherManager.journals.get(i).getIF());
+////            System.out.println(dataGatherManager.journals.get(i).getRank());
+//        }
+//    }
 
     public static void init(DataGatherManager dataGatherManager) {
         // 文件路径
@@ -141,6 +160,10 @@ public class FileInput {
             e.printStackTrace();
         }
 
-        rankJournal(dataGatherManager);
+        for(Journal item:dataGatherManager.journals){
+            item.setIF(0.0);//让其随机生成一个IF测试用
+        }
+
+        KMeans.kMeans(dataGatherManager);//更新rank
     }
 }

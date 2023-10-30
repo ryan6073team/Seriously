@@ -14,6 +14,7 @@ public class DataGatherManager {//单例模式
     public Map<String,Author> dicOrcidAuthor ;//orcid->authorName
     public Map<Author,Vector<Paper>> dicEliteAuthorPaper ;//作者的精英论文集合
     public Map<String, Integer> dicOrcidMatrixOrder;//doi到矩阵下标的映射
+    public Map<String, Double> dicJournalIF;//期刊与IF指数的映射
     public Vector<Paper> papers;
     public Vector<Journal> journals;
     public Vector<Institution> institutions;
