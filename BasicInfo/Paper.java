@@ -8,7 +8,7 @@ public class Paper {
     Double paperImpact=0.0;//保存文章的影响力
     int  publishedYear=0;//不设置默认值，因为必须有，但是按照表结构似乎不是这样，先假设可以有默认值，方便运行
     int publishedMonth=0;//出版月份，待更新
-    Vector<String> citingList,authorIDList,citedList;//新增citedList，待更新
+    Vector<String> citingList,authorIDList,citedList;//新增citedList，待更新,存储doi
     //received accepted revised 已被删除，CitingStatusTypes类实际上已失去作用
     Integer citedTimes=0;//citedList长度
     Vector<String> journals;
@@ -16,6 +16,7 @@ public class Paper {
     public Paper(){
         citingList = new Vector<>();
         authorIDList = new Vector<>();
+        citedList = new Vector<>();
         journals = new Vector<>();
     }
     public void setYear(int _year, CitingStatusTypes _citingstatus/*fileinput待更新，该函数调用应删去此参数*/){
@@ -32,7 +33,9 @@ public class Paper {
     public CitingStatusTypes getPaperStatus() {
         return paperStatus;
     }
-
+    public String getDoi(){
+        return doi;
+    }
     public void setCitedTimes(int inDegree) {
         citedTimes = inDegree;
     }

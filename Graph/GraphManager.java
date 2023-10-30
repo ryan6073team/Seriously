@@ -18,7 +18,13 @@ public class GraphManager { //单例
     public static GraphManager getInstance(){return mGraph;}
     private Map<TimeInfo,DirectedGraph<Author,Edge>> GraphItems = new HashMap<>();
     //获取目标子图
-    public DirectedGraph<Author,Edge> getGraphItem(int year,int month){return GraphItems.get(new TimeInfo(year, month));}
+    public DirectedGraph<Author,Edge> getGraphItem(int year,int month){
+        for(Map.Entry<TimeInfo,DirectedGraph<Author,Edge>> entry : GraphItems.entrySet()){
+            if(entry.getKey().year==year&&entry.getKey().month==month)
+                return GraphItems.get(entry);
+        }
+        return null;
+    }
     //加入目标子图
     public void addGraphItem(int year, int month, DirectedGraph<Author,Edge> Item){GraphItems.put(new TimeInfo(year,month),Item);}
     //创建初始图，一切故事从这里开始

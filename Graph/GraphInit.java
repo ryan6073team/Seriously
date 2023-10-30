@@ -21,13 +21,15 @@ import java.util.Vector;
 
 public class GraphInit {
     private static DirectedGraph<Paper, DefaultEdge> paperGraph = new DefaultDirectedGraph<>(DefaultEdge.class);  //创建一个论文的图用以检验是否存在环
-
-    public static void culCitedTimes(){
-        for (Paper vertex : paperGraph.vertexSet()) {
-            int inDegree = paperGraph.inDegreeOf(vertex);
-            vertex.setCitedTimes(inDegree);
+    public static void deleteSinglePoint(DirectedGraph<Author,Edge> graph){
+        if(graph.edgeSet().isEmpty()) return;
+        for (Author vertex : graph.vertexSet()) {
+            int inDegree = graph.inDegreeOf(vertex);
+            int outDegree = graph.outDegreeOf(vertex);
+            if(inDegree+outDegree==0) graph.removeVertex(vertex);
         }
-    }
+    }// 删除图中孤立点
+
     //检查是否存在环
     public static void DetectCycles(DirectedGraph<Paper,DefaultEdge> detectGraph) {
         CycleDetector<Paper, DefaultEdge> cycleDetector
@@ -50,7 +52,62 @@ public class GraphInit {
     }
 
     //利用初始化后的dataGatherManager对graphManager进行初始化
-    public static void initGraph(GraphManager graphManager,DataGatherManager dataGatherManager){
+//    public static void initGraph(GraphManager graphManager,DataGatherManager dataGatherManager){
+//        for(Map.Entry<Author, Vector<Paper>> entry : dataGatherManager.dicAuthorPaper.entrySet()){
+//            if(!entry.getKey().getFlag()) continue;  //不存在该作者则进行下一个循环
+//            //如果不存在作者结点则创建
+//            if(!graphManager.Graph.containsVertex(entry.getKey())){
+//                graphManager.Graph.addVertex(entry.getKey());
+//            }
+//            //遍历该作者的论文
+//            for(Paper paper: entry.getValue()){
+//                //在论文图中添加论文结点
+//                if(!paperGraph.containsVertex(paper)){
+//                    paperGraph.addVertex(paper);
+//                }
+//                //获取存在于数据源中的作者数量
+//                int startNum = getAuthorNumber(paper,dataGatherManager);  //引用作者数量，即与边起点有关的作者数
+//
+//                //获取引用论文
+//                for(String doi: paper.getCitingList()){
+//
+//                    Paper citingPaper = dataGatherManager.dicDoiPaper.get(doi);
+//
+//                    //在论文图中添加论文结点
+//                    if(!paperGraph.containsVertex(citingPaper)){
+//                        paperGraph.addVertex(citingPaper);
+//                    }
+//                    //论文图中添加引用边
+//                    if(!paperGraph.containsEdge(paper,citingPaper)){
+//                        paperGraph.addEdge(paper, citingPaper);
+//                    }
+//                    //检测是否存在环
+//                    DetectCycles(paperGraph);
+//
+//                    //获取作者数量
+//                    int endNum = getAuthorNumber(citingPaper,dataGatherManager);
+//
+//                    for(String auOrcid: citingPaper.getAuthorIDList()){
+//                        Author endAuthor = dataGatherManager.dicOrcidAuthor.get(auOrcid);
+//                        //判断数据源中是否存在该作者
+//                        if(endAuthor.getFlag()){
+//                            //判断是否需要创建结点
+//                            if(!graphManager.Graph.containsVertex(endAuthor)){
+//                                graphManager.Graph.addVertex(endAuthor);
+//                            }
+//                            //创建边
+//                            double citingKey = (double) 1 /(startNum * endNum);
+//                            Edge edge = new Edge(citingKey, paper.getPaperStatus().ordinal()+1, paper.getPublishedYear());  //论文状态为此篇论文状态
+//                            graphManager.Graph.addEdge(entry.getKey(),endAuthor,edge);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        culCitedTimes();
+//    }
+    //新增函数，意在替换原函数，仅将x年y月之前的作者引用关系而不是所有作者引用关系构造为一张图
+    public static void initGraph(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
         for(Map.Entry<Author, Vector<Paper>> entry : dataGatherManager.dicAuthorPaper.entrySet()){
             if(!entry.getKey().getFlag()) continue;  //不存在该作者则进行下一个循环
             //如果不存在作者结点则创建
@@ -59,6 +116,8 @@ public class GraphInit {
             }
             //遍历该作者的论文
             for(Paper paper: entry.getValue()){
+                if(paper.getPublishedYear()>year) continue;
+                else if(paper.getPublishedMonth()>month) continue;
                 //在论文图中添加论文结点
                 if(!paperGraph.containsVertex(paper)){
                     paperGraph.addVertex(paper);
@@ -68,6 +127,7 @@ public class GraphInit {
 
                 //获取引用论文
                 for(String doi: paper.getCitingList()){
+
                     Paper citingPaper = dataGatherManager.dicDoiPaper.get(doi);
 
                     //在论文图中添加论文结点
@@ -101,16 +161,83 @@ public class GraphInit {
                 }
             }
         }
-        culCitedTimes();
+        initCitedInfo();//更新被引信息
+        deleteSinglePoint(graphManager.Graph);
     }
-    //新增函数，意在替换原函数，仅将x年y月之前的作者引用关系而不是所有作者引用关系构造为一张图
-    public static void initGraph(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){}
-    //新增函数，即将x年y月的作者引用关系构成一张图并将其存储再GraphItems中
-    public static void initGraphItem(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){}
+    //新增函数，即将x年y月的作者引用关系构成一张图并将其存储在GraphItems中
+    public static void initGraphItem(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
+        DirectedGraph<Author,Edge> GraphTemp = new DefaultDirectedGraph<>(Edge.class);
+        for(Map.Entry<Author, Vector<Paper>> entry : dataGatherManager.dicAuthorPaper.entrySet()){
+            if(!entry.getKey().getFlag()) continue;  //不存在该作者则进行下一个循环
+            //如果不存在作者结点则创建
+            if(!GraphTemp.containsVertex(entry.getKey())){
+                GraphTemp.addVertex(entry.getKey());
+            }
+            //遍历该作者的论文
+            for(Paper paper: entry.getValue()){
+                if(paper.getPublishedYear()!=year||paper.getPublishedMonth()!=month) continue;
+                //获取存在于数据源中的作者数量
+                int startNum = getAuthorNumber(paper,dataGatherManager);  //引用作者数量，即与边起点有关的作者数
+
+                //获取引用论文
+                for(String doi: paper.getCitingList()){
+                    Paper citingPaper = dataGatherManager.dicDoiPaper.get(doi);
+                    //获取作者数量
+                    int endNum = getAuthorNumber(citingPaper,dataGatherManager);
+
+                    for(String auOrcid: citingPaper.getAuthorIDList()){
+                        Author endAuthor = dataGatherManager.dicOrcidAuthor.get(auOrcid);
+                        //判断数据源中是否存在该作者
+                        if(endAuthor.getFlag()){
+                            //判断是否需要创建结点
+                            if(!GraphTemp.containsVertex(endAuthor)){
+                                GraphTemp.addVertex(endAuthor);
+                            }
+                            //创建边
+                            double citingKey = (double) 1 /(startNum * endNum);
+                            Edge edge = new Edge(citingKey, paper.getPaperStatus().ordinal()+1, paper.getPublishedYear());  //论文状态为此篇论文状态
+                            GraphTemp.addEdge(entry.getKey(),endAuthor,edge);
+                        }
+                    }
+                }
+            }
+        }
+        deleteSinglePoint(GraphTemp);
+        graphManager.addGraphItem(year,month,GraphTemp);
+    }
+    public static void initGraphItems(GraphManager graphManager,DataGatherManager dataGatherManager,int startYear,int startMonth, int endYear, int endMonth){
+        if(startYear==endYear)
+            for(int i=startMonth;i<=endMonth;++i){
+                initGraphItem(graphManager,dataGatherManager,startYear,i);
+            }
+        else {
+            for(int i=startMonth;i<=12;++i){
+                initGraphItem(graphManager,dataGatherManager,startYear,i);
+            }
+            for (int i = startYear + 1; i < endYear; ++i) {
+                for (int j =1;j<=12;++j){
+                    initGraphItem(graphManager,dataGatherManager,i,j);
+                }
+            }
+            for(int i=1;i<=endMonth;++i){
+                initGraphItem(graphManager,dataGatherManager,endYear,i);
+            }
+        }
+    }
     //新增函数，根据paperGraph将dataGatherManager中所有paper的citedList初始化，citedList是Paper新增成员变量
     //指的是引用该论文的论文集合，所以对于该论文来说是被动语态cited
     //可以将culCitedTimes和该函数合并成initCitedInfo
-    public static void initCitedList(DataGatherManager dataGatherManager){}
+    public static void initCitedInfo(){
+        for (Paper vertex : paperGraph.vertexSet()) {
+            int inDegree = paperGraph.inDegreeOf(vertex);
+            vertex.setCitedTimes(inDegree);
+        }
+        for (DefaultEdge edge : paperGraph.edgeSet()) {
+            Paper startPoint = paperGraph.getEdgeSource(edge);
+            Paper endPoint = paperGraph.getEdgeTarget(edge);
+            endPoint.getCitedList().add(startPoint.getDoi());
+        }
+    }
     public static void givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist() throws IOException {
 
         JGraphXAdapter<Author,Edge> graphAdapter =

@@ -45,8 +45,8 @@ public class KMeans {
         for(List<Double> cluster : clusters){
             for(double item:cluster){
                 dataGatherManager.journals.get(i).setRank(rank);
-                System.out.println( dataGatherManager.journals.get(i).getRank());
-                System.out.println( dataGatherManager.journals.get(i).getIF());
+//                System.out.println( dataGatherManager.journals.get(i).getRank());
+//                System.out.println( dataGatherManager.journals.get(i).getIF());
                 i++;
             }
             rank++;
