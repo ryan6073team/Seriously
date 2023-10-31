@@ -1,11 +1,14 @@
 package com.github.ryan6073.Seriously.BasicInfo;
 
+import com.github.ryan6073.Seriously.TimeInfo;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Vector;
 public class FileInput {
     public static void initJournalToIF(DataGatherManager dataGatherManager){
@@ -144,6 +147,22 @@ public class FileInput {
 //        }
 //    }
 
+    public static void initDicTimeInfoDoi(DataGatherManager dataGatherManager){
+        for(Map.Entry<String,Paper> entry:dataGatherManager.dicDoiPaper.entrySet()){
+            //提取论文的时间信息
+            int year = entry.getValue().publishedYear;
+            int month = entry.getValue().publishedMonth;
+            TimeInfo timeInfo = new TimeInfo(year,month);
+            String doi = entry.getKey();
+            Vector<String> dois;
+            if(dataGatherManager.dicTimeInfoDoi.containsKey(timeInfo)) {
+                dois = dataGatherManager.dicTimeInfoDoi.get(timeInfo);
+                dois.add(doi);
+                dataGatherManager.dicTimeInfoDoi.put(timeInfo,dois);
+            }
+        }
+    }
+
     public static void init(DataGatherManager dataGatherManager) {
         // 文件路径
         String filePath = "D:\\Gitcode\\Seriously\\test.txt";
@@ -154,6 +173,7 @@ public class FileInput {
             while ((line = reader.readLine()) != null) {
                 Author author = initAuthor(dataGatherManager, line, authors);
                 initPaperandJournal(reader, dataGatherManager, line, author);
+                initDicTimeInfoDoi(dataGatherManager);
             }
             reader.close();
         } catch (IOException e) {

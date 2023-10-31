@@ -97,30 +97,31 @@ public class CalGraph {
         return ans;
     }
 
-    public static void calAccuImpact(double[] impactArray, int authorNum){
-        for(int i=DataGatherManager.getInstance().startMonth;i<=12;i++){
-            DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(DataGatherManager.getInstance().startYear,i);
-            double[] tempImpact = getGraphItemImpact(graphItem);
-            for(int j=0;j<authorNum;j++)
-                impactArray[j] += tempImpact[j];
-        }
-        for(int i=DataGatherManager.getInstance().startYear+1;i<=DataGatherManager.getInstance().finalYear-1;i++){
-            for(int j=1;j<=12;j++){
-                DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(i,j);
-                double[] tempImpact = getGraphItemImpact(graphItem);
-                for(int k=0;k<authorNum;k++)
-                    impactArray[k] += tempImpact[k];
-            }
-        }
-        for(int i=1;i<=DataGatherManager.getInstance().finalMonth;i++){
-            DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(DataGatherManager.getInstance().finalYear,i);
-            double[] tempImpact = getGraphItemImpact(graphItem);
-            for(int j=0;j<authorNum;j++)
-                impactArray[j] += tempImpact[j];
-        }
-    }
+//    public static void calAccuImpact(double[] impactArray, int authorNum){
+//        for(int i=DataGatherManager.getInstance().startMonth;i<=12;i++){
+//            DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(DataGatherManager.getInstance().startYear,i);
+//            double[] tempImpact = getGraphItemImpact(graphItem);
+//            for(int j=0;j<authorNum;j++)
+//                impactArray[j] += tempImpact[j];
+//        }
+//        for(int i=DataGatherManager.getInstance().startYear+1;i<=DataGatherManager.getInstance().finalYear-1;i++){
+//            for(int j=1;j<=12;j++){
+//                DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(i,j);
+//                double[] tempImpact = getGraphItemImpact(graphItem);
+//                for(int k=0;k<authorNum;k++)
+//                    impactArray[k] += tempImpact[k];
+//            }
+//        }
+//        for(int i=1;i<=DataGatherManager.getInstance().finalMonth;i++){
+//            DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(DataGatherManager.getInstance().finalYear,i);
+//            double[] tempImpact = getGraphItemImpact(graphItem);
+//            for(int j=0;j<authorNum;j++)
+//                impactArray[j] += tempImpact[j];
+//        }
+//    }
 
     public static double[] getGraphItemImpact(DirectedGraph<Author,Edge> graphItem){
+
         return null;
     }
 
@@ -133,8 +134,6 @@ public class CalGraph {
         getTransitionMatrix(targetMatrix,matrixSize);
         //获得作者影响力数组
         double[] impactArray = getTargetVector(targetMatrix, matrixSize, 0.85);
-        //计算并累加GraphItem
-        calAccuImpact(impactArray,matrixSize);
         //转换成向量输出
         Vector<Double> graphImpact = new Vector<>();
         for(int i=0;i<matrixSize;i++)

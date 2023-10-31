@@ -1,7 +1,11 @@
 package com.github.ryan6073.Seriously.BasicInfo;
+
+import com.github.ryan6073.Seriously.TimeInfo;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+
 public class DataGatherManager {//单例模式
     private static DataGatherManager mDataGatherManager = new DataGatherManager();
     public static DataGatherManager getInstance(){return mDataGatherManager;}
@@ -15,6 +19,7 @@ public class DataGatherManager {//单例模式
     public Map<Author,Vector<Paper>> dicEliteAuthorPaper ;//作者的精英论文集合
     public Map<String, Integer> dicOrcidMatrixOrder;//doi到矩阵下标的映射
     public Map<String, Double> dicJournalIF;//期刊与IF指数的映射
+    public Map<TimeInfo,Vector<String>> dicTimeInfoDoi;//时间与相应论文的映射
     public Vector<Paper> papers;
     public Vector<Journal> journals;
     public Vector<Institution> institutions;

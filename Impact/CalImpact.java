@@ -2,6 +2,8 @@ package com.github.ryan6073.Seriously.Impact;
 
 import com.github.ryan6073.Seriously.BasicInfo.*;
 import com.github.ryan6073.Seriously.Graph.GraphManager;
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.Graph;
 
 import java.util.Iterator;
 import java.util.Vector;
@@ -66,14 +68,18 @@ public class CalImpact {
             institutionItem.setInstitutionImpact(sumImpact/institutionItem.getInstitutionAuthors().size());
         }
     }
+    public static void calGraphItemImpact(DirectedGraph<Author,Edge> graphItem,Vector<Double> graphImpact){}
     public static Vector<Double> getImpact(GraphManager graphManager, DataGatherManager dataGatherManager){
         dataGatherManager.initMatrixOrder();
         Vector<Double> graphImpact = CalGraph.getGraphImpact(graphManager);
-        updateAuthorImpact(graphImpact);
-        updatePaperImpact();
-        updateJournalImpact();
-        updateInstitutionImpact();
-        Vector<Double> submissionCycleImpact = CalSubmissionCycle.getSubmissionCycleImpact(dataGatherManager);
+        for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
+            updateAuthorImpact(graphImpact);
+            updatePaperImpact();
+            updateJournalImpact();
+            updateInstitutionImpact();
+            DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(i/12,i%12);
+            calGraphItemImpact(graphItem,graphImpact);
+        }
         //***
         return graphImpact;
     }
