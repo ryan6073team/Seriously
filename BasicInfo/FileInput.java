@@ -188,7 +188,7 @@ public class FileInput {
         }
 
         for(Journal item:dataGatherManager.journals){
-            item.setIF(0.0);//让其随机生成一个IF测试用
+            item.setIF(dataGatherManager);
         }
 
         KMeans.kMeans(dataGatherManager);//更新rank

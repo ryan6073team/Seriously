@@ -23,7 +23,7 @@ public class Seriously {//123456
         System.out.println(dataGatherManager.dicAuthorPaper.size());//测试
 
         GraphManager graphManager = GraphManager.getInstance();
-        GraphInit.initGraph(graphManager,dataGatherManager,dataGatherManager.finalYear,dataGatherManager.finalMonth);
+        GraphInit.initGraph(graphManager,dataGatherManager,dataGatherManager.startYear,dataGatherManager.startMonth);
         GraphInit.initGraphItems(graphManager,dataGatherManager,dataGatherManager.startYear,dataGatherManager.startMonth,dataGatherManager.finalYear,dataGatherManager.finalMonth);
         try {
             GraphInit.givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist();

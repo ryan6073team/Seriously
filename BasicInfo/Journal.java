@@ -14,9 +14,10 @@ public class Journal implements Comparable<Journal>{
     public void setJournalImpact(Double _journalImpact){journalImpact = _journalImpact;}
     public Vector<String> getJournalPapers(){return journalPapers;}
 
-    public void setIF(Double IF) {
+    public void setIF(DataGatherManager dataGatherManager) {
         Random random = new Random();
         this.IF = (double) (random.nextInt(100) + 1);
+        //this.IF = dataGatherManager.dicJournalIF.get(journalName);
     } //  需要修改
     public Double getIF() {
         return IF;
