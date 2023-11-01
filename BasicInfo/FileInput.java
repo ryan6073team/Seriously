@@ -2,12 +2,14 @@ package com.github.ryan6073.Seriously.BasicInfo;
 
 import com.github.ryan6073.Seriously.TimeInfo;
 
+import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 public class FileInput {
@@ -148,6 +150,7 @@ public class FileInput {
 //    }
 
     public static void initDicTimeInfoDoi(DataGatherManager dataGatherManager){
+        dataGatherManager.dicTimeInfoDoi = new HashMap<>();
         for(Map.Entry<String,Paper> entry:dataGatherManager.dicDoiPaper.entrySet()){
             //提取论文的时间信息
             int year = entry.getValue().publishedYear;
@@ -157,6 +160,10 @@ public class FileInput {
             Vector<String> dois;
             if(dataGatherManager.dicTimeInfoDoi.containsKey(timeInfo)) {
                 dois = dataGatherManager.dicTimeInfoDoi.get(timeInfo);
+                dois.add(doi);
+                dataGatherManager.dicTimeInfoDoi.put(timeInfo,dois);
+            }else{
+                dois = new Vector<String>();
                 dois.add(doi);
                 dataGatherManager.dicTimeInfoDoi.put(timeInfo,dois);
             }
