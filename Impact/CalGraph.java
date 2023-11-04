@@ -16,8 +16,7 @@ import java.util.Set;
 import java.util.Vector;
 
 public class CalGraph {
-    public static double[][] getGraphMatrix(GraphManager graphManager){
-        Graph<Author, Edge> mGraph = graphManager.Graph;
+    public static double[][] getGraphMatrix(Graph<Author, Edge> mGraph){
         Iterator<Author> mBreadthFirstIterator = new BreadthFirstIterator<>(mGraph);
         int authorNum = mGraph.vertexSet().size();
         double[][] Matrix = new double[authorNum][authorNum];
@@ -129,7 +128,7 @@ public class CalGraph {
         Graph<Author, Edge> mGraph = graphManager.Graph;
         int matrixSize = mGraph.vertexSet().size();
         //获得引用矩阵
-        double [][] targetMatrix = getGraphMatrix(graphManager);
+        double [][] targetMatrix = getGraphMatrix(mGraph);
         //获得转移矩阵
         getTransitionMatrix(targetMatrix,matrixSize);
         //获得作者影响力数组
