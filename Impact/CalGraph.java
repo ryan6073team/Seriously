@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.Vector;
 
 public class CalGraph {
-    public static double[][] getGraphMatrix(Graph<Author, Edge> mGraph){
+    public static double[][] getGraphMatrix(DirectedGraph<Author, Edge> mGraph){
         Iterator<Author> mBreadthFirstIterator = new BreadthFirstIterator<>(mGraph);
         int authorNum = mGraph.vertexSet().size();
         double[][] Matrix = new double[authorNum][authorNum];
@@ -124,8 +124,8 @@ public class CalGraph {
         return null;
     }
 
-    public static Vector<Double> getGraphImpact(GraphManager graphManager){
-        Graph<Author, Edge> mGraph = graphManager.Graph;
+    public static Vector<Double> getGraphImpact(DirectedGraph<Author, Edge> mGraph){
+
         int matrixSize = mGraph.vertexSet().size();
         //获得引用矩阵
         double [][] targetMatrix = getGraphMatrix(mGraph);

@@ -77,16 +77,18 @@ public class CalImpact {
         CalPapers calPapers = new CalPapers(thenPaperDois);
         calPapers.excute();
     }
-    public static Vector<Double> getImpact(GraphManager graphManager, DataGatherManager dataGatherManager){
-        dataGatherManager.initMatrixOrder();
-        Vector<Double> graphImpact = CalGraph.getGraphImpact(graphManager);
+    public static void updateAll(DataGatherManager dataGatherManager, Vector<Double> graphImpact, int year, int month){
+        updateAuthorImpact(graphImpact);
+        updatePaperImpact();
+        updateJournalImpact();
+        updateInstitutionImpact();
+        DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(year,month);
+        calGraphItemImpact(dataGatherManager,graphItem,graphImpact,year,month);
+    }
+    public static Vector<Double> getImpact(DirectedGraph<Author, Edge> graph, DataGatherManager dataGatherManager){
+        Vector<Double> graphImpact = CalGraph.getGraphImpact(graph);
         for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
-            updateAuthorImpact(graphImpact);
-            updatePaperImpact();
-            updateJournalImpact();
-            updateInstitutionImpact();
-            DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(i/12,i%12);
-            calGraphItemImpact(dataGatherManager,graphItem,graphImpact,i/12,i%12);
+            updateAll(dataGatherManager,graphImpact,i/12,i%12);
         }
         //***
         return graphImpact;

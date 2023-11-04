@@ -181,6 +181,7 @@ public class FileInput {
                 Author author = initAuthor(dataGatherManager, line, authors);
                 initPaperandJournal(reader, dataGatherManager, line, author);
                 initDicTimeInfoDoi(dataGatherManager);
+                dataGatherManager.initMatrixOrder();
             }
             reader.close();
         } catch (IOException e) {

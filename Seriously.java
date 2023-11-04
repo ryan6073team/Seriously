@@ -31,7 +31,7 @@ public class Seriously {//123456
             throw new RuntimeException(e);
         }
 
-        Vector<Double> ans = CalImpact.getImpact(graphManager,dataGatherManager);
+        Vector<Double> ans = CalImpact.getImpact(graphManager.Graph,dataGatherManager);
         //test
     }
 }
