@@ -13,11 +13,13 @@ public class Paper {
     Integer citedTimes=0;//citedList长度
     Vector<String> journals;
     //这个地方应该不存在一篇文章多个期刊的情况，埋个坑；他可能会有发表在多种刊物上的情况出现，然后现在也不知道到底就是会不会有这种特殊情况。然后你如果是用一个string的话，它就无法容错，但是如果你是用vector的话，它就有容错的空间了，它是一个兼容的情况啊，如果它只有一个期刊，那就只有一个元素。那如果有多个期刊的话，那我这个vector也可以直接就是把它兼容下来，但是如果遇见那种有多种期刊的情况，如果只有一个string的话，它这个代码就不能处理呀，就要重新改呀，那就会更麻烦一些。
+    Vector<Edge> edgeList;
     public Paper(){
         citingList = new Vector<>();
         authorIDList = new Vector<>();
         citedList = new Vector<>();
         journals = new Vector<>();
+        edgeList = new Vector<>();
     }
     public void setYear(int _year, CitingStatusTypes _citingstatus/*fileinput待更新，该函数调用应删去此参数*/){
         publishedYear = _year;
@@ -46,4 +48,7 @@ public class Paper {
     public int getPublishedMonth(){return publishedMonth;}
     public Double getPaperImpact(){return paperImpact;}
     public void setPaperImpact(Double _paperImpact){paperImpact = _paperImpact;}
+    public Vector<Edge> getEdgeList(){
+        return edgeList;
+    }
 }

@@ -91,16 +91,6 @@ public class DataGatherManager {//单例模式
         //中间对影响力进行计算，选出精英论文集
         return elitePapers;
     }//根据dicAuthorPaper获得dicEliteAuthorPaper,我认为这个类型应该返回一个map，key是作者，value是论文集合，所以对于精英论文集我可以写成： dicEliteAuthorPaper = HashMap<Author,getElite(Vector(Paper))>();
-    public DirectedGraph<Author,Edge> createNewGraph(Author author, DirectedGraph<Author,Edge> graph){
-        if(graph.removeVertex(author)) return graph;
-        else {
-            System.out.println("不存在该节点，无法删除");
-            return null;
-        }
-    }//生成删除了要研究论文的图
-    public void calNewPaperImp(GraphManager graphManager){
-
-    }//计算删除了要研究论文的图的作者影响力
     private DataGatherManager(){
         this.dicAuthorPaper = new HashMap<>();
         this.dicDoiPaper = new HashMap<>();

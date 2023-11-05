@@ -154,8 +154,9 @@ public class GraphInit {
                             }
                             //创建边
                             double citingKey = (double) 1 /(startNum * endNum);
-                            Edge edge = new Edge(citingKey, paper.getPaperStatus().ordinal()+1, paper.getPublishedYear());  //论文状态为此篇论文状态
+                            Edge edge = new Edge(citingKey, paper.getPaperStatus().ordinal()+1, paper.getPublishedYear(),doi);  //论文状态为此篇论文状态
                             graphManager.Graph.addEdge(entry.getKey(),endAuthor,edge);
+                            dataGatherManager.dicDoiPaper.get(doi).getEdgeList().add(edge);
                         }
                     }
                 }
@@ -195,8 +196,9 @@ public class GraphInit {
                             }
                             //创建边
                             double citingKey = (double) 1 /(startNum * endNum);
-                            Edge edge = new Edge(citingKey, paper.getPaperStatus().ordinal()+1, paper.getPublishedYear());  //论文状态为此篇论文状态
+                            Edge edge = new Edge(citingKey, paper.getPaperStatus().ordinal()+1, paper.getPublishedYear(),doi);  //论文状态为此篇论文状态
                             GraphTemp.addEdge(entry.getKey(),endAuthor,edge);
+                            dataGatherManager.dicDoiPaper.get(doi).getEdgeList().add(edge);
                         }
                     }
                 }
