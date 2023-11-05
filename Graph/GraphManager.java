@@ -1,4 +1,5 @@
 package com.github.ryan6073.Seriously.Graph;
+import Jama.Matrix;
 import com.github.ryan6073.Seriously.BasicInfo.*;
 import com.github.ryan6073.Seriously.Impact.CalGraph;
 import com.github.ryan6073.Seriously.Impact.CalImpact;
@@ -58,7 +59,40 @@ public class GraphManager { //单例
             imp.remove(orcid);
         }
         CalImpact.initAuthorImpact(CalGraph.getGraphImpact(graph));//恢复原作者影响力
-        return  imp;
+        return imp;
     }//计算删除了要研究论文的图的作者影响力
-
+    public double[][] calAllPaperImp(DataGatherManager dataGatherManager,DirectedGraph<Author,Edge> graph){
+        double [][] Matrix = new double[5][5];
+        int [][] number = new int[5][5];
+        Vector<Paper> papers = new Vector<>();
+        for(int i=0;i<5;i++){
+            for(int j=0;j<5;j++){
+                Matrix[i][j]=0.0;
+                number[i][j]=0;
+            }
+        }
+        for(Edge edge:graph.edgeSet()) {
+            Paper paper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
+            if (!papers.contains(paper)) papers.add(paper);
+        }
+        for(Paper paper:papers){
+            if(paper.getIsAlive()) continue;
+            int paperRank = paper.getLevel().ordinal();
+            Map<String,Double> imp = calNewPaperImp(dataGatherManager,paper,graph);
+            for(String orcid: imp.keySet()){
+                Author author = dataGatherManager.dicOrcidAuthor.get(orcid);
+                int authorRank = author.getLevel().ordinal();
+                Matrix[authorRank][paperRank] += imp.get(orcid);
+                number[authorRank][paperRank]++;
+            }
+        }
+        for(int i=0;i<5;i++){
+            for(int j=0;j<5;j++){
+                if(number[i][j]!=0){
+                    Matrix[i][j]/=number[i][j];
+                }
+            }
+        }
+        return Matrix;
+    }//计算全部不在保护期的论文对作者的平均影响力
 }

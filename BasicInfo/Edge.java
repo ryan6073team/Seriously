@@ -18,5 +18,8 @@ public class Edge {
     }
     public Double getCitingKey(){return citingKey;}
     public CitingStatusTypes getCitingStatus(){return citingStatus;}
+    public String getDoi(){
+        return doi;
+    }
 }
 

@@ -3,6 +3,8 @@ package com.github.ryan6073.Seriously.BasicInfo;
 import java.util.Vector;
 
 public class Paper {
+    boolean isAlive = false;
+    Level level = Level.E;
     String paperName,doi;
     CitingStatusTypes paperStatus;
     Double paperImpact=0.0;//保存文章的影响力
@@ -50,5 +52,17 @@ public class Paper {
     public void setPaperImpact(Double _paperImpact){paperImpact = _paperImpact;}
     public Vector<Edge> getEdgeList(){
         return edgeList;
+    }
+    public boolean getIsAlive(){
+        return isAlive;
+    }
+    public void updateAlive(){
+
+    }//用于更新论文存活状态，具体实现后续补充。
+    public Level getLevel(){
+        return level;
+    }
+    public void setLevel(Level l){
+        level = l;
     }
 }

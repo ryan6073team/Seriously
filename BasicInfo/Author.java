@@ -3,6 +3,7 @@ package com.github.ryan6073.Seriously.BasicInfo;
 import java.util.Vector;
 
 public class Author {
+    Level level=Level.E; //初始默认为E等级
     String authorName,orcid;
     Vector<String> authorInstitution;
     Double authorImpact = 0.0;
@@ -36,4 +37,10 @@ public class Author {
     public String getAuthorName(){return authorName;}
     public Double getAuthorImpact(){return authorImpact;}
     public void setAuthorImpact(Double _authorImpact){authorImpact = _authorImpact;}
+    public void setLevel(Level l){
+        level = l;
+    }
+    public Level getLevel(){
+        return level;
+    }
 }
