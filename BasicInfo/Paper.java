@@ -4,7 +4,9 @@ import java.util.Vector;
 
 public class Paper {
     boolean isAlive = false;
+    int lifeSpan = 12; //默认保护期一年
     Level level = Level.E;
+    Double rankWeight = 1.0; //等级的权值在保护期开始为1;
     String paperName,doi;
     CitingStatusTypes paperStatus;
     Double paperImpact=0.0;//保存文章的影响力
@@ -56,13 +58,25 @@ public class Paper {
     public boolean getIsAlive(){
         return isAlive;
     }
-    public void updateAlive(){
-
+    public void setIsAlive(boolean flag){
+        isAlive = flag;
     }//用于更新论文存活状态，具体实现后续补充。
     public Level getLevel(){
         return level;
     }
     public void setLevel(Level l){
         level = l;
+    }
+    public int getLifeSpan(){
+        return lifeSpan;
+    }
+    public void setLifeSpan(int life){
+        lifeSpan = life;
+    }
+    public double getRankWeight(){
+        return rankWeight;
+    }
+    public void setRankWeight(double weight){
+        rankWeight = weight;
     }
 }
