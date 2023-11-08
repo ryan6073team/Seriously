@@ -100,7 +100,7 @@ public class FileInput {
             Paper paper = new Paper();
             paper.paperName = paperName;
             paper.doi = paperDoi;
-            paper.journals.add(paperJournal);
+            paper.journal = paperJournal;
             paper.paperStatus = CitingStatusTypes.choiceTypes(paperStatus);
             if (paper.paperStatus != null) {
                 paper.setYear(paperYear, paper.paperStatus);
@@ -118,7 +118,7 @@ public class FileInput {
 
             //更新论文所处的期刊信息
             Journal journal = new Journal();
-            journal.journalName = paperJournal;
+            journal.setJournalName(paperJournal);
             journal.journalPapers.add(paper.doi);
             if (dataGatherManager.journals.contains(journal)) {
                 journal = dataGatherManager.journals.get(dataGatherManager.journals.indexOf(journal));
@@ -192,6 +192,5 @@ public class FileInput {
             item.setIF(dataGatherManager);
         }
 
-        KMeans.kMeans(dataGatherManager);//更新rank
     }
 }

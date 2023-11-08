@@ -5,9 +5,9 @@ import java.util.Vector;
 public class Paper {
     boolean isAlive = false;
     int lifeSpan = 12; //默认保护期一年
-    Level level = Level.E;
+    LevelManager.Level level = LevelManager.Level.E;
     Double rankWeight = 1.0; //等级的权值在保护期开始为1;
-    String paperName,doi;
+    String paperName,doi,journal;
     CitingStatusTypes paperStatus;
     Double paperImpact=0.0;//保存文章的影响力
     int  publishedYear=0;//不设置默认值，因为必须有，但是按照表结构似乎不是这样，先假设可以有默认值，方便运行
@@ -15,14 +15,13 @@ public class Paper {
     Vector<String> citingList,authorIDList,citedList;//新增citedList，待更新,存储doi
     //received accepted revised 已被删除，CitingStatusTypes类实际上已失去作用
     Integer citedTimes=0;//citedList长度
-    Vector<String> journals;
-    //这个地方应该不存在一篇文章多个期刊的情况，埋个坑；他可能会有发表在多种刊物上的情况出现，然后现在也不知道到底就是会不会有这种特殊情况。然后你如果是用一个string的话，它就无法容错，但是如果你是用vector的话，它就有容错的空间了，它是一个兼容的情况啊，如果它只有一个期刊，那就只有一个元素。那如果有多个期刊的话，那我这个vector也可以直接就是把它兼容下来，但是如果遇见那种有多种期刊的情况，如果只有一个string的话，它这个代码就不能处理呀，就要重新改呀，那就会更麻烦一些。
+
+
     Vector<Edge> edgeList;
     public Paper(){
         citingList = new Vector<>();
         authorIDList = new Vector<>();
         citedList = new Vector<>();
-        journals = new Vector<>();
         edgeList = new Vector<>();
     }
     public void setYear(int _year, CitingStatusTypes _citingstatus/*fileinput待更新，该函数调用应删去此参数*/){
@@ -42,10 +41,11 @@ public class Paper {
     public String getDoi(){
         return doi;
     }
+    public String getJournal(){return journal;}
+    public void setJournal(String journal){this.journal = journal;}
     public void setCitedTimes(int inDegree) {
         citedTimes = inDegree;
     }
-
     public int getPublishedYear() {
         return publishedYear;
     }
@@ -61,10 +61,10 @@ public class Paper {
     public void setIsAlive(boolean flag){
         isAlive = flag;
     }//用于更新论文存活状态，具体实现后续补充。
-    public Level getLevel(){
+    public LevelManager.Level getLevel(){
         return level;
     }
-    public void setLevel(Level l){
+    public void setLevel(LevelManager.Level l){
         level = l;
     }
     public int getLifeSpan(){

@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class KMeans {
-    public static void kMeans(DataGatherManager dataGatherManager) {
+public class JournalKMeans {
+    public static void JournalkMeans(DataGatherManager dataGatherManager) {
         Collections.sort(dataGatherManager.journals);// 根据IF进行排序
         // 创建一维数据
         double[] data = new double[dataGatherManager.journals.size()];
         for(int i=0;i<dataGatherManager.journals.size();i++){
-            data[i]=dataGatherManager.journals.get(i).getIF();
+            data[i]=dataGatherManager.journals.get(i).getJournalImpact();
         }
 
         // 指定簇的数量 (K)
-        int k = 4;
+        int k = 5;
 
         // 创建簇中心
         List<Double> clusterCenters = initializeClusterCenters(data, k);
