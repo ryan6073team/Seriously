@@ -24,7 +24,6 @@ public class DataGatherManager {//单例模式
     public Map<String, Integer> dicOrcidMatrixOrder;//doi到矩阵下标的映射
     public Map<String, Double> dicJournalIF;//期刊与IF指数的映射
     public Map<TimeInfo,Vector<String>> dicTimeInfoDoi;//时间与相应论文的映射
-    public Map<String,Journal> dicNameJournal;//JournalName和Journal的映射
     public Vector<Paper> papers;
     public Vector<Journal> journals;
     public Vector<Institution> institutions;
