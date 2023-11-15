@@ -34,7 +34,29 @@ public class FileInput {
             ex.printStackTrace();
         }
     }
-    public static Author initAuthor(DataGatherManager dataGatherManager, String line, Vector<Author> authors,int firstNumberIndex, int lastNumberIndex, int insCountInt, String authorName, String orcid) {
+    public static Author initAuthor(DataGatherManager dataGatherManager, String line, Vector<Author> authors) {
+        // 解析作者信息
+        // 正则表达式，匹配数字
+        Pattern pattern = Pattern.compile("\\d+");
+        Matcher matcher = pattern.matcher(line);
+
+        // 找到第一个数字的位置（作者编号）
+        int firstNumberIndex = 0;
+        if (matcher.find()) {
+            firstNumberIndex = matcher.start();
+        }
+        // 找到最后一个数字的位置（论文数）
+        int lastNumberIndex = 0;
+        while (matcher.find()) {
+            lastNumberIndex = matcher.start();
+        }
+        // 根据数字的位置拆分字符串
+        String authorName = line.substring(0, firstNumberIndex).trim();
+        // System.out.println(authorName);
+        String orcid = line.substring(firstNumberIndex, line.indexOf(" ", firstNumberIndex)).trim();
+        String insCount = line.substring(line.indexOf(" ", firstNumberIndex) + 1, line.indexOf(" ", line.indexOf(" ", firstNumberIndex) + 1)).trim();
+//                int insCountInt = Integer.parseInt(insCount);
+        int insCountInt = Integer.parseInt(insCount);
         String institutionNames = line.substring(line.indexOf(" ", line.indexOf(" ", firstNumberIndex) + 1) + 1, lastNumberIndex).trim();
         String[] institutions = institutionNames.split(";;");
         Author author;
@@ -67,8 +89,23 @@ public class FileInput {
     //1.Paper中新增publishedMonth变量，需要在文件中初始化，month顶替了文件中原先status的位置，status指的是文章的出版状态，文件曾经用1 2 3 4指代published revised等四种出版状态
     //2.如你所见，Paper中的出版状态变量已经删去，CitingStatusType类应该删除，现在Paper中关于时间的变量只有publishedYear和publishedMonth，需要将函数initPaperandJournal中
     //跟xxxYear和CitingStatusType有关的代码进行删除调整，确保达到修改完代码之后删除CitingStatusType类此文件不会报错的程度
-    public static void initPaperandJournal(BufferedReader reader, DataGatherManager dataGatherManager, String line, Author author,int paperCountInt,String orcid) throws IOException {
+    public static void initPaperandJournal(BufferedReader reader, DataGatherManager dataGatherManager, String line, Author author) throws IOException {
         Vector<Paper> author_papers = new Vector<>();
+        Pattern pattern = Pattern.compile("\\d+");
+        Matcher matcher = pattern.matcher(line);
+        // 找到第一个数字的位置（作者编号）
+        int firstNumberIndex = 0;
+        if (matcher.find()) {
+            firstNumberIndex = matcher.start();
+        }
+        // 找到最后一个数字的位置（论文数）
+        int lastNumberIndex = 0;
+        while (matcher.find()) {
+            lastNumberIndex = matcher.start();
+        }
+        String paperCount = line.substring(lastNumberIndex).trim().split(" ")[0];
+        int paperCountInt = Integer.parseInt(paperCount);
+        String orcid = line.substring(firstNumberIndex, line.indexOf(" ", firstNumberIndex)).trim();
         // 解析每篇论文信息
         for (int i = 0; i < paperCountInt; i++) {
             String CountLine = reader.readLine();
@@ -82,6 +119,7 @@ public class FileInput {
             if (doiMatcher.find()) {
                 paperDoi = doiMatcher.group();
             }
+            System.out.println(paperDoi);
             // 使用DOI分割数据行，这样我们可以单独获取论文名和剩余部分
             String[] parts = paperLine.split(paperDoi);
 
@@ -200,32 +238,8 @@ public class FileInput {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             String line;
             while ((line = reader.readLine()) != null) {
-                // 解析作者信息
-                // 正则表达式，匹配数字
-                Pattern pattern = Pattern.compile("\\d+");
-                Matcher matcher = pattern.matcher(line);
-
-                // 找到第一个数字的位置（作者编号）
-                int firstNumberIndex = 0;
-                if (matcher.find()) {
-                    firstNumberIndex = matcher.start();
-                }
-                // 找到最后一个数字的位置（论文数）
-                int lastNumberIndex = 0;
-                while (matcher.find()) {
-                    lastNumberIndex = matcher.start();
-                }
-                // 根据数字的位置拆分字符串
-                String authorName = line.substring(0, firstNumberIndex).trim();
-                //System.out.println(authorName);
-                String orcid = line.substring(firstNumberIndex, line.indexOf(" ", firstNumberIndex)).trim();
-                String insCount = line.substring(line.indexOf(" ", firstNumberIndex) + 1, line.indexOf(" ", line.indexOf(" ", firstNumberIndex) + 1)).trim();
-//                int insCountInt = Integer.parseInt(insCount);
-                int insCountInt = Integer.parseInt(insCount);
-                String paperCount = line.substring(lastNumberIndex).trim().split(" ")[0];
-                int paperCountInt = Integer.parseInt(paperCount);
-                Author author = initAuthor(dataGatherManager, line, authors, firstNumberIndex, lastNumberIndex, insCountInt, authorName, orcid);
-                initPaperandJournal(reader, dataGatherManager, line, author, paperCountInt, orcid);
+                Author author = initAuthor(dataGatherManager, line, authors);
+                initPaperandJournal(reader, dataGatherManager, line, author);
                 initDicTimeInfoDoi(dataGatherManager);
                 dataGatherManager.initMatrixOrder();
             }
