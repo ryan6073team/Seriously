@@ -7,7 +7,7 @@ import java.util.Vector;
 public class Journal implements Comparable<Journal>{
     public static Map<LevelManager.Level,Double> levelImpact;
     public Vector<String> journalPapers;//用DOI唯一标识
-    private String journalName;
+    public String journalName;
     private Double journalImpact=0.0;
     private Double IF;
     private Integer rank; //  用1、2、3、4划分为四个等级

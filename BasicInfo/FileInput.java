@@ -149,7 +149,7 @@ public class FileInput {
                         dataGatherManager.addPaper(paper);
                     }
                     dataGatherManager.addDicDP(paper);
-                    dataGatherManager.addToPaper(paper);
+                    dataGatherManager.addPaper(paper);
                     dataGatherManager.authorNum = authors.size();//如果分批读取再做修改，改成+=即可
                     if(dataGatherManager.journals.contains(journal)){
                         journal = dataGatherManager.journals.get(dataGatherManager.journals.indexOf(journal));
