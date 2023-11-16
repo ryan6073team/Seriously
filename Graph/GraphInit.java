@@ -154,7 +154,7 @@ public class GraphInit {
                             }
                             //创建边
                             double citingKey = (double) 1 /(startNum * endNum);
-                            Edge edge = new Edge(citingKey, paper.getPaperStatus().ordinal()+1, paper.getPublishedYear(),doi);  //论文状态为此篇论文状态
+                            Edge edge = new Edge(citingKey, paper.getPublishedYear(),doi);  //论文状态为此篇论文状态
                             graphManager.Graph.addEdge(entry.getKey(),endAuthor,edge);
                             dataGatherManager.dicDoiPaper.get(doi).getEdgeList().add(edge);
                         }
@@ -196,7 +196,7 @@ public class GraphInit {
                             }
                             //创建边
                             double citingKey = (double) 1 /(startNum * endNum);
-                            Edge edge = new Edge(citingKey, paper.getPaperStatus().ordinal()+1, paper.getPublishedYear(),doi);  //论文状态为此篇论文状态
+                            Edge edge = new Edge(citingKey,paper.getPublishedYear(),doi);  //论文状态为此篇论文状态
                             GraphTemp.addEdge(entry.getKey(),endAuthor,edge);
                             dataGatherManager.dicDoiPaper.get(doi).getEdgeList().add(edge);
                         }
@@ -240,7 +240,62 @@ public class GraphInit {
             endPoint.getCitedList().add(startPoint.getDoi());
         }
     }
-
+    public static void updateGraph(int year, int month, GraphManager graphManager){
+        DirectedGraph<Author,Edge> graphItem = graphManager.getGraphItem(year, month);
+        for(Author author:graphItem.vertexSet()){
+            if(!graphManager.Graph.containsVertex(author)) graphManager.Graph.addVertex(author);
+        }
+        for(Edge edge:graphItem.edgeSet()){
+            graphManager.Graph.addEdge(graphItem.getEdgeSource(edge),graphItem.getEdgeTarget(edge),edge);
+        }
+    }
+    public static Vector<Vector<String>> updatePaperLifeInfo(int year, int month, DirectedGraph<Author,Edge> graph, DataGatherManager dataGatherManager){
+        Vector<Paper> papers = new Vector<>();
+        for(Edge edge:graph.edgeSet()) {
+            Paper paper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
+            if (!papers.contains(paper)) papers.add(paper);
+        }
+        Vector<String> alive = new Vector<>();
+        Vector<String> dead = new Vector<>();
+        for(Paper paper:papers){
+            if(!paper.getIsAlive()) {
+                dead.add(paper.getDoi());
+                continue;
+            }
+            int finalMonth = paper.getPublishedMonth() + paper.getLifeSpan() - 1;
+            int finalYear = paper.getPublishedYear() + finalMonth / 12;
+            finalMonth = finalMonth % 12;
+            if(finalMonth == 0) {
+                finalMonth = 12;
+                finalYear--;
+            }
+            if(year<finalYear){
+                alive.add(paper.getDoi());
+                int leftTime = (finalYear - year) * 12 + finalMonth - month + 1;
+                paper.setRankWeight(1.0 - (double) leftTime / paper.getLifeSpan());
+            }
+            else if(year>finalYear){
+                paper.setIsAlive(false);
+                dead.add(paper.getDoi());
+            }
+            else{
+                if(month>finalMonth){
+                    paper.setIsAlive(false);
+                    dead.add(paper.getDoi());
+                    paper.setRankWeight(0.0);
+                }
+                else{
+                    alive.add(paper.getDoi());
+                    int leftTime = finalMonth - month + 1;
+                    paper.setRankWeight(1.0 - (double) leftTime / paper.getLifeSpan());
+                }
+            }
+        }
+        Vector<Vector<String>> ans = new Vector<>();
+        ans.add(alive);
+        ans.add(dead);
+        return ans; // 0为仍保护的，1为脱离保护期的
+    }
     public static void givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist() throws IOException {
 
         JGraphXAdapter<Author,Edge> graphAdapter =

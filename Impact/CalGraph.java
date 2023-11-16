@@ -1,13 +1,10 @@
 package com.github.ryan6073.Seriously.Impact;
 
 import com.github.ryan6073.Seriously.BasicInfo.Author;
-import com.github.ryan6073.Seriously.BasicInfo.CitingStatusTypes;
 import com.github.ryan6073.Seriously.BasicInfo.DataGatherManager;
 import com.github.ryan6073.Seriously.BasicInfo.Edge;
-import com.github.ryan6073.Seriously.Graph.GraphManager;
 import Jama.Matrix;
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.Graph;
 import org.jgrapht.traverse.BreadthFirstIterator;
 
 import java.util.HashSet;
@@ -41,8 +38,6 @@ public class CalGraph {
             Iterator<Edge> outgoingIterator = outgoingEdges.iterator();
             while(outgoingIterator.hasNext()){
                 Edge edgeItem = outgoingIterator.next();
-                if(edgeItem.getCitingStatus()== CitingStatusTypes.PUBLISHED)
-                    publishednum++;
                 Author citedAuthor = mGraph.getEdgeTarget(edgeItem);
                 int nowAuthorOrder = DataGatherManager.getInstance().dicOrcidMatrixOrder.get(nowAuthor.getOrcid());
                 int citedAuthorOrder = DataGatherManager.getInstance().dicOrcidMatrixOrder.get(citedAuthor.getOrcid());
