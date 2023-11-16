@@ -5,8 +5,10 @@ import com.github.ryan6073.Seriously.Graph.GraphManager;
 import com.github.ryan6073.Seriously.TimeInfo;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultDirectedGraph;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 public class CalImpact {
@@ -29,15 +31,12 @@ public class CalImpact {
     }
     public static void initAuthorImpact(Vector<Double> graphImpact){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
-        for(int i=0;i<graphImpact.size();i++) {
-            for (String orcid : dataGatherManager.dicOrcidMatrixOrder.keySet()){
-                if(dataGatherManager.dicOrcidMatrixOrder.get(orcid)==i){
-                    //更新作者影响力
-                    dataGatherManager.dicOrcidAuthor.get(orcid).setAuthorImpact(graphImpact.get(i));
-                }
-            }
+        for(Map.Entry<String,Integer> entry:dataGatherManager.dicOrcidMatrixOrder.entrySet()){
+            //更新作者影响力
+            dataGatherManager.dicOrcidAuthor.get(entry.getKey()).setAuthorImpact(graphImpact.get(entry.getValue()));
         }
     }
+
     public static void initPapersImpact(){
         Vector<Paper> papers = DataGatherManager.getInstance().papers;
         Iterator<Paper> paperIterator = papers.iterator();
@@ -73,17 +72,34 @@ public class CalImpact {
             institutionItem.setInstitutionImpact(sumImpact/institutionItem.getInstitutionAuthors().size());
         }
     }
-    public static void updateAuthorImpact(DirectedGraph<Author, Edge> graph){
+    public static void updateAuthorImpact(Vector<Vector<String>> currentPapers){
         //对于引用网络的论文，其根据时间分为两类，一类已经脱离新手期，完全根据引用关系对作者影响力做出贡献
         //一类仍未成熟，引用关系和form值对于作者影响力各自按照权重比做出一定贡献
         //因此在更新过程中要进行加权运算
+        //获得相应时间点的论文
+        Vector<String> protectedPapers = currentPapers.get(0);
+        //更新成熟引用图
+        DirectedGraph<Author, Edge> matureGraph = GraphManager.getInstance().getMatureGraph();
+        //更新作者影响力
+        initAuthorImpact(CalGraph.getGraphImpact(matureGraph));
+        //更新作者等级
+        AuthorKMeans.AuthorKMeans(DataGatherManager.getInstance());
+        //利用成熟论文的引用关系通过PageRank算法计算作者影响力
+        //得到未成熟论文和其作者的等级，并利用ImpactForm，Form是否可以加一个论文寿命维度？
+        for(String doi:protectedPapers){
+            Paper paper = DataGatherManager.getInstance().paperGet(doi);
+            LevelManager.Level paperLevel = paper.getLevel();
+            for(String orcid:paper.getAuthorIDList()){
+                Author author = DataGatherManager.getInstance().dicOrcidAuthor.get(orcid);
+                LevelManager.Level authorLevel = author.getLevel();
+                author.setAuthorImpact(author.getAuthorImpact()+ImpactForm.getInstance().getAuthorPaperImpact(authorLevel,paperLevel));
+            }
+        }
     }
-    public static void updatePaperImpact(int year, int month, PaperCoefficientStrategy strategy){
+    public static void updatePaperImpact(Vector<Vector<String>> currentPapers, PaperCoefficientStrategy strategy){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         GraphManager graphManager = GraphManager.getInstance();
         //获得相应时间点的论文
-            //更新母图和论文并获取论文集
-        Vector<Vector<String>> currentPapers = GraphManager.getInstance().updateGraph(year,month);
         Vector<String> maturePapers = currentPapers.get(1);
         Vector<String> protectedPapers = currentPapers.get(0);
         //对它们进行分级，给予影响力
@@ -112,24 +128,38 @@ public class CalImpact {
             Journal journalItem = journalIterator.next();
             Vector<String> paperDois = journalItem.getJournalPapers();
             double sumImpact=0.0;
+            int paperNum=0;
+            //将目标期刊的已读的成熟论文作为Journal的影响力计算因素
             for (String doi:paperDois){
-                sumImpact+=DataGatherManager.getInstance().dicDoiPaper.get(doi).getPaperImpact();
+                Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(doi);
+                if(paper.getIfRead()==1&&!paper.getIsAlive()) {
+                    sumImpact += paper.getPaperImpact();
+                    paperNum++;
+                }
             }
             //平均论文影响力
-            journalItem.setJournalImpact(sumImpact/journalItem.getJournalPapers().size());
+            journalItem.setJournalImpact(sumImpact/paperNum);
         }
     }
     public static void updateInstitutionImpact(){
+        // 此处存在问题，有些作者可能没有出现
         Iterator<Institution> institutionIterator = DataGatherManager.getInstance().institutions.iterator();
         while (institutionIterator.hasNext()){
             Institution institutionItem = institutionIterator.next();
             Vector<String> authors = institutionItem.getInstitutionAuthors();
             double sumImpact=0.0;
+            int authorNum = 0;
+            //将目标机构的已出现作者
+            //作为Journal的影响力计算因素
             for(String orcid:authors){
-                sumImpact+=DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getAuthorImpact();
+                Author author = DataGatherManager.getInstance().dicOrcidAuthor.get(orcid);
+                if(author.getIfExsit()==1) {
+                    sumImpact += author.getAuthorImpact();
+                    authorNum++;
+                }
             }
             //平均作者影响力
-            institutionItem.setInstitutionImpact(sumImpact/institutionItem.getInstitutionAuthors().size());
+            institutionItem.setInstitutionImpact(sumImpact/authorNum);
         }
     }
     public static void calGraphItemImpact(DataGatherManager dataGatherManager,DirectedGraph<Author,Edge> graphItem,Vector<Double> graphImpact,int year,int month){
@@ -149,7 +179,15 @@ public class CalImpact {
         calGraphItemImpact(dataGatherManager,graphItem,graphImpact,year,month);
     }
     public static void updateAll(DataGatherManager dataGatherManager, Vector<Double> graphImpact, int year, int month){
-
+        //更新母图并获取论文集
+        Vector<Vector<String>> currentPapers = GraphManager.getInstance().updateGraph(year,month);
+        PaperCoefficientStrategy strategy = new PaperCoefficientStrategy();
+        //更新论文等级和影响力
+        updatePaperImpact(currentPapers, strategy);
+        //更新作者等级和影响力
+        updateAuthorImpact(currentPapers);
+        updateJournalImpact();
+        updateInstitutionImpact();
     }
     public static Vector<Double> getImpact(DirectedGraph<Author, Edge> graph, DataGatherManager dataGatherManager){
         Vector<Double> graphImpact = CalGraph.getGraphImpact(graph);

@@ -3,8 +3,9 @@ package com.github.ryan6073.Seriously.BasicInfo;
 import java.util.Vector;
 
 public class Paper {
-    boolean isAlive = false;
+    boolean isAlive = false; //死亡代表保护期为0
     int lifeSpan = 12; //默认保护期一年
+    int ifRead = 0; //0未读 1已读
     LevelManager.Level level = LevelManager.Level.E;
     Double rankWeight = 1.0; //等级的权值在保护期开始为1;
     String paperName,doi,journal;
@@ -24,6 +25,15 @@ public class Paper {
         citedList = new Vector<>();
         edgeList = new Vector<>();
     }
+
+    public int getIfRead() {
+        return ifRead;
+    }
+
+    public void setIfRead(int ifRead) {
+        this.ifRead = ifRead;
+    }
+
     public void setYear(int _year, CitingStatusTypes _citingstatus/*fileinput待更新，该函数调用应删去此参数*/){
         publishedYear = _year;
     }

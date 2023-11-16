@@ -9,6 +9,7 @@ public class Author implements Comparable<Author>{
     Vector<String> authorInstitution;
     Double authorImpact = 0.0;
     boolean flag;//是否存在于数据源中
+    int ifExsit = 0;//0不存在，1存在
     public Author(String _authorName,String _orcid,String _authorInstitution){
         authorName = _authorName;
         orcid = _orcid;
@@ -33,6 +34,15 @@ public class Author implements Comparable<Author>{
 //        }
 //    }
     //我觉得需要一个papers向量数据成员，来存放一个作者的文章集合
+
+    public int getIfExsit() {
+        return ifExsit;
+    }
+
+    public void setIfExsit(int ifExsit) {
+        this.ifExsit = ifExsit;
+    }
+
     public boolean getFlag(){return flag;}
     public String getOrcid(){return orcid;}
     public String getAuthorName(){return authorName;}

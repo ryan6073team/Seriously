@@ -25,6 +25,15 @@ public class GraphManager { //单例
         }
         return null;
     }
+    public DirectedGraph<Author ,Edge> getMatureGraph(){
+        DirectedGraph<Author ,Edge> graph = Graph;
+        for(Edge edge:graph.edgeSet()){
+            if(DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()){
+                graph.removeEdge(edge);
+            }
+        }
+        return graph;
+    }
     //加入目标子图
     public void addGraphItem(int year, int month, DirectedGraph<Author,Edge> Item){GraphItems.put(new TimeInfo(year,month),Item);}
     //创建初始图，一切故事从这里开始
