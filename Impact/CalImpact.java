@@ -132,7 +132,7 @@ public class CalImpact {
             //将目标期刊的已读的成熟论文作为Journal的影响力计算因素
             for (String doi:paperDois){
                 Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(doi);
-                if(paper.getIfRead()==1&&!paper.getIsAlive()) {
+                if(paper.getIsRead()==1&&!paper.getIsAlive()) {
                     sumImpact += paper.getPaperImpact();
                     paperNum++;
                 }
@@ -153,7 +153,7 @@ public class CalImpact {
             //作为Journal的影响力计算因素
             for(String orcid:authors){
                 Author author = DataGatherManager.getInstance().dicOrcidAuthor.get(orcid);
-                if(author.getIfExsit()==1) {
+                if(author.getIfExist()==1) {
                     sumImpact += author.getAuthorImpact();
                     authorNum++;
                 }

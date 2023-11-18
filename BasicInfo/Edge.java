@@ -1,5 +1,6 @@
 package com.github.ryan6073.Seriously.BasicInfo;
 
+
 public class Edge {
     Double citingKey= 0.0;
     String doi;

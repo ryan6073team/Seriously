@@ -3,16 +3,15 @@ package com.github.ryan6073.Seriously.BasicInfo;
 import java.util.Vector;
 
 public class Paper {
-    boolean isAlive = false; //死亡代表保护期为0
+    boolean isAlive = false;
     int lifeSpan = 12; //默认保护期一年
-    int ifRead = 0; //0未读 1已读
     LevelManager.Level level = LevelManager.Level.E;
     Double rankWeight = 1.0; //等级的权值在保护期开始为1;
     String paperName,doi,journal;
-    CitingStatusTypes paperStatus;
     Double paperImpact=0.0;//保存文章的影响力
     int  publishedYear=0;//不设置默认值，因为必须有，但是按照表结构似乎不是这样，先假设可以有默认值，方便运行
     int publishedMonth=0;//出版月份，待更新
+    int isRead = 0;//0未读 1已读
     Vector<String> citingList,authorIDList,citedList;//新增citedList，待更新,存储doi
     //received accepted revised 已被删除，CitingStatusTypes类实际上已失去作用
     Integer citedTimes=0;//citedList长度
@@ -25,16 +24,7 @@ public class Paper {
         citedList = new Vector<>();
         edgeList = new Vector<>();
     }
-
-    public int getIfRead() {
-        return ifRead;
-    }
-
-    public void setIfRead(int ifRead) {
-        this.ifRead = ifRead;
-    }
-
-    public void setYear(int _year, CitingStatusTypes _citingstatus/*fileinput待更新，该函数调用应删去此参数*/){
+    public void setYear(int _year/*fileinput待更新，该函数调用应删去此参数*/){
         publishedYear = _year;
     }
     public void setMonth(int _month){//该函数应被fileinput调用以初始化month
@@ -45,9 +35,6 @@ public class Paper {
     public Vector<String> getCitedList(){return citedList;}
     public Vector<String> getAuthorIDList(){return authorIDList;}//这个我觉得可以考虑使用map,有的作者属性就是一作，有的共一作，有的二作，有的是通讯作者，这一篇论文赋予扮演不同角色的作者的影响力也不同
 
-    public CitingStatusTypes getPaperStatus() {
-        return paperStatus;
-    }
     public String getDoi(){
         return doi;
     }
@@ -88,5 +75,11 @@ public class Paper {
     }
     public void setRankWeight(double weight){
         rankWeight = weight;
+    }
+    public int getIsRead() {
+        return isRead;
+    }
+    public void setIsRead(int ifRead){
+        this.isRead = ifRead;
     }
 }

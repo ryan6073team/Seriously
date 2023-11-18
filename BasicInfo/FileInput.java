@@ -154,7 +154,7 @@ public class FileInput {
 
             paper.paperName = paperName;
             paper.doi = paperDoi;
-            paper.journals.add(paperJournal);
+            paper.setJournal(paperJournal);
             paper.setYear(Integer.parseInt(year));
             paper.setMonth(Integer.parseInt(month));
 //                    paper.paperStatus = CitingStatusTypes.choiceTypes(paperStatus);
@@ -163,7 +163,7 @@ public class FileInput {
 //                    }
             paper.citingList.addAll(citedPapers);
             paper.authorIDList.add(orcid);//考虑ID和名字都各有优劣
-            journal.journalName = paperJournal;
+            journal.setJournalName(paperJournal);
             journal.journalPapers.add(paper.doi);
 
             // 判断paper是否已经存在于datagathermanager的papers列表中，如果存在则直接添加作者，否则创建新的paper对象
@@ -232,7 +232,7 @@ public class FileInput {
 
     public static void init(DataGatherManager dataGatherManager) {
         // 文件路径
-        String filePath = "C:\\Users\\21333\\Desktop\\mywork\\Java_work\\src\\com\\github\\ryan6073\\Seriously\\author_net.txt";
+        String filePath = "C:\\Users\\21693\\Desktop\\mywork\\Seriously\\author_net.txt";
         Vector<Author> authors = new Vector<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
@@ -242,6 +242,9 @@ public class FileInput {
                 initPaperandJournal(reader, dataGatherManager, line, author);
                 initDicTimeInfoDoi(dataGatherManager);
                 dataGatherManager.initMatrixOrder();
+                //控制数据规模
+                if(authors.size()>30)
+                    break;
             }
             reader.close();
         } catch (IOException e) {
@@ -251,7 +254,5 @@ public class FileInput {
         for(Journal item:dataGatherManager.journals){
             item.setIF(dataGatherManager);
         }
-
-        KMeans.kMeans(dataGatherManager);//更新rank
     }
 }

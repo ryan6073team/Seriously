@@ -1,7 +1,9 @@
 package com.github.ryan6073.Seriously;
 
 //import com.github.ryan6073.Seriously.BasicInfo.BasicDataInit;
+import com.github.ryan6073.Seriously.BasicInfo.AuthorKMeans;
 import com.github.ryan6073.Seriously.BasicInfo.DataGatherManager;
+import com.github.ryan6073.Seriously.BasicInfo.JournalKMeans;
 import com.github.ryan6073.Seriously.Graph.GraphInit;
 import com.github.ryan6073.Seriously.Graph.GraphManager;
 import com.github.ryan6073.Seriously.Impact.CalImpact;
@@ -20,7 +22,9 @@ public class Seriously {
 
         FileInput.init(dataGatherManager);
         System.out.println(dataGatherManager.dicAuthorPaper.size());//测试
-
+        //更新等级
+        AuthorKMeans.AuthorKMeans(dataGatherManager);
+        JournalKMeans.JournalkMeans(dataGatherManager);
         GraphManager graphManager = GraphManager.getInstance();
         GraphInit.initGraph(graphManager,dataGatherManager,dataGatherManager.startYear,dataGatherManager.startMonth);
         GraphInit.initGraphItems(graphManager,dataGatherManager,dataGatherManager.startYear,dataGatherManager.startMonth,dataGatherManager.finalYear,dataGatherManager.finalMonth);

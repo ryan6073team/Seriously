@@ -15,7 +15,7 @@ private ImpactForm(){
     public static ImpactForm getInstance(){return mImpactForm;}
     //更新影响关系表
     public void updateForm(){}
-    public double getAuthorPaperImpact(Level authorLevel, Level paperLevel){
+    public double getAuthorPaperImpact(LevelManager.Level authorLevel, LevelManager.Level paperLevel){
         //含义为一位authorlevel的作者发表或删除一篇paperlevel的论文将会对该作者的影响力产生多大的影响
         return authorPaperForm[authorLevel.getIndex()][paperLevel.getIndex()];
     }

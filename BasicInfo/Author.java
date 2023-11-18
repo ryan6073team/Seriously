@@ -2,13 +2,14 @@ package com.github.ryan6073.Seriously.BasicInfo;
 
 import java.util.Vector;
 
-public class Author {
-    Level level=Level.E; //初始默认为E等级
+public class Author implements Comparable<Author>{
+    LevelManager.Level level= LevelManager.Level.E; //初始默认为E等级
     String authorName,orcid;
+    Integer rank; // 用1、2、3、4划分为四个等级
+    int ifExist = 0;//0代表已出现 1代表未出现
     Vector<String> authorInstitution;
     Double authorImpact = 0.0;
     boolean flag;//是否存在于数据源中
-    int ifExsit = 0;//0不存在，1存在
     public Author(String _authorName,String _orcid,String _authorInstitution){
         authorName = _authorName;
         orcid = _orcid;
@@ -33,24 +34,36 @@ public class Author {
 //        }
 //    }
     //我觉得需要一个papers向量数据成员，来存放一个作者的文章集合
-
-    public int getIfExsit() {
-        return ifExsit;
+    public int getIfExist(){
+        return ifExist;
     }
-
-    public void setIfExsit(int ifExsit) {
-        this.ifExsit = ifExsit;
+    public void setIfExist(int ifExist){
+        this.ifExist = ifExist;
     }
-
     public boolean getFlag(){return flag;}
     public String getOrcid(){return orcid;}
     public String getAuthorName(){return authorName;}
     public Double getAuthorImpact(){return authorImpact;}
     public void setAuthorImpact(Double _authorImpact){authorImpact = _authorImpact;}
-    public void setLevel(Level l){
+    public void setLevel(LevelManager.Level l){
         level = l;
     }
-    public Level getLevel(){
+    public LevelManager.Level getLevel(){
         return level;
+    }
+    //设置等级
+    public void setRank(Integer _rank) {
+        rank = _rank;
+    }
+    @Override
+    public int compareTo(Author o) {
+        // 按 double 类型属性降序排序
+        if (this.authorImpact > o.authorImpact) {
+            return -1; // 返回负数表示降序
+        } else if (this.authorImpact < o.authorImpact) {
+            return 1; // 返回正数表示降序
+        } else {
+            return 0; // 相等时返回0
+        }
     }
 }
