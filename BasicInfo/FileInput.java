@@ -242,7 +242,7 @@ public class FileInput {
                 initPaperandJournal(reader, dataGatherManager, line, author);
                 initDicTimeInfoDoi(dataGatherManager);
                 dataGatherManager.initMatrixOrder();
-                //控制数据规模
+                //规模控制
                 if(authors.size()>30)
                     break;
             }
