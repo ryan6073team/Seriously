@@ -6,9 +6,7 @@ import com.github.ryan6073.Seriously.TimeInfo;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 
 public class DataGatherManager {//单例模式
     private static DataGatherManager mDataGatherManager = new DataGatherManager();
@@ -37,6 +35,26 @@ public class DataGatherManager {//单例模式
             dicOrcidMatrixOrder.put(orcid, order);
             order++;
         }
+    }
+    public void initYearMonth(){
+        List<TimeInfo> timeInfoList = new ArrayList<>(dicTimeInfoDoi.keySet());
+        //升序排列
+        Collections.sort(timeInfoList);
+        int num=0;
+        boolean flag = true;
+        TimeInfo lastItem = null;
+        for(TimeInfo item:timeInfoList){
+            if(num>dicDoiPaper.size()/2&&flag){//即startyear startmonth之前的论文数（不包含startyear和startmonth本身）恰好大于或等于总数的一半
+                startYear = item.year;
+                startMonth = item.month;
+                flag = false;
+            }
+            num+=dicTimeInfoDoi.get(item).size();
+            if(item==timeInfoList.getLast())
+                lastItem = item;
+        }
+        finalYear = lastItem.year;
+        finalMonth = lastItem.month;
     }
     public void addJournal(Journal journal) {
         if(journals.contains(journal)) return;

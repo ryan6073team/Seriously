@@ -22,6 +22,8 @@ public class Seriously {
 
         FileInput.init(dataGatherManager);
         System.out.println(dataGatherManager.dicAuthorPaper.size());//测试
+        //新增的初始化datagather的startyear/month finalyear/month
+        dataGatherManager.initYearMonth();
         //更新等级
         AuthorKMeans.AuthorKMeans(dataGatherManager);
         JournalKMeans.JournalkMeans(dataGatherManager);
@@ -35,6 +37,8 @@ public class Seriously {
         }
 
         Vector<Double> ans = CalImpact.getImpact(graphManager.Graph,dataGatherManager);
+//        for(Double dou:ans)
+//            System.out.println(dou);
         //test
     }
 }

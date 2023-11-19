@@ -57,7 +57,7 @@ public class JournalKMeans {
     public static List<Double> initializeClusterCenters(double[] data, int k) {
         List<Double> clusterCenters = new ArrayList<>();
         for (int i = 0; i < k; i++) {
-            clusterCenters.add(data[data.length*(2*(i+1)-1)/8]);
+            clusterCenters.add(data[data.length*(2*(i+1)-1)/10]);
         }
         return clusterCenters;
     }

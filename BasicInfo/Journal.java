@@ -59,7 +59,7 @@ public class Journal implements Comparable<Journal>{
         if (this.journalImpact > o.journalImpact) {
             return -1; // 返回负数表示降序
         } else if (this.journalImpact < o.journalImpact) {
-            return 1; // 返回正数表示降序
+            return 1; // 小于返回正数表示降序
         } else {
             return 0; // 相等时返回0
         }
