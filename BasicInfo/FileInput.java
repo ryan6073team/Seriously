@@ -232,7 +232,7 @@ public class FileInput {
 
     public static void init(DataGatherManager dataGatherManager) {
         // 文件路径
-        String filePath = "C:\\Users\\21693\\Desktop\\mywork\\Seriously\\author_net.txt";
+        String filePath = "D:\\Gitcode\\Seriously\\author_net.txt";
         Vector<Author> authors = new Vector<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
@@ -243,8 +243,8 @@ public class FileInput {
                 initDicTimeInfoDoi(dataGatherManager);
                 dataGatherManager.initMatrixOrder();
                 //规模控制
-                if(authors.size()>30)
-                    break;
+//                if(authors.size()>30)
+//                    break;
             }
             reader.close();
         } catch (IOException e) {
