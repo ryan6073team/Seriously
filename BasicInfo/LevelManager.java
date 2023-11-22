@@ -19,6 +19,39 @@ public class LevelManager {
             return index;
         }
     }
+
+    public enum CitationLevel {
+        HIGH(0),
+        MEDIUM(1),
+        LOW(2);
+        private int index;
+
+        CitationLevel(int index) {
+            this.index = index;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public static CitationLevel getLevelByIndex(int index) {
+            switch (index) {
+                case 0 -> {
+                    return HIGH;
+                }
+                case 1 -> {
+                    return MEDIUM;
+                }
+                case 2 -> {
+                    return LOW;
+                }
+                default -> {
+                    return null;
+                }
+            }
+        }
+    }
+
     public static Level RanktoLevel(int rank){
         switch (rank) {
             case 1 -> {

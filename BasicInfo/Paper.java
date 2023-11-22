@@ -6,6 +6,7 @@ public class Paper {
     boolean isAlive = false;
     int lifeSpan = 12; //默认保护期一年
     LevelManager.Level level = LevelManager.Level.E;
+    LevelManager.CitationLevel citationlevel = LevelManager.CitationLevel.LOW;
     Double rankWeight = 1.0; //等级的权值在保护期开始为1;
     String paperName,doi,journal;
     Double paperImpact=0.0;//保存文章的影响力
@@ -33,7 +34,7 @@ public class Paper {
     }
     public Vector<String> getCitingList(){return citingList;}
     public Vector<String> getCitedList(){return citedList;}
-    public Vector<String> getAuthorIDList(){return authorIDList;}//这个我觉得可以考虑使用map,有的作者属性就是一作，有的共一作，有的二作，有的是通讯作者，这一篇论文赋予扮演不同角色的作者的影响力也不同
+    public Vector<String> getAuthorIDList(){return authorIDList;}//！！！！！！！这个我觉得可以考虑使用map,有的作者属性就是一作，有的共一作，有的二作，有的是通讯作者，这一篇论文赋予扮演不同角色的作者的影响力也不同
 
     public String getDoi(){
         return doi;
@@ -61,6 +62,10 @@ public class Paper {
     public LevelManager.Level getLevel(){
         return level;
     }
+    public LevelManager.CitationLevel getCitationLevel(){
+        return citationlevel;
+    }
+
     public void setLevel(LevelManager.Level l){
         level = l;
     }
