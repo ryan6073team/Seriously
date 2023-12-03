@@ -38,7 +38,7 @@ public class DataGatherManager {//单例模式
         }
     }
     public void initYearMonth(){
-        List<TimeInfo> timeInfoList = new ArrayList<>(dicTimeInfoDoi.keySet());
+        LinkedList<TimeInfo> timeInfoList = new LinkedList<>(dicTimeInfoDoi.keySet());
         //升序排列
         Collections.sort(timeInfoList);
         int num=0;

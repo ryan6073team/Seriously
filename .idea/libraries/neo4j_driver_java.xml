@@ -1,0 +1,20 @@
+<component name="libraryTable">
+  <library name="neo4j.driver.java" type="repository">
+    <properties maven-id="org.neo4j.driver:neo4j-java-driver:5.4.0" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/neo4j/driver/neo4j-java-driver/5.4.0/neo4j-java-driver-5.4.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-handler/4.1.86.Final/netty-handler-4.1.86.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-common/4.1.86.Final/netty-common-4.1.86.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-resolver/4.1.86.Final/netty-resolver-4.1.86.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-buffer/4.1.86.Final/netty-buffer-4.1.86.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.1.86.Final/netty-transport-4.1.86.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport-native-unix-common/4.1.86.Final/netty-transport-native-unix-common-4.1.86.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-codec/4.1.86.Final/netty-codec-4.1.86.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-tcnative-classes/2.0.54.Final/netty-tcnative-classes-2.0.54.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/projectreactor/reactor-core/3.4.26/reactor-core-3.4.26.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

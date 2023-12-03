@@ -105,7 +105,7 @@ public class GraphManager { //单例
     public Vector<Vector<String>> updateGraph(int year, int month){
         DirectedGraph<Author,Edge> graphItem = getGraphItem(year, month);
 
-        if(graphItem==null) return updatePaperLifeInfo(year,month,Graph,DataGatherManager.getInstance());
+        if(graphItem == null) return updatePaperLifeInfo(year,month,Graph,DataGatherManager.getInstance());
 
         for(Author author:graphItem.vertexSet()){
             if(!Graph.containsVertex(author)){
