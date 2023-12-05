@@ -22,7 +22,7 @@ public class Seriously {
     public static void main(String[] args) {
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
 
-        initJournalToIF(dataGatherManager);//更新期刊IF的映射
+//        initJournalToIF(dataGatherManager);//更新期刊IF的映射
 
         FileInput.init(dataGatherManager);
 //        System.out.println(dataGatherManager.dicAuthorPaper.size());//测试
