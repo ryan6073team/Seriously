@@ -4,8 +4,7 @@ import Jama.Matrix;
 import com.github.ryan6073.Seriously.TimeInfo;
 import org.jgrapht.DirectedGraph;
 
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 
 public class CoefficientStrategy {
     //高引用量对应高值？？
@@ -14,16 +13,30 @@ public class CoefficientStrategy {
         return impactCoefficient;
     }
     //论文等级level 年龄状态time 状态转移矩阵
-    double[][][][] transitionMatrix;
+    static double[][][][] transitionMatrix;
 
     Vector<Paper>[] getTargetDate(int year, LevelManager.TimeState timeState, LevelManager.Level level){
         return null;
     }
 
-    Map<LevelManager.PaperAgeGroup, Vector<Paper>> loadPapersAgeGroup(Vector<Paper> papers){
-
-        return null;
+    // 定义一个loadPapersAgeGroup方法，用于将论文按照年龄组进行分类
+    public Map<LevelManager.PaperAgeGroup, Vector<Paper>> loadPapersAgeGroup(Vector<Paper> papers){
+        // 创建一个Map对象，用于存储不同年龄组的论文列表
+        Map<LevelManager.PaperAgeGroup, Vector<Paper>> map = new HashMap<>();
+        // 遍历每个年龄组的枚举值
+        for(LevelManager.PaperAgeGroup ageGroup : LevelManager.PaperAgeGroup.values()){
+            Vector<Paper> vector = new Vector<>();
+            for(Paper paper : papers){
+                LevelManager.PaperAgeGroup paperAgeGroup = paper.getAgeGroup();
+                if(paperAgeGroup == ageGroup){
+                    vector.add(paper);
+                }
+            }
+            map.put(ageGroup, vector);
+        }
+        return map;
     }
+
 
     double[][] loadTransitionMatrix(Vector<Paper> pastPapers, Vector<Paper> currentPapers){
         double[][] ans = new double[LevelManager.CitationLevel.citationLevelNum][LevelManager.CitationLevel.citationLevelNum];
@@ -61,8 +74,8 @@ public class CoefficientStrategy {
             Map<LevelManager.PaperAgeGroup, Vector<Paper>> dicAgeCurPaper = loadPapersAgeGroup(Cur);
 
             //获取在目标时间段下的各年龄状态的论文的状态转移矩阵
-            double[][] childTransitionMatrix = loadTransitionMatrix(dicAgeLastPaper.get(LevelManager.PaperAgeGroup.CHILD), dicAgeCurPaper.get(LevelManager.PaperAgeGroup.YOUNG));
-            double[][] youngTransitionMatrix = loadTransitionMatrix(dicAgeLastPaper.get(LevelManager.PaperAgeGroup.YOUNG), dicAgeCurPaper.get(LevelManager.PaperAgeGroup.OLD));
+            double[][] childTransitionMatrix = loadTransitionMatrix(dicAgeLastPaper.get(LevelManager.PaperAgeGroup.CHILD), dicAgeCurPaper.get(LevelManager.PaperAgeGroup.MATURE));
+            double[][] youngTransitionMatrix = loadTransitionMatrix(dicAgeLastPaper.get(LevelManager.PaperAgeGroup.YOUNG), dicAgeCurPaper.get(LevelManager.PaperAgeGroup.MATURE));
             double[][] oldTransitionMatrix = loadTransitionMatrix(dicAgeLastPaper.get(LevelManager.PaperAgeGroup.OLD), dicAgeCurPaper.get(LevelManager.PaperAgeGroup.MATURE));
 
             transitionMatrix[i][LevelManager.PaperAgeGroup.CHILD.getIndex()] = childTransitionMatrix;
@@ -79,49 +92,37 @@ public class CoefficientStrategy {
         double[][] paperTransitionMatrix = transitionMatrix[paperLevel.getIndex()][paperAgeGroup.getIndex()]; // 获取论文的状态转移概率矩阵
         return paperTransitionMatrix;
     }
-
-    public double[][] getStateDistribution(Paper paper){
+    //只能用于不成熟论文
+    public double[] getStateDistribution(Paper paper){
         double[] initialState = getInitialState(paper);
-        int citationLevel = getCitationLevel(paper); // 获取论文的引用量区间，返回0，1，2分别表示高，中，低
-        DataGatherManager dataGatherManager = DataGatherManager.getInstance();
-        LevelManager.Level paperLevel = paper.getLevel();
-        int timeLength = 12;// 定义论文的保护期长度
-        Matrix[] stateDistribution = new Matrix[timeLength]; // 定义一个Matrix数组，表示论文在不同时间点的状态分布
-        stateDistribution[0] = new Matrix(initialState, 1); // 将论文的初始状态分布转换为一个1行的Matrix对象，赋值给第一个时间点的状态分布
-        // 用一个循环，根据论文的状态转移概率矩阵，计算论文在后续时间点的状态分布
-        for(int i = 1; i < timeLength; i++){
-            // 用times方法，计算论文在当前时间点的状态分布
-            stateDistribution[i] = stateDistribution[i-1].times(Matrix.constructWithCopy(transitionMatrix[citationLevel][paperLevel.getIndex()])); //传入论文在前一个时间点的状态分布和论文的状态转移概率矩阵，返回论文在当前时间点的状态分布
+        double[][] columnVectorData = new double[initialState.length][1];
+        for (int i = 0; i < initialState.length; i++) {
+            columnVectorData[i][0] = initialState[i];
         }
-        double[][] stateDistributionArray = new double[timeLength][3]; // 定义一个二维数组，用来存储stateDistribution的二维数组表示
-        // 用一个循环，把stateDistribution的每个元素都转换成二维数组，并赋值给stateDistributionArray
-        for(int i = 0; i < timeLength; i++){
-            stateDistributionArray[i] = stateDistribution[i].getArray()[0]; // 用getArray方法获取stateDistribution[i]的二维数组表示，然后取第0行，赋值给stateDistributionArray[i]
-        }
-        return stateDistributionArray; // 返回stateDistribution的二维数组表示
+        Matrix stateDistribution = new Matrix(columnVectorData);
+        // 根据论文的年龄组和时间状态，获取对应的状态转移概率矩阵
+        Matrix transitionMatrix = Matrix.constructWithCopy(getTransitionMatrix(paper));
+        stateDistribution = transitionMatrix.times(stateDistribution); //传入论文在前一个时间点的状态分布和论文的状态转移概率矩阵，返回论文在当前时间点的状态分布
+        for(int i=0;i<initialState.length;i++)
+            initialState[i] = columnVectorData[i][0];
+        return initialState; // 返回stateDistribution的二维数组表示
     }
 
-    public double[] matrixMultiply(double[] vector, double[][] matrix) {
-        int m = vector.length;
-        int n = matrix[0].length;
-        double[] result = new double[n];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                result[i] += vector[j] * matrix[j][i];
-            }
-        }
-        return result;
+
+
+    private double[] getInitialState(Paper paper) {
+        if(getCitationLevel(paper)== LevelManager.CitationLevel.HIGH)
+            return new double[]{1.0,0.0,0.0};
+        else if(getCitationLevel(paper)== LevelManager.CitationLevel.MEDIUM)
+            return new double[]{0.0,1.0,0.0};
+        else if(getCitationLevel(paper)== LevelManager.CitationLevel.LOW)
+            return new double[]{0.0,0.0,1.0};
+        else return null;
     }
-    private double[] getInitialState(Paper paper) {// 获取论文的初始状态分布，返回一个一维数组，表示论文在高，中，低影响力状态的概率
-        //这里我在datamanager里面新增了一个叫做dicDoiStateCoefficient的成员变量，它是从doi到论文当前状态数组的映射，所以前三个字母是dic(tionary)
-        //datamanager里面的其它变量也是这样命名的
-        //所以我增加了一个paper参数在函数里
-        return DataGatherManager.getInstance().dicDoiStateCoefficient.get(paper.getDoi());
-    }
+
     // 定义一个方法，根据论文的状态分布，计算论文的影响力系数的期望值
     public double getPaperImpactCoefficientExpectation(double[] stateDistribution){
         double paperImpactCoefficientExpectation = 0; // 定义一个变量，表示论文的影响力系数的期望值
-        // 用一个循环，计算论文的影响力系数的期望值
         double[] impactCoefficient=initImpactCoefficients();
         for(int i = 0; i < 3; i++){
             // 论文的影响力系数的期望值等于它的状态分布和它的状态影响力系数的加权平均值
@@ -131,34 +132,78 @@ public class CoefficientStrategy {
     }
 
     // 定义一个方法，根据论文的被引排名，划分论文的引用量区间
-    public int getCitationLevel(Paper paper){
-        // 假设论文的引用量区间是根据论文在同一领域，同一年份，同一期刊的被引排名来划分的
-        // 假设论文的引用量区间有三个，分别是高，中，低
-        // 假设论文的被引排名在前10%的属于高引用量区间，返回0
-        // 假设论文的被引排名在10%到50%之间的属于中引用量区间，返回1
-        // 假设论文的被引排名在50%以下的属于低引用量区间，返回2
+    public LevelManager.CitationLevel getCitationLevel(Paper paper){
         int citationRank = getCitationRank(paper);
-        int citationLevel = 0; // 定义一个变量，表示论文的引用量区间
+        LevelManager.CitationLevel citationLevel; // 定义一个变量，表示论文的引用量区间
         if(citationRank <= 0.1){
-            // 论文的被引排名在前10%的属于高引用量区间，返回0
-            citationLevel = 0;
+            // 论文的被引排名在前10%的属于高引用量区间，返回 LevelManager.CitationLevel.HIGH
+            citationLevel = LevelManager.CitationLevel.HIGH;
         }else if(citationRank > 0.1 && citationRank <= 0.5){
-            // 论文的被引排名在10%到50%之间的属于中引用量区间，返回1
-            citationLevel = 1;
+            // 论文的被引排名在10%到50%之间的属于中引用量区间，返回 LevelManager.CitationLevel.MEDIUM
+            citationLevel = LevelManager.CitationLevel.MEDIUM;
         }else{
-            // 论文的被引排名在50%以下的属于低引用量区间，返回2
-            citationLevel = 2;
+            // 论文的被引排名在50%以下的属于低引用量区间，返回 LevelManager.CitationLevel.LOW
+            citationLevel = LevelManager.CitationLevel.LOW;
         }
         return citationLevel; // 返回论文的引用量区间
     }
-    private int getCitationRank(Paper paper) {// 获取论文的被引排名，返回一个整数，表示论文在同一领域，同一年份，同一期刊的被引排名
-        return 0;
+    //获取排名
+// 定义一个方法 getSimilarPapers，用来获取和一个论文相同年份，相同期刊的其他论文的列表
+    public Vector<Paper> getSimilarPapers(Paper paper) {
+        // 创建一个空的向量，用来存储符合条件的论文
+        Vector<Paper> similarPapers = new Vector<>();
+        // 获取论文的年份，期刊
+        int year = paper.getPublishedYear();
+        String journal = paper.getJournal();
+        // 遍历 DataGatherManager 中的所有论文
+        for (Paper p : DataGatherManager.getInstance().papers) {
+            // 如果论文的领域，年份，期刊和给定的论文相同，且不是给定的论文本身，那么将论文添加到向量中
+            if ( p.getPublishedYear() == year && p.getJournal().equals(journal) && !p.equals(paper)) {
+                similarPapers.add(p);
+            }
+        }
+        // 返回向量
+        return similarPapers;
+    }
+
+    // 定义一个方法 sortPapersByCitation，用来对一个论文向量按照引用量从高到低进行排序
+    public void sortPapersByCitation(Vector<Paper> papers) {
+        // 使用 Collections 类的 sort 方法，传入一个自定义的比较器，按照引用量从高到低进行排序
+        Collections.sort(papers, new Comparator<Paper>() {
+            // 重写 compare 方法，比较两个论文的引用量
+            public int compare(Paper p1, Paper p2) {
+                // 如果 p1 的引用量大于 p2 的引用量，返回 -1，表示 p1 排在 p2 前面
+                if (p1.getCitedList().size() > p2.getCitedList().size()) {
+                    return -1;
+                    // 如果 p1 的引用量小于 p2 的引用量，返回 1，表示 p1 排在 p2 后面
+                } else if (p1.getCitedList().size() < p2.getCitedList().size()) {
+                    return 1;
+                    // 如果 p1 的引用量等于 p2 的引用量，返回 0，表示 p1 和 p2 的顺序不变
+                } else {
+                    return 0;
+                }
+            }
+        });
+    }
+    private int getCitationRank(Paper paper) {
+        // 获取和论文相同领域，相同年份，相同期刊的其他论文的列表
+        List<Paper> similarPapers = getSimilarPapers(paper);
+        // 对论文列表按照引用量从高到低进行排序
+        sortPapersByCitation((Vector<Paper>) similarPapers);
+        // 定义一个变量，表示论文的被引排名，初始值为 1
+        int citationRank = 1;
+        // 遍历论文列表，找到论文的位置
+        for (Paper p : similarPapers) {
+            // 如果论文的引用量大于或等于当前遍历的论文的引用量，说明论文的排名不变，继续遍历
+            if (paper.getCitedList().size() >= p.getCitedList().size()) {
+                continue;
+            } else {
+                // 否则，说明论文的排名下降了，排名加一，继续遍历
+                citationRank++;
+            }
+        }
+        // 返回论文的被引排名
+        return citationRank;
     }
 
 }
-
-/*
-1.把impactCoefficient给初始化了
-2.新增citationLevel的相关类
-3.将代码与jama适配
- */

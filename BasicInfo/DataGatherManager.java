@@ -19,11 +19,11 @@ public class DataGatherManager {//单例模式
     public Map<String,Paper> dicDoiPaper ;//doi->paperName,
     public Map<String,Author> dicOrcidAuthor ;//orcid->authorName
     public Map<Author,Vector<Paper>> dicEliteAuthorPaper ;//作者的精英论文集合
-    public Map<String, Integer> dicOrcidMatrixOrder;//doi到矩阵下标的映射
+    public Map<String, Integer> dicOrcidMatrixOrder;//doi到矩阵下标的映射??????????????
     public Map<String, Double> dicJournalIF;//期刊与IF指数的映射
     public Map<TimeInfo,Vector<String>> dicTimeInfoDoi;//时间与相应论文的映射
     public Map<String,Journal> dicNameJournal;//JournalName和Journal的映射
-    public Map<String,double[]> dicDoiStateCoefficient;//论文doi到其状态数组的映射，初始化待定？？？？？
+
     public Vector<Paper> papers;
     public Vector<Journal> journals;
     public Vector<Institution> institutions;

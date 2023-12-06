@@ -3,15 +3,45 @@ package com.github.ryan6073.Seriously.Impact;
 import com.github.ryan6073.Seriously.BasicInfo.*;
 import com.github.ryan6073.Seriously.Graph.GraphManager;
 import com.github.ryan6073.Seriously.TimeInfo;
+import com.github.ryan6073.Seriously.Coefficient.CoefficientStrategy;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
 public class CalImpact {
+
+    static double [][] tempPapersImpact;
+
+    static private void loadTempPapersImpact(){
+        tempPapersImpact = new double[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
+        int[][] numForm = new int[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
+        for(int i=0;i<LevelManager.Level.levelNum;i++)
+            for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++) {
+                numForm[i][j] = 0;
+                tempPapersImpact[i][j] = 0.0;
+            }
+        CoefficientStrategy coefficientStrategy = new CoefficientStrategy();
+        for(Paper paper:DataGatherManager.getInstance().papers){
+            LevelManager.Level level = paper.getLevel();
+            LevelManager.CitationLevel citationLevel = coefficientStrategy.getCitationLevel(paper);
+            numForm[level.getIndex()][citationLevel.getIndex()]++;
+            tempPapersImpact[level.getIndex()][citationLevel.getIndex()]+=paper.getPaperImpact();
+        }
+        for(int i=0;i<LevelManager.Level.levelNum;i++)
+            for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++) {
+                if(numForm[i][j]!=0)
+                    tempPapersImpact[i][j] = tempPapersImpact[i][j]/numForm[i][j];
+                else{
+                    tempPapersImpact[i][j] = 0.0;
+                    System.out.println("存在空集的论文种类");
+                }
+            }
+    }
     public static double calPaperImpact(String _doi){
         Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(_doi);
         Vector<String> citedDois = paper.getCitedList();
@@ -36,7 +66,6 @@ public class CalImpact {
             dataGatherManager.dicOrcidAuthor.get(entry.getKey()).setAuthorImpact(graphImpact.get(entry.getValue()));
         }
     }
-
     public static void initPapersImpact(){
         Vector<Paper> papers = DataGatherManager.getInstance().papers;
         Iterator<Paper> paperIterator = papers.iterator();
@@ -96,7 +125,7 @@ public class CalImpact {
             }
         }
     }
-    public static void updatePaperImpact(Vector<Vector<String>> currentPapers, PaperCoefficientStrategy strategy){
+    public static void updatePaperImpact(Vector<Vector<String>> currentPapers, CoefficientStrategy coefficientStrategy){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         GraphManager graphManager = GraphManager.getInstance();
         //获得相应时间点的论文
@@ -110,15 +139,18 @@ public class CalImpact {
             Paper paper = dataGatherManager.dicDoiPaper.get(doi);
             //将论文所处期刊的等级设为自身等级
             paper.setLevel(LevelManager.RanktoLevel(dataGatherManager.dicNameJournal.get(paper.getJournal()).getRank()));
+            double[] state = coefficientStrategy.getStateDistribution(paper);
+            double targetImpact = 0.0;
             //根据自身等级和寿命设定影响力数值
-            double targetImpact = strategy.getCitingCoefficient(paper.getLifeSpan())*calPaperImpact(paper.getDoi())+strategy.getLevelCoefficient(paper.getLifeSpan())*Journal.levelImpact.get(paper.getLevel());
+            for(int i=0;i<LevelManager.CitationLevel.citationLevelNum;i++) {
+                targetImpact += state[i]*tempPapersImpact[paper.getLevel().getIndex()][paper.getCitationLevel().getIndex()];            }
             paper.setPaperImpact(targetImpact);
         }
         //对新增的成熟的论文影响力进行更新
         for(String doi:maturePapers){
             Paper paper = dataGatherManager.dicDoiPaper.get(doi);
             //根据自身等级和寿命设定影响力数值，成熟论文寿命为0，公式的相应参数可以通过同一个表达式给出
-            double targetImpact = strategy.getCitingCoefficient(paper.getLifeSpan())*calPaperImpact(paper.getDoi())+strategy.getLevelCoefficient(paper.getLifeSpan())*Journal.levelImpact.get(paper.getLevel());
+            double targetImpact = calPaperImpact(paper.getDoi());
             paper.setPaperImpact(targetImpact);
         }
     }
@@ -178,12 +210,12 @@ public class CalImpact {
         DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(year,month);
         calGraphItemImpact(dataGatherManager,graphItem,graphImpact,year,month);
     }
-    public static void updateAll(DataGatherManager dataGatherManager, Vector<Double> graphImpact, int year, int month){
+    public static void updateAll(DataGatherManager dataGatherManager, Vector<Double> graphImpact, int year, int month, CoefficientStrategy coefficientStrategy){
         //更新母图并获取论文集
         Vector<Vector<String>> currentPapers = GraphManager.getInstance().updateGraph(year,month);
-        PaperCoefficientStrategy strategy = new PaperCoefficientStrategy();
+//        PaperCoefficientStrategy strategy = new PaperCoefficientStrategy();
         //更新论文等级和影响力
-        updatePaperImpact(currentPapers, strategy);
+        updatePaperImpact(currentPapers, coefficientStrategy);
         //更新作者等级和影响力
         updateAuthorImpact(currentPapers);
         updateJournalImpact();
@@ -193,18 +225,21 @@ public class CalImpact {
         Vector<Double> graphImpact = CalGraph.getGraphImpact(graph);
         initAll(dataGatherManager, graphImpact, dataGatherManager.startYear,dataGatherManager.startMonth);
         for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
-            updateAll(dataGatherManager,graphImpact,i/12,i%12);
+            loadTempPapersImpact();
+            CoefficientStrategy coefficientStrategy = new CoefficientStrategy();
+            coefficientStrategy.initTransitionMatrix(i/12,LevelManager.TimeState.getTimeStateByIndex((i%12)/4));
+            updateAll(dataGatherManager,graphImpact,i/12,i%12, coefficientStrategy);
         }
         //***
         return graphImpact;
     }
 }
 
-class PaperCoefficientStrategy{
-    public double getLevelCoefficient(int life/*参与保护期(月)*/){
-        return life/12.0;
-    }
-    public double getCitingCoefficient(int life){
-        return 1-life/12.0;
-    }
-}
+//class PaperCoefficientStrategy{
+//    public double getLevelCoefficient(int life/*参与保护期(月)*/){
+//
+//    }
+//    public double getCitingCoefficient(int life){
+//        return 1-life/12.0;
+//    }
+//}
