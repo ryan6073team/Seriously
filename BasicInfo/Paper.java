@@ -128,4 +128,23 @@ public class Paper {
         }
     }
 
+    //定义一个方法getMonthsBetween，接受两个Date类型的参数，返回一个int类型的结果
+    public int getMonthsBetween(Date date1, Date date2) {
+        // 创建两个Calendar对象，分别用来存储date1和date2的年份和月份
+        Calendar cal1 = Calendar.getInstance();
+        Calendar cal2 = Calendar.getInstance();
+        // 设置cal1和cal2的时间为date1和date2
+        cal1.setTime(date1);
+        cal2.setTime(date2);
+        // 获取cal1和cal2的年份和月份
+        int year1 = cal1.get(Calendar.YEAR);
+        int year2 = cal2.get(Calendar.YEAR);
+        int month1 = cal1.get(Calendar.MONTH);
+        int month2 = cal2.get(Calendar.MONTH);
+        // 计算两个日期之间相差的月份数，注意要考虑年份的差异
+        int months = (year2 - year1) * 12 + (month2 - month1);
+        // 返回月份数的绝对值，因为不考虑日期的先后顺序
+        return Math.abs(months);
+    }
+
 }
