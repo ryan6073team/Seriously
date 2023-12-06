@@ -134,6 +134,7 @@ public class GraphInit {
 
                     //在论文图中添加论文结点
                     if(!paperGraph.containsVertex(citingPaper)){
+                        System.out.println();
                         paperGraph.addVertex(citingPaper);
                     }
                     //论文图中添加引用边

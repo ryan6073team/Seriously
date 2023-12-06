@@ -8,17 +8,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FileInput {
     public static void initJournalToIF(DataGatherManager dataGatherManager){
         // 创建 reader
-        try (BufferedReader br = Files.newBufferedReader(Paths.get("SuPZ_JCR_JournalResults_10_2023.csv"))) {
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(Objects.requireNonNull(ConfigReader.getFilePath2())))) {
             // CSV文件的分隔符
             String DELIMITER = ",";
             // 按行读取
@@ -119,7 +116,6 @@ public class FileInput {
             if (doiMatcher.find()) {
                 paperDoi = doiMatcher.group();
             }
-            System.out.println(paperDoi);
             // 使用DOI分割数据行，这样我们可以单独获取论文名和剩余部分
             String[] parts = paperLine.split(paperDoi);
 
@@ -232,7 +228,7 @@ public class FileInput {
 
     public static void init(DataGatherManager dataGatherManager) {
         // 文件路径
-        String filePath = "C:\\Users\\21693\\Desktop\\mywork\\Seriously\\author_net.txt";
+        String filePath = ConfigReader.getFilePath1();
         Vector<Author> authors = new Vector<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));

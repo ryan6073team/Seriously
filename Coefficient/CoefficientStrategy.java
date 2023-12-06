@@ -16,7 +16,57 @@ public class CoefficientStrategy {
     static double[][][][] transitionMatrix;
 
     Vector<Paper>[] getTargetDate(int year, LevelManager.TimeState timeState, LevelManager.Level level){
-        return null;
+        Vector<Paper> cur = new Vector<>();
+        Vector<Paper> last = new Vector<>();
+
+        Vector<String> tempCur = new Vector<>();
+        Vector<String> tempLast = new Vector<>();
+
+        Set<TimeInfo> timeInfos = DataGatherManager.getInstance().dicTimeInfoDoi.keySet();
+        switch (timeState) {
+            case PRE:
+                for (TimeInfo timeInfo : timeInfos) {
+                    if (timeInfo.year == year) {
+                        if (timeInfo.month >= 1 && timeInfo.month <= 4)
+                            tempCur.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
+                    } else if (timeInfo.year == year - 1) {
+                        if (timeInfo.month >= 9 && timeInfo.month <= 12)
+                            tempLast.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
+                    }
+                }
+            case MIDDLE:
+                for (TimeInfo timeInfo : timeInfos) {
+                    if (timeInfo.year == year) {
+                        if (timeInfo.month >= 5 && timeInfo.month <= 8)
+                            tempCur.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
+                        else if (timeInfo.month >= 1 && timeInfo.month <= 4)
+                            tempLast.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
+                    }
+                }
+            case LATE:
+                for (TimeInfo timeInfo : timeInfos) {
+                    if (timeInfo.year == year) {
+                        if (timeInfo.month >= 9 && timeInfo.month <= 12)
+                            tempCur.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
+                        else if (timeInfo.month >= 5 && timeInfo.month <= 8)
+                            tempLast.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
+                    }
+                }
+        }
+        for(String doi:tempCur){
+            Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(doi);
+            if(paper.getLevel()==level)
+                cur.add(paper);
+        }
+        for(String doi:tempLast){
+            Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(doi);
+            if(paper.getLevel()==level)
+                last.add(paper);
+        }
+        Vector<Paper>[] ans = new Vector[2];
+        ans[0] = last;
+        ans[1] = cur;
+        return ans;
     }
 
     // 定义一个loadPapersAgeGroup方法，用于将论文按照年龄组进行分类
