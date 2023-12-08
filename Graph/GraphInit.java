@@ -184,7 +184,7 @@ public class GraphInit {
             }
         }
         initCitedInfo();//更新被引信息
-        deleteSinglePoint(graphManager.Graph);
+        //deleteSinglePoint(graphManager.Graph);
     }
     //新增函数，即将x年y月的作者引用关系构成一张图并将其存储在GraphItems中
     public static void initGraphItem(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
@@ -225,7 +225,7 @@ public class GraphInit {
                 }
             }
         }
-        deleteSinglePoint(GraphTemp);
+        //deleteSinglePoint(GraphTemp);
         graphManager.addGraphItem(year,month,GraphTemp);
         System.out.println("完成"+year+"年"+month+"月的图初始化");
 
