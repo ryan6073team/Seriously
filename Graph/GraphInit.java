@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -108,6 +109,22 @@ public class GraphInit {
 //    }
     //新增函数，意在替换原函数，仅将x年y月之前的作者引用关系而不是所有作者引用关系构造为一张图
     public static void initGraph(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
+
+//        File file = new File("D:\\桌面\\test.txt");
+//        try {
+//            if(!file.exists()){
+//                file.createNewFile();
+//            }
+//            FileWriter fileWriter = new FileWriter(file,true);
+//            for(Map.Entry<String,Paper> entry1 : dataGatherManager.dicDoiPaper.entrySet()){
+//                fileWriter.write(entry1.getKey()+"\n");
+//            }
+//            fileWriter.flush();
+//            fileWriter.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
         for(Map.Entry<Author, Vector<Paper>> entry : dataGatherManager.dicAuthorPaper.entrySet()){
             if(!entry.getKey().getFlag()) continue;  //不存在该作者则进行下一个循环
             //如果不存在作者结点则创建
@@ -134,7 +151,7 @@ public class GraphInit {
 
                     //在论文图中添加论文结点
                     if(!paperGraph.containsVertex(citingPaper)){
-                        System.out.println();
+                        //System.out.println();
                         paperGraph.addVertex(citingPaper);
                     }
                     //论文图中添加引用边
@@ -210,6 +227,11 @@ public class GraphInit {
         }
         deleteSinglePoint(GraphTemp);
         graphManager.addGraphItem(year,month,GraphTemp);
+        System.out.println("完成"+year+"年"+month+"月的图初始化");
+
+        String name = year+"-"+month;
+        GraphStore.store(name, GraphTemp);
+        System.out.println("完成"+year+"年"+month+"月的图存储");
     }
     public static void initGraphItems(GraphManager graphManager,DataGatherManager dataGatherManager,int startYear,int startMonth, int endYear, int endMonth){
         if(startYear==endYear)
