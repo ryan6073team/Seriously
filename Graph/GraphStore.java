@@ -27,7 +27,7 @@ public class GraphStore {
         try (Session session = driver.session()) {
             // 遍历图中的节点并创建节点
             for (Author author : graph.vertexSet()) {
-                session.run("CREATE (:Author {name: $name, graphName: $graphName)", Values.parameters("name", author.getOrcid(),
+                session.run("CREATE (:Author {name: $name, graphName: $graphName})", Values.parameters("name", author.getOrcid(),
                         "graphName", graphName));
             }
             // 遍历图中的边并创建关系
@@ -43,7 +43,7 @@ public class GraphStore {
     }
 
     public static void store(String graphName, DirectedGraph<Author, Edge> graph) {
-        GraphStore graphStorage = new GraphStore("bolt://localhost:7687", "username", "password");//这里修改为自己的用户名，密码
+        GraphStore graphStorage = new GraphStore("bolt://localhost:7687", "neo4j", "密码");//这里修改为自己的用户名，密码
         graphStorage.saveGraphToNeo4j(graphName, graph);
         graphStorage.close();
     }
@@ -84,7 +84,7 @@ public class GraphStore {
     }
 
     public static DirectedGraph<Author, Edge> read(String graphName) {
-        GraphStore graphStorage = new GraphStore("bolt://localhost:7687", "username", "password");//这里修改为自己的用户名，密码
+        GraphStore graphStorage = new GraphStore("bolt://localhost:7687", "neo4j", "密码");//这里修改为自己的用户名，密码
         DirectedGraph<Author, Edge> graph = graphStorage.readGraphFromNeo4j(graphName);
         graphStorage.close();
         return graph;
