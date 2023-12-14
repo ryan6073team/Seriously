@@ -35,8 +35,8 @@ public class GraphStore {
                 Author source = graph.getEdgeSource(edge);
                 Author target = graph.getEdgeTarget(edge);
 
-                session.run("MATCH (source:Author {name: $sourceName, graph: $graphName}), (target:Author {name: $targetName, graph: $graphName}) " +
-                                "CREATE (source)-[:WRITES {graph: $graphName}]->(target)",
+                session.run("MATCH (source:Author {name: $sourceName, graphName: $graphName}), (target:Author {name: $targetName, graphName: $graphName}) " +
+                                "CREATE (source)-[:CITES {graphName: $graphName}]->(target)",
                         Values.parameters("sourceName", source.getOrcid(), "targetName", target.getOrcid(), "graphName", graphName));
             }
         }
@@ -54,7 +54,7 @@ public class GraphStore {
         Map<String, Author> authors = new HashMap<>();
         try (Session session = driver.session()) {
             // Read authors from Neo4j
-            Result authorResult = session.run("(a:Author {graph: $graphName}) RETURN a.name AS name", Values.parameters("graphName", graphName));
+            Result authorResult = session.run("(a:Author {graphName: $graphName}) RETURN a.name AS name", Values.parameters("graphName", graphName));
             while (authorResult.hasNext()) {
                 Record record = authorResult.next();
                 String name = record.get("name").asString();
@@ -67,7 +67,7 @@ public class GraphStore {
             }
 
             // Read relationships from Neo4j
-            Result edgeResult = session.run("MATCH (source:Author {graph: $graphName})-[r:WRITES {graph: $graphName}]->(target:Author {graph: $graphName}) " +
+            Result edgeResult = session.run("MATCH (source:Author {graphName: $graphName})-[r:CITES {graphName: $graphName}]->(target:Author {graphName: $graphName}) " +
                     "RETURN source.name AS sourceName, target.name AS targetName, r.year AS year, r.citingKey AS citingKey, r.doi AS doi",
                     Values.parameters("graphName", graphName));
             while (edgeResult.hasNext()) {
