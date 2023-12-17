@@ -47,11 +47,11 @@ public class Seriously {
 
         GraphInit.initGraphItems(graphManager,dataGatherManager,dataGatherManager.startYear,dataGatherManager.startMonth,dataGatherManager.finalYear,dataGatherManager.finalMonth);
         System.out.println("完成初始图集的初始化");
-        try {
-            GraphInit.givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            GraphInit.givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
 
         Vector<Double> ans = CalImpact.getImpact(graphManager.Graph,dataGatherManager);
 //        for(Double dou:ans)
