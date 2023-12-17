@@ -27,7 +27,7 @@ public class GraphStore {
         try (Session session = driver.session()) {
             // 遍历图中的节点并创建节点
             for (Author author : graph.vertexSet()) {
-                session.run("CREATE (:Author {name: $name, graphName: $graphName)", Values.parameters("name", author.getOrcid(),
+                session.run("CREATE (:Author {name: $name, graphName: $graphName})", Values.parameters("name", author.getOrcid(),
                         "graphName", graphName));
             }
             // 遍历图中的边并创建关系
@@ -35,15 +35,15 @@ public class GraphStore {
                 Author source = graph.getEdgeSource(edge);
                 Author target = graph.getEdgeTarget(edge);
 
-                session.run("MATCH (source:Author {name: $sourceName, graph: $graphName}), (target:Author {name: $targetName, graph: $graphName}) " +
-                                "CREATE (source)-[:WRITES {graph: $graphName}]->(target)",
+                session.run("MATCH (source:Author {name: $sourceName, graphName: $graphName}), (target:Author {name: $targetName, graphName: $graphName}) " +
+                                "CREATE (source)-[:CITES {graphName: $graphName}]->(target)",
                         Values.parameters("sourceName", source.getOrcid(), "targetName", target.getOrcid(), "graphName", graphName));
             }
         }
     }
 
     public static void store(String graphName, DirectedGraph<Author, Edge> graph) {
-        GraphStore graphStorage = new GraphStore("bolt://localhost:7687", "username", "password");//这里修改为自己的用户名，密码
+        GraphStore graphStorage = new GraphStore("bolt://localhost:7687", "neo4j", "密码");//这里修改为自己的用户名，密码
         graphStorage.saveGraphToNeo4j(graphName, graph);
         graphStorage.close();
     }
@@ -54,7 +54,7 @@ public class GraphStore {
         Map<String, Author> authors = new HashMap<>();
         try (Session session = driver.session()) {
             // Read authors from Neo4j
-            Result authorResult = session.run("(a:Author {graph: $graphName}) RETURN a.name AS name", Values.parameters("graphName", graphName));
+            Result authorResult = session.run("(a:Author {graphName: $graphName}) RETURN a.name AS name", Values.parameters("graphName", graphName));
             while (authorResult.hasNext()) {
                 Record record = authorResult.next();
                 String name = record.get("name").asString();
@@ -67,7 +67,7 @@ public class GraphStore {
             }
 
             // Read relationships from Neo4j
-            Result edgeResult = session.run("MATCH (source:Author {graph: $graphName})-[r:WRITES {graph: $graphName}]->(target:Author {graph: $graphName}) " +
+            Result edgeResult = session.run("MATCH (source:Author {graphName: $graphName})-[r:CITES {graphName: $graphName}]->(target:Author {graphName: $graphName}) " +
                     "RETURN source.name AS sourceName, target.name AS targetName, r.year AS year, r.citingKey AS citingKey, r.doi AS doi",
                     Values.parameters("graphName", graphName));
             while (edgeResult.hasNext()) {
@@ -84,7 +84,7 @@ public class GraphStore {
     }
 
     public static DirectedGraph<Author, Edge> read(String graphName) {
-        GraphStore graphStorage = new GraphStore("bolt://localhost:7687", "username", "password");//这里修改为自己的用户名，密码
+        GraphStore graphStorage = new GraphStore("bolt://localhost:7687", "neo4j", "密码");//这里修改为自己的用户名，密码
         DirectedGraph<Author, Edge> graph = graphStorage.readGraphFromNeo4j(graphName);
         graphStorage.close();
         return graph;

@@ -44,7 +44,7 @@ public class CoefficientStrategy {
 
         Set<TimeInfo> timeInfos = DataGatherManager.getInstance().dicTimeInfoDoi.keySet();
         switch (timeState) {
-            case PRE:
+            case PRE -> {
                 for (TimeInfo timeInfo : timeInfos) {
                     if (timeInfo.year == year) {
                         if (timeInfo.month >= 1 && timeInfo.month <= 4)
@@ -54,7 +54,8 @@ public class CoefficientStrategy {
                             tempLast.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
                     }
                 }
-            case MIDDLE:
+            }
+            case MIDDLE -> {
                 for (TimeInfo timeInfo : timeInfos) {
                     if (timeInfo.year == year) {
                         if (timeInfo.month >= 5 && timeInfo.month <= 8)
@@ -63,7 +64,8 @@ public class CoefficientStrategy {
                             tempLast.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
                     }
                 }
-            case LATE:
+            }
+            case LATE -> {
                 for (TimeInfo timeInfo : timeInfos) {
                     if (timeInfo.year == year) {
                         if (timeInfo.month >= 9 && timeInfo.month <= 12)
@@ -72,6 +74,7 @@ public class CoefficientStrategy {
                             tempLast.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
                     }
                 }
+            }
         }
         for(String doi:tempCur){
             Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(doi);

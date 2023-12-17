@@ -10,5 +10,6 @@
     <orderEntry type="library" name="Jama-1.0.3" level="project" />
     <orderEntry type="library" name="jgrapht.core" level="project" />
     <orderEntry type="library" name="jgrapht.ext" level="project" />
+    <orderEntry type="library" name="neo4j.driver.java" level="project" />
   </component>
 </module>
