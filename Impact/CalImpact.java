@@ -227,7 +227,7 @@ public class CalImpact {
         for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
             loadTempPapersImpact();
             CoefficientStrategy coefficientStrategy = new CoefficientStrategy();
-            coefficientStrategy.initTransitionMatrix(i/12,LevelManager.TimeState.getTimeStateByIndex((i%12)/4));
+            coefficientStrategy.calTargetTransitionMatrix(i/12,LevelManager.TimeState.getTimeStateByIndex((i%12)/4));
             updateAll(dataGatherManager,graphImpact,i/12,i%12, coefficientStrategy);
         }
         //***
