@@ -125,6 +125,10 @@ public class CalImpact {
             }
         }
     }
+    //在只考虑成熟论文的情况下更新作者影响力
+    public static void updateMatureAuthor(Vector<Vector<String>> currentPapers){
+
+    }
     public static void updatePaperImpact(Vector<Vector<String>> currentPapers, CoefficientStrategy coefficientStrategy){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         GraphManager graphManager = GraphManager.getInstance();
