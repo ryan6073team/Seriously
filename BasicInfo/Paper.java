@@ -42,6 +42,9 @@ public class Paper {
     public String getDoi(){
         return doi;
     }
+    public String getPaperName(){
+        return paperName;
+    }
     public String getJournal(){return journal;}
     public void setJournal(String journal){this.journal = journal;}
     public void setCitedTimes(int inDegree) {

@@ -25,7 +25,7 @@ public class FileInput {
                 String[] columns = line.split(DELIMITER);
                 dataGatherManager.dicJournalIF.put(columns[0], Double.valueOf(columns[1]));
                 // 打印行
-                //System.out.println(String.join(", ", columns));
+                System.out.println(String.join(", ", columns));
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -238,9 +238,9 @@ public class FileInput {
                 initPaperandJournal(reader, dataGatherManager, line, author);
                 initDicTimeInfoDoi(dataGatherManager);
                 dataGatherManager.initMatrixOrder();
-//                //规模控制
-//                if(authors.size()>30)
-//                    break;
+                //规模控制
+                if(authors.size()>30)
+                    break;
             }
             reader.close();
         } catch (IOException e) {
