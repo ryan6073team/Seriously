@@ -239,8 +239,8 @@ public class FileInput {
                 initDicTimeInfoDoi(dataGatherManager);
                 dataGatherManager.initMatrixOrder();
                 //规模控制
-                if(authors.size()>30)
-                    break;
+//                if(authors.size()>30)
+//                    break;
             }
             reader.close();
         } catch (IOException e) {
