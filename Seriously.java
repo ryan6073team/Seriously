@@ -21,28 +21,41 @@ import static com.github.ryan6073.Seriously.BasicInfo.FileInput.initJournalToIF;
 public class Seriously {
     public static void main(String[] args) {
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
-
-//        initJournalToIF(dataGatherManager);//更新期刊IF的映射
+//      initJournalToIF(dataGatherManager);//更新期刊IF的映射
 
         FileInput.init(dataGatherManager);
-//        System.out.println(dataGatherManager.dicAuthorPaper.size());//测试
+        System.out.println("完成文件初始化");
+
         //新增的初始化datagather的startyear/month finalyear/month
         dataGatherManager.initYearMonth();
+        System.out.println("完成时间初始化");
+
         //更新等级
         AuthorKMeans.AuthorKMeans(dataGatherManager);
+        System.out.println("完成作者等级更新");
+
         JournalKMeans.JournalkMeans(dataGatherManager);
+        System.out.println("完成期刊等级更新");
+
         GraphManager graphManager = GraphManager.getInstance();
+
         GraphInit.initGraph(graphManager,dataGatherManager,dataGatherManager.startYear,dataGatherManager.startMonth);
+        System.out.println("完成初始总图的初始化");
+
+        GraphStore.store("0000-0", graphManager.Graph);
+        System.out.println("完成初始总图的存储");
+
         GraphInit.initGraphItems(graphManager,dataGatherManager,dataGatherManager.startYear,dataGatherManager.startMonth,dataGatherManager.finalYear,dataGatherManager.finalMonth);
-        try {
-            GraphInit.givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println("完成初始图集的初始化");
+//        try {
+//            GraphInit.givenAdaptedGraph_whenWriteBufferedImage_thenFileShouldExist();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
 
         Vector<Double> ans = CalImpact.getImpact(graphManager.Graph,dataGatherManager);
-//        for(Double dou:ans)
-//            System.out.println(dou);
+        for(Double dou:ans)
+            System.out.println(dou);
 
     }
 }
