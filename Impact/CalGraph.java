@@ -15,7 +15,7 @@ import java.util.Vector;
 public class CalGraph {
     public static double[][] getGraphMatrix(DirectedGraph<Author, Edge> mGraph){
         Iterator<Author> mBreadthFirstIterator = new BreadthFirstIterator<>(mGraph);
-        int authorNum = mGraph.vertexSet().size();
+        int authorNum = DataGatherManager.getInstance().dicOrcidAuthor.size();
         double[][] Matrix = new double[authorNum][authorNum];
         //初始化
         for(int i=0;i<authorNum;i++)

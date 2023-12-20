@@ -21,14 +21,14 @@ import java.util.Vector;
 
 public class GraphInit {
     private static DirectedGraph<Paper, DefaultEdge> paperGraph = new DefaultDirectedGraph<>(DefaultEdge.class);  //创建一个论文的图用以检验是否存在环
-    public static void deleteSinglePoint(DirectedGraph<Author,Edge> graph){
-        if(graph.edgeSet().isEmpty()) return;
-        for (Author vertex : graph.vertexSet()) {
-            int inDegree = graph.inDegreeOf(vertex);
-            int outDegree = graph.outDegreeOf(vertex);
-            if(inDegree+outDegree==0) graph.removeVertex(vertex);
-        }
-    }// 删除图中孤立点
+//    public static void deleteSinglePoint(DirectedGraph<Author,Edge> graph){
+//        if(graph.edgeSet().isEmpty()) return;
+//        for (Author vertex : graph.vertexSet()) {
+//            int inDegree = graph.inDegreeOf(vertex);
+//            int outDegree = graph.outDegreeOf(vertex);
+//            if(inDegree+outDegree==0) graph.removeVertex(vertex);
+//        }
+//    }// 删除图中孤立点
 
     //检查是否存在环
     public static void DetectCycles(DirectedGraph<Paper,DefaultEdge> detectGraph) {
@@ -210,6 +210,7 @@ public class GraphInit {
         }
         //deleteSinglePoint(GraphTemp);
         graphManager.addGraphItem(year,month,GraphTemp);
+        System.out.println(year + "年" + month + "月已更新");
     }
     public static void initGraphItems(GraphManager graphManager,DataGatherManager dataGatherManager,int startYear,int startMonth, int endYear, int endMonth){
         if(startYear==endYear)
