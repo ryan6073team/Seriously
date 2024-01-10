@@ -5,6 +5,7 @@ import com.github.ryan6073.Seriously.BasicInfo.*;
 import com.github.ryan6073.Seriously.Graph.GraphInit;
 import com.github.ryan6073.Seriously.Graph.GraphManager;
 import com.github.ryan6073.Seriously.Graph.GraphStore;
+import com.github.ryan6073.Seriously.Impact.CalGraph;
 import com.github.ryan6073.Seriously.Impact.CalImpact;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -19,7 +20,9 @@ import java.util.Vector;
 import static com.github.ryan6073.Seriously.BasicInfo.FileInput.initJournalToIF;
 
 public class Seriously {
+
     public static void main(String[] args) {
+//      GraphStore.createTestGraph();
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
 //      initJournalToIF(dataGatherManager);//更新期刊IF的映射
 

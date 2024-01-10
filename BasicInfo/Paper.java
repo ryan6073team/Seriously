@@ -28,6 +28,17 @@ public class Paper {
         citedList = new Vector<>();
         edgeList = new Vector<>();
     }
+    public Paper(String paperName, String doi, String journal, int publishedYear, int publishedMonth, Vector<String> citingList, Vector<String> authorIDList){
+        this.paperName = paperName;
+        this.doi = doi;
+        this.journal = journal;
+        this.publishedYear = publishedYear;
+        this.publishedMonth = publishedMonth;
+        this.citingList = citingList;
+        this.authorIDList = authorIDList;
+        citedList = new Vector<>();
+        edgeList = new Vector<>();
+    }
     public void setYear(int _year/*fileinput待更新，该函数调用应删去此参数*/){
         publishedYear = _year;
     }
