@@ -174,13 +174,15 @@ public class GraphInit {
         DirectedGraph<Author,Edge> GraphTemp = new DefaultDirectedGraph<>(Edge.class);
         for(Map.Entry<Author, Vector<Paper>> entry : dataGatherManager.dicAuthorPaper.entrySet()){
             if(!entry.getKey().getFlag()) continue;  //不存在该作者则进行下一个循环
-            //如果不存在作者结点则创建
-            if(!GraphTemp.containsVertex(entry.getKey())){
-                GraphTemp.addVertex(entry.getKey());
-            }
             //遍历该作者的论文
             for(Paper paper: entry.getValue()){
                 if(paper.getPublishedYear()!=year||paper.getPublishedMonth()!=month) continue;
+
+                //如果不存在作者结点则创建
+                if(!GraphTemp.containsVertex(entry.getKey())){
+                    GraphTemp.addVertex(entry.getKey());
+                }
+
                 //获取存在于数据源中的作者数量
                 int startNum = getAuthorNumber(paper,dataGatherManager);  //引用作者数量，即与边起点有关的作者数
 
@@ -211,8 +213,8 @@ public class GraphInit {
         //deleteSinglePoint(GraphTemp);
         graphManager.addGraphItem(year,month,GraphTemp);
         System.out.println(year + "年" + month + "月已更新");
-        GraphStore.store(year+"-"+month,GraphTemp);
-        System.out.println("完成"+year + "年" + month + "月图的存储");
+        //GraphStore.store(year+"-"+month,GraphTemp);
+        //System.out.println("完成"+year + "年" + month + "月图的存储");
     }
     public static void initGraphItems(GraphManager graphManager,DataGatherManager dataGatherManager,int startYear,int startMonth, int endYear, int endMonth){
         if(startYear==endYear)

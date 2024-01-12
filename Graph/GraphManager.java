@@ -21,7 +21,7 @@ public class GraphManager { //单例
     public DirectedGraph<Author,Edge> getGraphItem(int year,int month){
         for(Map.Entry<TimeInfo,DirectedGraph<Author,Edge>> entry : GraphItems.entrySet()){
             if(entry.getKey().year==year&&entry.getKey().month==month)
-                return GraphItems.get(entry);
+                return entry.getValue();
         }
         return null;
     }
