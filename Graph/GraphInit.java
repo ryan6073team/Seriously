@@ -213,8 +213,8 @@ public class GraphInit {
         //deleteSinglePoint(GraphTemp);
         graphManager.addGraphItem(year,month,GraphTemp);
         System.out.println(year + "年" + month + "月已更新");
-        //GraphStore.store(year+"-"+month,GraphTemp);
-        //System.out.println("完成"+year + "年" + month + "月图的存储");
+        GraphStore.store(year+"-"+month,GraphTemp);
+        System.out.println("完成"+year + "年" + month + "月图的存储");
     }
     public static void initGraphItems(GraphManager graphManager,DataGatherManager dataGatherManager,int startYear,int startMonth, int endYear, int endMonth){
         if(startYear==endYear)
