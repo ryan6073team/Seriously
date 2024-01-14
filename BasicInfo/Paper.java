@@ -8,7 +8,7 @@ import java.util.Vector;
 
 public class Paper {
     boolean isAlive = false;
-    int lifeSpan = 12; //默认保护期一年
+    int life = 0; //从零开始
     LevelManager.Level level = LevelManager.Level.E;
     Double rankWeight = 1.0; //等级的权值在保护期开始为1;
     String paperName,doi,journal;
@@ -87,25 +87,12 @@ public class Paper {
     public void setLevel(LevelManager.Level l){
         level = l;
     }
-    public int getLifeSpan(){
-        return lifeSpan;
+    public int getLife(){
+        return life;
     }
-    public void setLifeSpan(){//得把paper类里的lifeSpan改成=0
-        // 创建一个 Calendar 对象，用来存储出版的日期
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, publishedYear);
-        cal.set(Calendar.MONTH, publishedMonth - 1);
-        // 获取 cal 的 Date 类型的值
-        Date publishDate = cal.getTime();
-        // 计算当前日期和出版日期之间相差的月份数
-        int months = getMonthsBetween(new Date(), publishDate);
-        // 如果相差的月份数小于等于12，那么 lifeSpan 等于 life 加上月份数
-        if (months <= 12) {
-            lifeSpan = lifeSpan + months;
-        } else {
-            // 否则，lifeSpan 等于13，表示达到最大值
-            lifeSpan = 13;
-        }
+    public int setLife(int _life){
+        life = _life;
+        return life;
     }
     public double getRankWeight(){
         return rankWeight;
@@ -122,7 +109,7 @@ public class Paper {
     // 定义一个getAgeGroup方法，用于获取论文的年龄组
     public LevelManager.PaperAgeGroup getAgeGroup() {
         // 获取论文的诞生时长，以月为单位
-        int lifespan = this.getLifeSpan();
+        int lifespan = this.getLife();
         // 根据论文的诞生时长，返回相应的年龄组枚举值
         if(lifespan > 0 && lifespan <= 4){
             // 如果论文的诞生时长在1-4月之间，属于青年期

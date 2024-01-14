@@ -105,7 +105,7 @@ public class GraphManager { //单例
     public Vector<Vector<String>> updateGraph(int year, int month){
         DirectedGraph<Author,Edge> graphItem = getGraphItem(year, month);
 
-        if(graphItem == null) return updatePaperLifeInfo(year,month,Graph,DataGatherManager.getInstance());
+        if(graphItem == null) return updatePaperLifeInfo(Graph,DataGatherManager.getInstance());
 
         for(Author author:graphItem.vertexSet()){
             if(!Graph.containsVertex(author)){
@@ -117,9 +117,9 @@ public class GraphManager { //单例
             Graph.addEdge(graphItem.getEdgeSource(edge),graphItem.getEdgeTarget(edge),edge);
             DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).setIsRead(1);
         }
-        return updatePaperLifeInfo(year,month,Graph,DataGatherManager.getInstance());
+        return updatePaperLifeInfo(Graph,DataGatherManager.getInstance());
     }
-    private Vector<Vector<String>> updatePaperLifeInfo(int year, int month, DirectedGraph<Author,Edge> graph, DataGatherManager dataGatherManager){
+    private Vector<Vector<String>> updatePaperLifeInfo(DirectedGraph<Author,Edge> graph, DataGatherManager dataGatherManager){
         Vector<Paper> papers = new Vector<>();
         for(Edge edge:graph.edgeSet()) {
             Paper paper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
@@ -132,34 +132,18 @@ public class GraphManager { //单例
                 dead.add(paper.getDoi());
                 continue;
             }
-            int finalMonth = paper.getPublishedMonth() + paper.getLifeSpan() - 1;
-            int finalYear = paper.getPublishedYear() + finalMonth / 12;
-            finalMonth = finalMonth % 12;
-            if(finalMonth == 0) {
-                finalMonth = 12;
-                finalYear--;
-            }
-            if(year<finalYear){
+            if (paper.getLife() <= 12) {
+                paper.setLife(paper.getLife() + 1);
+            } // life+1
+            if(paper.getLife() <= 12){
                 alive.add(paper.getDoi());
-                int leftTime = (finalYear - year) * 12 + finalMonth - month + 1;
-                paper.setRankWeight(1.0 - (double) leftTime / paper.getLifeSpan());
-            }
-            else if(year>finalYear){
+                paper.setRankWeight(1.0 - (double) paper.getLife() / 12);
+            } // 存活
+            else {
                 paper.setIsAlive(false);
                 dead.add(paper.getDoi());
-            }
-            else{
-                if(month>finalMonth){
-                    paper.setIsAlive(false);
-                    dead.add(paper.getDoi());
-                    paper.setRankWeight(0.0);
-                }
-                else{
-                    alive.add(paper.getDoi());
-                    int leftTime = finalMonth - month + 1;
-                    paper.setRankWeight(1.0 - (double) leftTime / paper.getLifeSpan());
-                }
-            }
+                paper.setRankWeight(0.0);
+            } // 死亡
         }
         Vector<Vector<String>> ans = new Vector<>();
         ans.add(alive);
