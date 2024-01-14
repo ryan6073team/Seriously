@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.Vector;
 
 public class Paper {
-    boolean isAlive = false;
+    boolean isAlive = true;
     int life = 0; //从零开始
     LevelManager.Level level = LevelManager.Level.E;
     Double rankWeight = 1.0; //等级的权值在保护期开始为1;
