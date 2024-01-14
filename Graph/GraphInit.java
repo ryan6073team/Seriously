@@ -110,16 +110,22 @@ public class GraphInit {
     public static void initGraph(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
         for(Map.Entry<Author, Vector<Paper>> entry : dataGatherManager.dicAuthorPaper.entrySet()){
             if(!entry.getKey().getFlag()) continue;  //不存在该作者则进行下一个循环
-            //如果不存在作者结点则创建
-            if(!graphManager.Graph.containsVertex(entry.getKey())){
-                graphManager.Graph.addVertex(entry.getKey());
-                entry.getKey().setIfExist(1);
-            }
             //遍历该作者的论文
             for(Paper paper: entry.getValue()){
                 if(paper.getPublishedYear()>year) continue;
                 else if(paper.getPublishedMonth()>month) continue;
                 paper.setIsRead(1);
+
+                //如果不存在作者结点则创建
+                if(!graphManager.Graph.containsVertex(entry.getKey())){
+                    graphManager.Graph.addVertex(entry.getKey());
+                    entry.getKey().setIfExist(1);
+                }
+
+                int lifeSpan = (year - paper.getPublishedYear()) * 12 + month - paper.getPublishedMonth();
+                if(lifeSpan > 12) paper.setLife(13);
+                else paper.setLife(lifeSpan);
+
                 //在论文图中添加论文结点
                 if(!paperGraph.containsVertex(paper)){
                     paperGraph.addVertex(paper);
@@ -213,8 +219,8 @@ public class GraphInit {
         //deleteSinglePoint(GraphTemp);
         graphManager.addGraphItem(year,month,GraphTemp);
         System.out.println(year + "年" + month + "月已更新");
-        GraphStore.store(year+"-"+month,GraphTemp);
-        System.out.println("完成"+year + "年" + month + "月图的存储");
+//        GraphStore.store(year+"-"+month,GraphTemp);
+//        System.out.println("完成"+year + "年" + month + "月图的存储");
     }
     public static void initGraphItems(GraphManager graphManager,DataGatherManager dataGatherManager,int startYear,int startMonth, int endYear, int endMonth){
         if(startYear==endYear)
