@@ -18,7 +18,7 @@ public class Journal implements Comparable<Journal>{
             levelNum[i]=0;
         for(Journal jounal:DataGatherManager.getInstance().journals){
             levelNum[jounal.rank]++;
-            if (levelImpact.containsKey(LevelManager.RanktoLevel(jounal.rank)))
+            if (!levelImpact.containsKey(LevelManager.RanktoLevel(jounal.rank)))
                 levelImpact.put(LevelManager.RanktoLevel(jounal.rank), jounal.getJournalImpact());
             else {
                 double impact = levelImpact.get(LevelManager.RanktoLevel(jounal.rank)) * (levelNum[jounal.rank] - 1);

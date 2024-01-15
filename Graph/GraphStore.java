@@ -69,7 +69,7 @@ public class GraphStore {
 
             // Read relationships from Neo4j
             Result edgeResult = session.run("MATCH (source:Author {graphName: $graphName})-[r:CITES {graphName: $graphName}]->(target:Author {graphName: $graphName}) " +
-                    "RETURN source.name AS sourceName, target.name AS targetName, r.year AS year, r.citingKey AS citingKey, r.doi AS doi",
+                            "RETURN source.name AS sourceName, target.name AS targetName, r.year AS year, r.citingKey AS citingKey, r.doi AS doi",
                     Values.parameters("graphName", graphName));
             while (edgeResult.hasNext()) {
                 Record record = edgeResult.next();
@@ -91,5 +91,39 @@ public class GraphStore {
         return graph;
     }
 
-
+    public static void createTestGraph(){
+        DirectedGraph<Author, Edge> testGraph1 = new DefaultDirectedGraph<>(Edge.class);
+        DirectedGraph<Author, Edge> testGraph2 = new DefaultDirectedGraph<>(Edge.class);
+        for(int i=1;i<=5;i++){
+            Author author = new Author("author"+i, String.valueOf(i),"institution"+i);
+            testGraph1.addVertex(author);
+            testGraph2.addVertex(author);
+        }
+        for(Author author1:testGraph2.vertexSet()){
+            for(Author author2:testGraph2.vertexSet()){
+                if(author1.getOrcid().equals("1")){
+                    if(author2.getOrcid().equals("2")) {
+                        Edge edge = new Edge(0.5, 2024, "1", 1);
+                        testGraph2.addEdge(author1, author2, edge);
+                    }
+                    if(author2.getOrcid().equals("3")) {
+                        Edge edge = new Edge(0.5, 2023, "2", 2);
+                        testGraph2.addEdge(author1, author2, edge);
+                    }
+                }
+                if(author1.getOrcid().equals("3")){
+                    if(author2.getOrcid().equals("4")) {
+                        Edge edge = new Edge(0.5, 2022, "3", 3);
+                        testGraph2.addEdge(author1, author2, edge);
+                    }
+                    if(author2.getOrcid().equals("5")) {
+                        Edge edge = new Edge(0.5, 2021, "4", 4);
+                        testGraph2.addEdge(author1, author2, edge);
+                    }
+                }
+            }
+        }
+        GraphStore.store("test1", testGraph1);
+        GraphStore.store("test2", testGraph2);
+    }
 }

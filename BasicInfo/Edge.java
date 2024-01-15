@@ -13,6 +13,12 @@ public class Edge {
         doi = _doi;
         month = DataGatherManager.getInstance().dicDoiPaper.get(_doi).publishedMonth;
     }
+    public Edge(double _citingKey,int _year,String _doi, int _month ){
+        citingKey = _citingKey;
+        year = _year;
+        doi = _doi;
+        month = _month;
+    }
     public Double getCitingKey(){return citingKey;}
     public String getDoi(){
         return doi;

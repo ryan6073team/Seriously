@@ -1,5 +1,6 @@
 package com.github.ryan6073.Seriously.BasicInfo;
 
+import com.github.ryan6073.Seriously.Coefficient.CoefficientStrategy;
 import com.github.ryan6073.Seriously.Graph.GraphManager;
 import com.github.ryan6073.Seriously.Impact.CalGraph;
 import com.github.ryan6073.Seriously.TimeInfo;
@@ -14,6 +15,7 @@ public class DataGatherManager {//单例模式
     public int authorNum;
     public int startYear,startMonth,finalYear,finalMonth;
     //新增，由用户自行设定，startYear和Month代表Graph累计包含至该时间点为止的引用关系，
+    public CoefficientStrategy currentCoefficientStrategy;
     //finalYear和Month代表GraphItem的时间跨度，即从s.Year.Month到f.Year.Month这么多个月每个月都应有一个GraphItem
     public Map<Author,Vector<Paper>> dicAuthorPaper ;//作者的论文集合
     public Map<String,Paper> dicDoiPaper ;//doi->paperName,
@@ -28,7 +30,6 @@ public class DataGatherManager {//单例模式
     public Vector<Journal> journals;
     public Vector<Institution> institutions;
 
-    //暂时辅助矩阵用
     public void initMatrixOrder(){
         dicOrcidMatrixOrder = new HashMap<>();
         int order=0;
@@ -116,6 +117,13 @@ public class DataGatherManager {//单例模式
         this.dicDoiPaper = new HashMap<>();
         this.dicOrcidAuthor = new HashMap<>();
         this.dicEliteAuthorPaper = new HashMap<>();
+        this.dicOrcidMatrixOrder = new HashMap<>();//doi到矩阵下标的映射??????????????
+        this.dicTimeInfoDoi = new HashMap<>();//时间与相应论文的映射
+        this.currentCoefficientStrategy = new CoefficientStrategy();
+
+        this.dicJournalIF = new HashMap<>();//期刊与IF指数的映射
+        this.dicNameJournal = new HashMap<>();//JournalName和Journal的映射
+
         journals = new Vector<>();
         institutions = new Vector<>();
         papers = new Vector<>();

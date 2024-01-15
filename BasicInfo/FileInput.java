@@ -58,7 +58,7 @@ public class FileInput {
         String[] institutions = institutionNames.split(";;");
         Author author;
         if(insCountInt==0) {
-            author = new Author(authorName, orcid, "");
+            author = new Author(authorName, orcid);
         } else if(insCountInt==1) {
             String authorInstitution = institutions[0];
             author = new Author(authorName, orcid, authorInstitution);
@@ -185,6 +185,7 @@ public class FileInput {
             author_papers.add(paper);
             reader.readLine();//读取空行
         }
+        //将论文交给其作者
         dataGatherManager.addDicDA(author, author_papers);
     }
 
@@ -238,9 +239,7 @@ public class FileInput {
                 initPaperandJournal(reader, dataGatherManager, line, author);
                 initDicTimeInfoDoi(dataGatherManager);
                 dataGatherManager.initMatrixOrder();
-                //规模控制
-//                if(authors.size()>30)
-//                    break;
+
             }
             reader.close();
         } catch (IOException e) {

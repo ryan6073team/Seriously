@@ -1,16 +1,14 @@
 package com.github.ryan6073.Seriously.Graph;
 import Jama.Matrix;
 import com.github.ryan6073.Seriously.BasicInfo.*;
+import com.github.ryan6073.Seriously.Coefficient.CoefficientStrategy;
 import com.github.ryan6073.Seriously.Impact.CalGraph;
 import com.github.ryan6073.Seriously.Impact.CalImpact;
 import com.github.ryan6073.Seriously.TimeInfo;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Vector;
+import java.util.*;
 
 
 public class GraphManager { //单例
@@ -105,7 +103,7 @@ public class GraphManager { //单例
     public Vector<Vector<String>> updateGraph(int year, int month){
         DirectedGraph<Author,Edge> graphItem = getGraphItem(year, month);
 
-        if(graphItem == null) return updatePaperLifeInfo(year,month,Graph,DataGatherManager.getInstance());
+        if(graphItem == null) return updatePaperLifeInfo(Graph,DataGatherManager.getInstance());
 
         for(Author author:graphItem.vertexSet()){
             if(!Graph.containsVertex(author)){
@@ -117,7 +115,44 @@ public class GraphManager { //单例
             Graph.addEdge(graphItem.getEdgeSource(edge),graphItem.getEdgeTarget(edge),edge);
             DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).setIsRead(1);
         }
-        return updatePaperLifeInfo(year,month,Graph,DataGatherManager.getInstance());
+        Vector<Vector<String>> ans = updatePaperLifeInfo(Graph,DataGatherManager.getInstance());
+        //更新Strategy的矩阵
+        DataGatherManager dataGatherManager = DataGatherManager.getInstance();
+        LevelManager.TimeState timeState = LevelManager.TimeState.getTimeStateByIndex((month-1)/4);
+        dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year,timeState);
+        dataGatherManager.currentCoefficientStrategy.updateOtherTransitionMatrixs(year,timeState);
+        return ans;
+    }
+    private Vector<Vector<String>> updatePaperLifeInfo(DirectedGraph<Author,Edge> graph, DataGatherManager dataGatherManager){
+        Vector<Paper> papers = new Vector<>();
+        for(Edge edge:graph.edgeSet()) {
+            Paper paper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
+            if (!papers.contains(paper)) papers.add(paper);
+        }
+        Vector<String> alive = new Vector<>();
+        Vector<String> dead = new Vector<>();
+        for(Paper paper:papers){
+            if(!paper.getIsAlive()) {
+                dead.add(paper.getDoi());
+                continue;
+            }
+            if (paper.getLife() <= 12) {
+                paper.setLife(paper.getLife() + 1);
+            } // life+1
+            if(paper.getLife() <= 12){
+                alive.add(paper.getDoi());
+                paper.setRankWeight(1.0 - (double) paper.getLife() / 12);
+            } // 存活
+            else {
+                paper.setIsAlive(false);
+                dead.add(paper.getDoi());
+                paper.setRankWeight(0.0);
+            } // 死亡
+        }
+        Vector<Vector<String>> ans = new Vector<>();
+        ans.add(alive);
+        ans.add(dead);
+        return ans; // 0为仍保护的，1为脱离保护期的
     }
     private Vector<Vector<String>> updatePaperLifeInfo(int year, int month, DirectedGraph<Author,Edge> graph, DataGatherManager dataGatherManager){
         Vector<Paper> papers = new Vector<>();
@@ -132,7 +167,7 @@ public class GraphManager { //单例
                 dead.add(paper.getDoi());
                 continue;
             }
-            int finalMonth = paper.getPublishedMonth() + paper.getLifeSpan() - 1;
+            int finalMonth = paper.getPublishedMonth() + paper.getLife() - 1;
             int finalYear = paper.getPublishedYear() + finalMonth / 12;
             finalMonth = finalMonth % 12;
             if(finalMonth == 0) {
@@ -142,7 +177,7 @@ public class GraphManager { //单例
             if(year<finalYear){
                 alive.add(paper.getDoi());
                 int leftTime = (finalYear - year) * 12 + finalMonth - month + 1;
-                paper.setRankWeight(1.0 - (double) leftTime / paper.getLifeSpan());
+                paper.setRankWeight(1.0 - (double) leftTime / paper.getLife());
             }
             else if(year>finalYear){
                 paper.setIsAlive(false);
@@ -157,7 +192,7 @@ public class GraphManager { //单例
                 else{
                     alive.add(paper.getDoi());
                     int leftTime = finalMonth - month + 1;
-                    paper.setRankWeight(1.0 - (double) leftTime / paper.getLifeSpan());
+                    paper.setRankWeight(1.0 - (double) leftTime / paper.getLife());
                 }
             }
         }
@@ -165,5 +200,41 @@ public class GraphManager { //单例
         ans.add(alive);
         ans.add(dead);
         return ans; // 0为仍保护的，1为脱离保护期的
+    }
+    public static void createTestGraph(){
+// 创建测试图并存入数据库
+        DirectedGraph<Author, Edge> testGraph1 = new DefaultDirectedGraph<>(Edge.class);
+        DirectedGraph<Author, Edge> testGraph2 = new DefaultDirectedGraph<>(Edge.class);
+        for(int i=1;i<=5;i++){
+            Author author = new Author("author"+i, String.valueOf(i),"institution"+i);
+            testGraph1.addVertex(author);
+            testGraph2.addVertex(author);
+        }
+        for(Author author1:testGraph2.vertexSet()){
+            for(Author author2:testGraph2.vertexSet()){
+                if(author1.getOrcid().equals("1")){
+                    if(author2.getOrcid().equals("2")) {
+                        Edge edge = new Edge(0.5, 2024, "1", 1);
+                        testGraph2.addEdge(author1, author2, edge);
+                    }
+                    if(author2.getOrcid().equals("3")) {
+                        Edge edge = new Edge(0.5, 2023, "2", 2);
+                        testGraph2.addEdge(author1, author2, edge);
+                    }
+                }
+                if(author1.getOrcid().equals("3")){
+                    if(author2.getOrcid().equals("4")) {
+                        Edge edge = new Edge(0.5, 2022, "3", 3);
+                        testGraph2.addEdge(author1, author2, edge);
+                    }
+                    if(author2.getOrcid().equals("5")) {
+                        Edge edge = new Edge(0.5, 2021, "4", 4);
+                        testGraph2.addEdge(author1, author2, edge);
+                    }
+                }
+            }
+        }
+        GraphStore.store("test1", testGraph1);
+        GraphStore.store("test2", testGraph2);
     }
 }

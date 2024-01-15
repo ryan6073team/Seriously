@@ -17,6 +17,12 @@ public class Author implements Comparable<Author>{
         authorInstitution = new Vector<>();
         authorInstitution.add(_authorInstitution);
     }
+    public Author(String _authorName,String _orcid){
+        authorName = _authorName;
+        orcid = _orcid;
+        flag = true;//既然被有参构造，肯定是存在于数据源头中吧？
+        authorInstitution = null;
+    }
     public Author(String _authorName,String _orcid,Vector<String> _authorInstitution){
         authorName = _authorName;
         orcid = _orcid;

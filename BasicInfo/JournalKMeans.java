@@ -32,11 +32,6 @@ public class JournalKMeans {
             // 更新簇中心
             clusterCenters = calculateClusterCenters(clusters);
 
-            // 打印每个簇的中心
-//            System.out.println("Iteration " + iteration + ":");
-//            for (int i = 0; i < k; i++) {
-//                System.out.println("Cluster " + i + " Center: " + clusterCenters.get(i));
-//            }
         }
 
         //更新rank
@@ -45,8 +40,6 @@ public class JournalKMeans {
         for(List<Double> cluster : clusters){
             for(double item:cluster){
                 dataGatherManager.journals.get(i).setRank(rank);
-//                System.out.println( dataGatherManager.journals.get(i).getRank());
-//                System.out.println( dataGatherManager.journals.get(i).getIF());
                 i++;
             }
             rank++;

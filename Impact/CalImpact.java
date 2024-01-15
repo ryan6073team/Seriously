@@ -231,7 +231,6 @@ public class CalImpact {
         for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
             loadTempPapersImpact();
             CoefficientStrategy coefficientStrategy = new CoefficientStrategy();
-            coefficientStrategy.calTargetTransitionMatrix(i/12,LevelManager.TimeState.getTimeStateByIndex((i%12)/4));
             updateAll(dataGatherManager,graphImpact,i/12,i%12, coefficientStrategy);
         }
         //***
@@ -239,11 +238,3 @@ public class CalImpact {
     }
 }
 
-//class PaperCoefficientStrategy{
-//    public double getLevelCoefficient(int life/*参与保护期(月)*/){
-//
-//    }
-//    public double getCitingCoefficient(int life){
-//        return 1-life/12.0;
-//    }
-//}

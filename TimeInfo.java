@@ -1,5 +1,7 @@
 package com.github.ryan6073.Seriously;
 
+import java.util.Objects;
+
 public class TimeInfo implements Comparable<TimeInfo>{
     public int year=0;
     public int month=0;
@@ -16,5 +18,18 @@ public class TimeInfo implements Comparable<TimeInfo>{
             return 1;
         else return 0;
     }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        TimeInfo timeInfo = (TimeInfo) obj;
+        return year == timeInfo.year && month == timeInfo.month;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(year, month);
+    }
+
 }
 

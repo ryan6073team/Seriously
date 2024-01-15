@@ -1,12 +1,10 @@
 package com.github.ryan6073.Seriously.Impact;
-
 import com.github.ryan6073.Seriously.BasicInfo.Author;
 import com.github.ryan6073.Seriously.BasicInfo.DataGatherManager;
 import com.github.ryan6073.Seriously.BasicInfo.Edge;
 import Jama.Matrix;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.traverse.BreadthFirstIterator;
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -48,7 +46,7 @@ public class CalGraph {
         return Matrix;
     }
 
-    public static void getTransitionMatrix(double [][] sourceMatrix, int MatrixSize){
+    public static void processTransitionMatrix(double [][] sourceMatrix, int MatrixSize){
         //此矩阵为转移矩阵的转置矩阵
         for(int i=0;i<MatrixSize;i++){
             double sum = 0.0;
@@ -62,6 +60,16 @@ public class CalGraph {
     }
     public static double [] getTargetVector( double [][] transitionMatrix, int matrixSize, double D){
         D = 0.85;
+        for(int i=0;i<matrixSize;i++){
+            double sum=0.0;
+            for(int j=0;j<matrixSize;j++){
+                sum+=transitionMatrix[i][j];
+            }
+            if(sum!=1.0) {
+                System.out.println("矩阵归一化异常");
+                return null;
+            }
+        }
         double [][] authorVector = new double[1][matrixSize];
         double [][] tempVector = new double[1][matrixSize];
         for(int i=0;i<matrixSize;i++){
@@ -120,12 +128,11 @@ public class CalGraph {
     }
 
     public static Vector<Double> getGraphImpact(DirectedGraph<Author, Edge> mGraph){
-
         int matrixSize = mGraph.vertexSet().size();
         //获得引用矩阵
         double [][] targetMatrix = getGraphMatrix(mGraph);
         //获得转移矩阵
-        getTransitionMatrix(targetMatrix,matrixSize);
+        processTransitionMatrix(targetMatrix,matrixSize);
         //获得作者影响力数组
         double[] impactArray = getTargetVector(targetMatrix, matrixSize, 0.85);
         //转换成向量输出
