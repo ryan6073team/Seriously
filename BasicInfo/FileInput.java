@@ -162,6 +162,7 @@ public class FileInput {
             journal.setJournalName(paperJournal);
             journal.journalPapers.add(paper.doi);
 
+
             // 判断paper是否已经存在于datagathermanager的papers列表中，如果存在则直接添加作者，否则创建新的paper对象
             if(dataGatherManager.paperFind(paperDoi)){
 
@@ -175,12 +176,14 @@ public class FileInput {
             }
             dataGatherManager.addDicDP(paper);
             dataGatherManager.addPaper(paper);
+
             if(dataGatherManager.journals.contains(journal)){
                 journal = dataGatherManager.journals.get(dataGatherManager.journals.indexOf(journal));
                 journal.journalPapers.add(paper.doi);
             }
             else{
                 dataGatherManager.addJournal(journal);
+                dataGatherManager.addDicNJ(paper.getJournal(), journal);
             }
             author_papers.add(paper);
             reader.readLine();//读取空行
