@@ -17,7 +17,7 @@ public class CalImpact {
 
     static double [][] tempPapersImpact;
 
-    static private void loadTempPapersImpact(){
+    static public void loadTempPapersImpact(){
         tempPapersImpact = new double[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
         int[][] numForm = new int[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
         for(int i=0;i<LevelManager.Level.levelNum;i++)
@@ -38,7 +38,7 @@ public class CalImpact {
                     tempPapersImpact[i][j] = tempPapersImpact[i][j]/numForm[i][j];
                 else{
                     tempPapersImpact[i][j] = 0.0;
-                    System.out.println("存在空集的论文种类");
+                    System.out.println("存在空集的论文种类:"+" Level:"+i+" | "+ " CitationLevel:" + j);
                 }
             }
     }

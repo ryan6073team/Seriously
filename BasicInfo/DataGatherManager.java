@@ -45,7 +45,7 @@ public class DataGatherManager {//单例模式
         boolean flag = true;
         TimeInfo lastItem = null;
         for(TimeInfo item:timeInfoList){
-            if(num>dicDoiPaper.size()/2&&flag){//即startyear startmonth之前的论文数（不包含startyear和startmonth本身）恰好大于或等于总数的一半
+            if(num>dicDoiPaper.size()/2 && flag){//即startyear startmonth之前的论文数（不包含startyear和startmonth本身）恰好大于或等于总数的一半
                 startYear = item.year;
                 startMonth = item.month;
                 flag = false;
@@ -99,6 +99,9 @@ public class DataGatherManager {//单例模式
     public void addDicDA(Author author,Vector<Paper> papers){
         dicAuthorPaper.put(author,papers);
     }
+    public void addDicNJ(String journalName, Journal journal) {
+        dicNameJournal.put(journalName, journal);
+    }
     public void addDicEAP(Author author, Paper paper) {
         //遍历dicAuthorPaper找出作者对应的论文集合，然后把这篇论文加入到这个作者的精英论文集合中
         if (dicAuthorPaper.containsKey(author)) {
@@ -116,6 +119,7 @@ public class DataGatherManager {//单例模式
         this.dicDoiPaper = new HashMap<>();
         this.dicOrcidAuthor = new HashMap<>();
         this.dicEliteAuthorPaper = new HashMap<>();
+        this.dicNameJournal = new HashMap<>();
         journals = new Vector<>();
         institutions = new Vector<>();
         papers = new Vector<>();
