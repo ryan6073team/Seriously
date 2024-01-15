@@ -19,7 +19,7 @@ public class GraphManager { //单例
     public DirectedGraph<Author,Edge> getGraphItem(int year,int month){
         for(Map.Entry<TimeInfo,DirectedGraph<Author,Edge>> entry : GraphItems.entrySet()){
             if(entry.getKey().year==year&&entry.getKey().month==month)
-                return GraphItems.get(entry);
+                return entry.getValue();
         }
         return null;
     }
@@ -99,7 +99,7 @@ public class GraphManager { //单例
         }
         return Matrix;
     }//计算全部不在保护期的论文对作者的平均影响力
-    //将year年month月的图更新到图里
+    //将year年month月的图更新到图里，同时更新Strategy的矩阵
     public Vector<Vector<String>> updateGraph(int year, int month){
         DirectedGraph<Author,Edge> graphItem = getGraphItem(year, month);
 
@@ -118,11 +118,20 @@ public class GraphManager { //单例
         Vector<Vector<String>> ans = updatePaperLifeInfo(Graph,DataGatherManager.getInstance());
         //更新Strategy的矩阵
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
-        LevelManager.TimeState timeState = LevelManager.TimeState.getTimeStateByIndex((month-1)/4);
-        dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year,timeState);
-        dataGatherManager.currentCoefficientStrategy.updateOtherTransitionMatrixs(year,timeState);
+        //更新该年论文集
+        dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month)));
+        if(month==12) {
+            if(year== dataGatherManager.startYear){
+                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems();
+                dataGatherManager.currentCoefficientStrategy.initOtherMatrixs();
+            }else {
+                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems();
+                dataGatherManager.currentCoefficientStrategy.updateOtherTransitionMatrixs();
+            }
+        }
         return ans;
     }
+    //更新论文life，定期更新论文CitationLevel
     private Vector<Vector<String>> updatePaperLifeInfo(DirectedGraph<Author,Edge> graph, DataGatherManager dataGatherManager){
         Vector<Paper> papers = new Vector<>();
         for(Edge edge:graph.edgeSet()) {
@@ -138,6 +147,14 @@ public class GraphManager { //单例
             }
             if (paper.getLife() <= 12) {
                 paper.setLife(paper.getLife() + 1);
+                int lifeSpan = paper.getLife();
+                //更新论文的citationlevel
+                if(lifeSpan==4)
+                    paper.youthCitationLevel = CoefficientStrategy.getCitationLevel(paper);
+                else if(lifeSpan==8)
+                    paper.strongCitationLevel = CoefficientStrategy.getCitationLevel(paper);
+                else if(lifeSpan==12)
+                    paper.matureCitationLevel = CoefficientStrategy.getCitationLevel(paper);
             } // life+1
             if(paper.getLife() <= 12){
                 alive.add(paper.getDoi());
@@ -154,53 +171,7 @@ public class GraphManager { //单例
         ans.add(dead);
         return ans; // 0为仍保护的，1为脱离保护期的
     }
-    private Vector<Vector<String>> updatePaperLifeInfo(int year, int month, DirectedGraph<Author,Edge> graph, DataGatherManager dataGatherManager){
-        Vector<Paper> papers = new Vector<>();
-        for(Edge edge:graph.edgeSet()) {
-            Paper paper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
-            if (!papers.contains(paper)) papers.add(paper);
-        }
-        Vector<String> alive = new Vector<>();
-        Vector<String> dead = new Vector<>();
-        for(Paper paper:papers){
-            if(!paper.getIsAlive()) {
-                dead.add(paper.getDoi());
-                continue;
-            }
-            int finalMonth = paper.getPublishedMonth() + paper.getLife() - 1;
-            int finalYear = paper.getPublishedYear() + finalMonth / 12;
-            finalMonth = finalMonth % 12;
-            if(finalMonth == 0) {
-                finalMonth = 12;
-                finalYear--;
-            }
-            if(year<finalYear){
-                alive.add(paper.getDoi());
-                int leftTime = (finalYear - year) * 12 + finalMonth - month + 1;
-                paper.setRankWeight(1.0 - (double) leftTime / paper.getLife());
-            }
-            else if(year>finalYear){
-                paper.setIsAlive(false);
-                dead.add(paper.getDoi());
-            }
-            else{
-                if(month>finalMonth){
-                    paper.setIsAlive(false);
-                    dead.add(paper.getDoi());
-                    paper.setRankWeight(0.0);
-                }
-                else{
-                    alive.add(paper.getDoi());
-                    int leftTime = finalMonth - month + 1;
-                    paper.setRankWeight(1.0 - (double) leftTime / paper.getLife());
-                }
-            }
-        }
-        Vector<Vector<String>> ans = new Vector<>();
-        ans.add(alive);
-        ans.add(dead);
-        return ans; // 0为仍保护的，1为脱离保护期的
-    }
+
     public static void createTestGraph(){
 // 创建测试图并存入数据库
         DirectedGraph<Author, Edge> testGraph1 = new DefaultDirectedGraph<>(Edge.class);

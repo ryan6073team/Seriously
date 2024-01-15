@@ -7,10 +7,13 @@ import java.util.Date;
 import java.util.Vector;
 
 public class Paper {
-    boolean isAlive = false;
-    int life = 0; //默认保护期一年
+    boolean isAlive = true;
+    int life = 0; //从零开始
     LevelManager.Level level = LevelManager.Level.E;
-    LevelManager.CitationLevel citationLevel = LevelManager.CitationLevel.LOW;
+    public LevelManager.CitationLevel startCitationLevel = LevelManager.CitationLevel.LOW;
+    public LevelManager.CitationLevel youthCitationLevel;
+    public LevelManager.CitationLevel strongCitationLevel;
+    public LevelManager.CitationLevel matureCitationLevel;
     Double rankWeight = 1.0; //等级的权值在保护期开始为1;
     String paperName,doi,journal;
     Double paperImpact=0.0;//保存文章的影响力
@@ -21,10 +24,22 @@ public class Paper {
     //received accepted revised 已被删除，CitingStatusTypes类实际上已失去作用
     Integer citedTimes=0;//citedList长度
 
+
     Vector<Edge> edgeList;
     public Paper(){
         citingList = new Vector<>();
         authorIDList = new Vector<>();
+        citedList = new Vector<>();
+        edgeList = new Vector<>();
+    }
+    public Paper(String paperName, String doi, String journal, int publishedYear, int publishedMonth, Vector<String> citingList, Vector<String> authorIDList){
+        this.paperName = paperName;
+        this.doi = doi;
+        this.journal = journal;
+        this.publishedYear = publishedYear;
+        this.publishedMonth = publishedMonth;
+        this.citingList = citingList;
+        this.authorIDList = authorIDList;
         citedList = new Vector<>();
         edgeList = new Vector<>();
     }
@@ -69,17 +84,37 @@ public class Paper {
         return level;
     }
     public LevelManager.CitationLevel getCitationLevel(){
-        CoefficientStrategy coefficientStrategy = new CoefficientStrategy();
-        return coefficientStrategy.getCitationLevel(this);
+        if(life>=0&&life<4)
+            return startCitationLevel;
+        else if(life>=4&&life<8)
+            return youthCitationLevel;
+        else if(life>=8&&life<13)
+            return strongCitationLevel;
+        else if(life==13)
+            return matureCitationLevel;
+        else return null;
     }
-
+    public void setCitationLevel(LevelManager.CitationLevel citationLevel){
+        if(life>=0&&life<4)
+            startCitationLevel = citationLevel;
+        else if(life>=4&&life<8)
+            youthCitationLevel = citationLevel;
+        else if(life>=8&&life<13)
+            strongCitationLevel = citationLevel;
+        else if(life==13)
+            matureCitationLevel = citationLevel;
+        else System.out.println("Paper life  异常");
+    }
     public void setLevel(LevelManager.Level l){
         level = l;
     }
     public int getLife(){
         return life;
     }
-    public void setLife(int _life){life = _life;}
+    public int setLife(int _life){
+        life = _life;
+        return life;
+    }
     public double getRankWeight(){
         return rankWeight;
     }

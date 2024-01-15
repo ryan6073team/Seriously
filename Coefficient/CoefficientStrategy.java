@@ -8,7 +8,9 @@ import java.util.*;
 
 public class CoefficientStrategy {
 
-
+    public Set<String> lastYearPapers;
+    public Set<String> currentYearPapers;
+    int currentYear = 0;
     //论文等级level 年龄状态time 状态转移矩阵
     Map<Integer,double[][][][]> transitionMatrixs = new HashMap<>();
     //
@@ -43,69 +45,7 @@ public class CoefficientStrategy {
                     }
     }
 
-    public static List<Map> getYearandTimeStateFromMonthNum(int monthnum){
-        List<Map> ans = new ArrayList<>();
-        ans.add(new HashMap<String,Integer>());
-        ans.add(new HashMap<String, LevelManager.TimeState>());
-        int year = monthnum/12;
-        int month = monthnum%12;
-        LevelManager.TimeState timeState;
-        if(month>0&&month<5)
-            timeState = LevelManager.TimeState.PRE;
-        else if(month>=5&&month<=8)
-            timeState = LevelManager.TimeState.MIDDLE;
-        else if(month>=9&&month<=11){
-            timeState = LevelManager.TimeState.LATE;
-        }
-        else{
-            year--;//12 月
-            timeState = LevelManager.TimeState.LATE;
-        }
-        ans.get(1).put("year",year);
-        ans.get(2).put("timestate",timeState);
-        return ans;
-    }
 
-    // getLastCurPapers，获得目标等级的目标时间的论文数据（cur和last）
-    private Map<String,Paper> getTargetTimePapers(int year, LevelManager.TimeState timeState, LevelManager.Level level){
-        Map<String,Paper> cur = new HashMap<>();
-        Vector<String> tempCur = new Vector<>();
-
-        Set<TimeInfo> timeInfos = DataGatherManager.getInstance().dicTimeInfoDoi.keySet();
-        switch (timeState) {
-            case PRE -> {
-                for (TimeInfo timeInfo : timeInfos) {
-                    if (timeInfo.year == year) {
-                        if (timeInfo.month >= 1 && timeInfo.month <= 4)
-                            tempCur.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
-                    }
-                }
-            }
-            case MIDDLE -> {
-                for (TimeInfo timeInfo : timeInfos) {
-                    if (timeInfo.year == year) {
-                        if (timeInfo.month >= 5 && timeInfo.month <= 8)
-                            tempCur.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
-                    }
-                }
-            }
-            case LATE -> {
-                for (TimeInfo timeInfo : timeInfos) {
-                    if (timeInfo.year == year) {
-                        if (timeInfo.month >= 9 && timeInfo.month <= 12)
-                            tempCur.addAll(DataGatherManager.getInstance().dicTimeInfoDoi.get(timeInfo));
-                    }
-                }
-            }
-        }
-        for(String doi:tempCur){
-            Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(doi);
-            if(paper.getLevel()==level)
-                cur.put(doi,paper);
-        }
-
-        return  cur;
-    }
 
     // 定义一个loadPapersAgeGroup方法，用于将论文按照年龄组进行分类，并返回相应映射
     private Map<LevelManager.PaperAgeGroup, Vector<Paper>> loadPapersAgeGroup(Map<String,Paper> papers){
@@ -121,66 +61,70 @@ public class CoefficientStrategy {
         return map;
     }
 
-    // 定义一个calTransitionMatrixItem方法，用于将某个等级的论文的某个时间段的引用量转移矩阵算出，前提条件是需要相关时间段的论文数据
-    private double[][] getTransitionMatrixItem(Map<String,Paper> currentPapers){
-        double[][] ans = new double[LevelManager.CitationLevel.citationLevelNum][LevelManager.CitationLevel.citationLevelNum];
-        for(int i=0;i<LevelManager.CitationLevel.citationLevelNum;i++)
-            for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++)
-                ans[i][j] = 0.0;
-        for(Paper paper:currentPapers){
-            LevelManager.CitationLevel citationLevel = paper.getCitationLevel();
-            //ans[target][source]
-            ans[currentPapers.get(paper.getDoi()).getCitationLevel().getIndex()][citationLevel.getIndex()] += 1.0;
-            //从paper的citationLevel转到temp的getCitationLevel的频数+1
+    //在第一次求出转移矩阵（即startyear-1）后，对于otherMatrix进行初始化设置
+    public void initOtherMatrixs(){
+        DataGatherManager dataGatherManager = DataGatherManager.getInstance();
+        //初始化前必须确保首个转移矩阵已经求出
+        if(transitionMatrixs.containsKey(dataGatherManager.startYear-1)) {
+            estimatedMatrix = transitionMatrixs.get(dataGatherManager.startYear - 1);
+            //dev为全零矩阵，之前已经初始化 result无需初始化
+        }else{
+            System.out.println("Strategy矩阵初始化非法");
         }
-        //每列进行归一化
-        for(int i=0;i<LevelManager.CitationLevel.citationLevelNum;i++) {
-            double sum=0.0;
-            for (int j = 0; j < LevelManager.CitationLevel.citationLevelNum; j++) {
-                sum+=ans[j][i];
-            }
-            if(sum!=0.0)
-                for (int j = 0; j < LevelManager.CitationLevel.citationLevelNum; j++) {
-                    ans[j][i]/=sum;
-                }
-        }
-        return ans;
     }
 
     //定义一个initTransitionMatrixItems方法，用于计算特定等级论文特定时间段的转移矩阵
-    public void initorUpdateTransitionMatrixItems(int year, LevelManager.TimeState timeState/*获取基于某年某时间段的事件状态*/){
-
-        if(transitionMatrixs.get(year)==null||transitionMatrixs.get(year).get(timeState)==null) {
+    public void initorUpdateTransitionMatrixItems(){
+        if(transitionMatrixs.get(currentYear)==null) {
             double[][][][] transitionMatrix = new double[LevelManager.Level.levelNum][LevelManager.PaperAgeGroup.ageGroupNum][LevelManager.CitationLevel.citationLevelNum][LevelManager.CitationLevel.citationLevelNum];
-            //获取两组数据 数据Last代表year.timeState-1 数据Cur代表year.timeState
-            //如year=2021 timeState=Pre 则数据Last代表2020年9-12月的论文数据集 数据Cur代表2021年1-4月的论文数据集 按照论文等级进行过滤
-            for (int i = 0; i < LevelManager.Level.levelNum; i++) {
-                Map<String,Paper> currentPapers = getTargetTimePapers(year, timeState, LevelManager.Level.getLevelByIndex(i));
+            DataGatherManager dataGatherManager = DataGatherManager.getInstance();
+            for(int i=0;i<LevelManager.Level.levelNum;i++)
+                for(int j=0;j<LevelManager.PaperAgeGroup.ageGroupNum;j++)
+                    for(int h=0;h<LevelManager.CitationLevel.citationLevelNum;h++)
+                        for(int k=0;k<LevelManager.CitationLevel.citationLevelNum;k++)
+                            transitionMatrix[i][j][h][k] = 0.0;
 
-                //将单个时间段的论文按照论文所处年龄段进行划分 青年 壮年 老年 成熟,显然last的老年会在cur中成熟 壮年会变为老年 以此类推
-                Map<LevelManager.PaperAgeGroup, Vector<Paper>> dicAgeLastPaper = loadPapersAgeGroup(currentPapers);
-
-                //获取在目标时间段下的各年龄状态的论文的状态转移矩阵
-                //若该时间点已经没有目标年龄的论文，则返回的状态转移矩阵会是单位矩阵，即此类论文的状态不会再转移
-                double[][] childTransitionMatrix = getTransitionMatrixItem(dicAgeLastPaper.get(LevelManager.PaperAgeGroup.CHILD));
-                double[][] youngTransitionMatrix = getTransitionMatrixItem(dicAgeLastPaper.get(LevelManager.PaperAgeGroup.YOUNG));
-                double[][] oldTransitionMatrix = getTransitionMatrixItem(dicAgeLastPaper.get(LevelManager.PaperAgeGroup.OLD));
-
-                transitionMatrix[i][LevelManager.PaperAgeGroup.CHILD.getIndex()] = childTransitionMatrix;
-                transitionMatrix[i][LevelManager.PaperAgeGroup.YOUNG.getIndex()] = youngTransitionMatrix;
-                transitionMatrix[i][LevelManager.PaperAgeGroup.OLD.getIndex()] = oldTransitionMatrix;
+            for(String doi:lastYearPapers){
+                Paper paper1 = dataGatherManager.dicDoiPaper.get(doi);
+                double[][] childTransitionMatrix = transitionMatrix[paper1.getLevel().getIndex()][LevelManager.PaperAgeGroup.CHILD.getIndex()];
+                double[][] youngTransitionMatrix = transitionMatrix[paper1.getLevel().getIndex()][LevelManager.PaperAgeGroup.YOUNG.getIndex()];
+                double[][] oldTransitionMatrix = transitionMatrix[paper1.getLevel().getIndex()][LevelManager.PaperAgeGroup.OLD.getIndex()];
+                childTransitionMatrix[paper1.matureCitationLevel.getIndex()][paper1.startCitationLevel.getIndex()]+=1.0;
+                youngTransitionMatrix[paper1.matureCitationLevel.getIndex()][paper1.youthCitationLevel.getIndex()]+=1.0;
+                oldTransitionMatrix[paper1.matureCitationLevel.getIndex()][paper1.strongCitationLevel.getIndex()]+=1.0;
             }
-            // 将计算得到的转换矩阵存入transitionMatrixs中
-            if (transitionMatrixs.get(year) == null) {
-                transitionMatrixs.put(year, new HashMap<>());
+            //每列进行归一化
+            for(int level=0;level<LevelManager.Level.levelNum;level++) {
+                double[][] childTransitionMatrix = transitionMatrix[level][LevelManager.PaperAgeGroup.CHILD.getIndex()];
+                double[][] youngTransitionMatrix = transitionMatrix[level][LevelManager.PaperAgeGroup.YOUNG.getIndex()];
+                double[][] oldTransitionMatrix = transitionMatrix[level][LevelManager.PaperAgeGroup.OLD.getIndex()];
+                double sum1 = 0.0;
+                double sum2 = 0.0;
+                double sum3 = 0.0;
+                for (int i = 0; i < LevelManager.CitationLevel.citationLevelNum; i++) {
+                    for (int j = 0; j < LevelManager.CitationLevel.citationLevelNum; j++) {
+                        sum1 += childTransitionMatrix[j][i];
+                        sum2 += youngTransitionMatrix[j][i];
+                        sum3 += oldTransitionMatrix[j][i];
+                    }
+                    for (int j = 0; j < LevelManager.CitationLevel.citationLevelNum; j++) {
+                        if (sum1 != 0.0)
+                            childTransitionMatrix[j][i] /= sum1;
+                        if (sum2 != 0.0)
+                            youngTransitionMatrix[j][i] /= sum2;
+                        if (sum3 != 0.0)
+                            oldTransitionMatrix[j][i] /= sum3;
+                    }
+                }
             }
-            transitionMatrixs.get(year).put(timeState, transitionMatrix);
+            transitionMatrixs.put(currentYear-1,transitionMatrix);
+            lastYearPapers = currentYearPapers;
+            currentYearPapers = null;
         }
-
     }
 
     //定义一个updateOtherTransitionMatrix方法，更新目标范围内的矩阵
-    public void updateOtherTransitionMatrixs(int year, LevelManager.TimeState timeState){
+    public void updateOtherTransitionMatrixs(){
         //estimatedMatrix = 0.875*estimatedMatrix+0.125*TimeStateTransitionMatrix
         //计算DevTransitionMatrix
         //devMatrix = 0.75*devMatrix + 0.25*abs(estimatedMatrix-TimeStateTransitionMatrix)
@@ -194,18 +138,15 @@ public class CoefficientStrategy {
         int z = estimatedMatrix[0][0][0].length;
 
 
-        double[][][][] TimeStateTransitionMatrix = transitionMatrixs.get(year).get(timeState);
+        double[][][][] LastestTransitionMatrix = transitionMatrixs.get(currentYear-1);
 
         //遍历矩阵的每个元素
         for (int i = 0; i < w; i++) {
             for (int j = 0; j < x; j++) {
                 for (int k = 0; k < y; k++) {
                     for (int l = 0; l < z; l++) {
-
-                        estimatedMatrix[i][j][k][l] = 0.875 * estimatedMatrix[i][j][k][l] + 0.125 * TimeStateTransitionMatrix[i][j][k][l];
-
-                        devMatrix[i][j][k][l] = 0.75 * devMatrix[i][j][k][l] + 0.25 * Math.abs(estimatedMatrix[i][j][k][l] - TimeStateTransitionMatrix[i][j][k][l]);
-
+                        estimatedMatrix[i][j][k][l] = 0.875 * estimatedMatrix[i][j][k][l] + 0.125 * LastestTransitionMatrix[i][j][k][l];
+                        devMatrix[i][j][k][l] = 0.75 * devMatrix[i][j][k][l] + 0.25 * Math.abs(estimatedMatrix[i][j][k][l] - LastestTransitionMatrix[i][j][k][l]);
                         resultMatrix[i][j][k][l] = estimatedMatrix[i][j][k][l] + 4 * devMatrix[i][j][k][l];
                     }
                 }
@@ -213,13 +154,7 @@ public class CoefficientStrategy {
         }
     }
 
-    // 定义一个getTransitionMatrix方法，根据论文的等级和年龄获取给定时间段的状态转移矩阵
-    private double[][] getTransitionMatrix(int year, LevelManager.TimeState timeState, Paper paper){
-        LevelManager.Level paperLevel = paper.getLevel(); // 获取论文的等级，返回0，1，2，3分别表示A，B，C，D
-        LevelManager.PaperAgeGroup paperAgeGroup= paper.getAgeGroup();
-        double[][] paperTransitionMatrix = transitionMatrixs.get(year).get(timeState)[paperLevel.getIndex()][paperAgeGroup.getIndex()]; // 获取论文的状态转移概率矩阵
-        return paperTransitionMatrix;
-    }
+
     // 定义一个getEstimatedTransitionMatrix方法，根据论文的等级和年龄获取根据时间累计的状态转移矩阵
     public double[][] getResultTransitionMatrix( Paper paper){
         LevelManager.Level paperLevel = paper.getLevel(); // 获取论文的等级，返回0，1，2，3分别表示A，B，C，D
@@ -265,7 +200,7 @@ public class CoefficientStrategy {
     }
 
     // 定义一个方法，根据论文的被引排名，划分论文的引用量区间
-    public LevelManager.CitationLevel getCitationLevel(Paper paper){
+    static public LevelManager.CitationLevel getCitationLevel(Paper paper){
         int citationRank = getCitationRank(paper);
         LevelManager.CitationLevel citationLevel; // 定义一个变量，表示论文的引用量区间
         if(citationRank <= 0.1){
@@ -282,7 +217,7 @@ public class CoefficientStrategy {
     }
     //获取排名
 // 定义一个方法 getSimilarPapers，用来获取和一个论文相同年份，相同期刊的其他论文的列表
-    private Vector<Paper> getSimilarPapers(Paper paper) {
+    static private Vector<Paper> getSimilarPapers(Paper paper) {
         // 创建一个空的向量，用来存储符合条件的论文
         Vector<Paper> similarPapers = new Vector<>();
         // 获取论文的年份，期刊
@@ -300,7 +235,7 @@ public class CoefficientStrategy {
     }
 
     // 定义一个方法 sortPapersByCitation，用来对一个论文向量按照引用量从高到低进行排序
-    private void sortPapersByCitation(Vector<Paper> papers) {
+    static private void sortPapersByCitation(Vector<Paper> papers) {
         // 使用 Collections 类的 sort 方法，传入一个自定义的比较器，按照引用量从高到低进行排序
         Collections.sort(papers, new Comparator<Paper>() {
             // 重写 compare 方法，比较两个论文的引用量
@@ -319,7 +254,7 @@ public class CoefficientStrategy {
         });
     }
 
-    private int getCitationRank(Paper paper) {
+    static private int getCitationRank(Paper paper) {
         // 获取和论文相同领域，相同年份，相同期刊的其他论文的列表
         List<Paper> similarPapers = getSimilarPapers(paper);
         // 对论文列表按照引用量从高到低进行排序

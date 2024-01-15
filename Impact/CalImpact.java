@@ -129,7 +129,7 @@ public class CalImpact {
     public static void updateMatureAuthor(Vector<Vector<String>> currentPapers){
 
     }
-    public static void updatePaperImpact(Vector<Vector<String>> currentPapers, CoefficientStrategy coefficientStrategy){
+    public static void updatePaperImpact(Vector<Vector<String>> currentPapers){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         GraphManager graphManager = GraphManager.getInstance();
         //获得相应时间点的论文
@@ -143,12 +143,8 @@ public class CalImpact {
             Paper paper = dataGatherManager.dicDoiPaper.get(doi);
             //将论文所处期刊的等级设为自身等级
             paper.setLevel(LevelManager.RanktoLevel(dataGatherManager.dicNameJournal.get(paper.getJournal()).getRank()));
-            double[] state = coefficientStrategy.getStateDistribution(paper);
-            double targetImpact = 0.0;
-            //根据自身等级和寿命设定影响力数值
-            for(int i=0;i<LevelManager.CitationLevel.citationLevelNum;i++) {
-                targetImpact += state[i]*tempPapersImpact[paper.getLevel().getIndex()][paper.getCitationLevel().getIndex()];            }
-            paper.setPaperImpact(targetImpact);
+            double[] state = dataGatherManager.currentCoefficientStrategy.getStateDistribution(paper);
+            paper.setPaperImpact(dataGatherManager.currentCoefficientStrategy.getPaperImpactCoefficientExpectation(state));
         }
         //对新增的成熟的论文影响力进行更新
         for(String doi:maturePapers){
@@ -214,12 +210,11 @@ public class CalImpact {
         DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(year,month);
         calGraphItemImpact(dataGatherManager,graphItem,graphImpact,year,month);
     }
-    public static void updateAll(DataGatherManager dataGatherManager, Vector<Double> graphImpact, int year, int month, CoefficientStrategy coefficientStrategy){
+    public static void updateAll(DataGatherManager dataGatherManager, Vector<Double> graphImpact, int year, int month){
         //更新母图并获取论文集
         Vector<Vector<String>> currentPapers = GraphManager.getInstance().updateGraph(year,month);
-//        PaperCoefficientStrategy strategy = new PaperCoefficientStrategy();
         //更新论文等级和影响力
-        updatePaperImpact(currentPapers, coefficientStrategy);
+        updatePaperImpact(currentPapers);
         //更新作者等级和影响力
         updateAuthorImpact(currentPapers);
         updateJournalImpact();
@@ -231,7 +226,7 @@ public class CalImpact {
         for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
             loadTempPapersImpact();
             CoefficientStrategy coefficientStrategy = new CoefficientStrategy();
-            updateAll(dataGatherManager,graphImpact,i/12,i%12, coefficientStrategy);
+            updateAll(dataGatherManager,graphImpact,i/12,i%12);
         }
         //***
         return graphImpact;

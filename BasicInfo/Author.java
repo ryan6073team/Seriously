@@ -57,6 +57,9 @@ public class Author implements Comparable<Author>{
     public LevelManager.Level getLevel(){
         return level;
     }
+    public Vector<String> getAuthorInstitutions(){
+        return authorInstitution;
+    }
     //设置等级
     public void setRank(Integer _rank) {
         rank = _rank;
