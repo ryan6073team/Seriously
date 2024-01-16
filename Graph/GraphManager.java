@@ -65,14 +65,16 @@ public class GraphManager { //单例
         CalImpact.initAuthorImpact(CalGraph.getGraphImpact(graph));//恢复原作者影响力
         return imp;
     }//计算删除了要研究论文的图的作者影响力
-    public double[][] calAllPaperImp(DataGatherManager dataGatherManager,DirectedGraph<Author,Edge> graph){
-        double [][] Matrix = new double[5][5];
-        int [][] number = new int[5][5];
+    public double[][][] calAllPaperImp(DataGatherManager dataGatherManager,DirectedGraph<Author,Edge> graph){
+        double [][][] Matrix = new double[5][5][3];
+        int [][][] number = new int[5][5][3];
         Vector<Paper> papers = new Vector<>();
         for(int i=0;i<5;i++){
             for(int j=0;j<5;j++){
-                Matrix[i][j]=0.0;
-                number[i][j]=0;
+                for(int k=0;k<3;k++){
+                    Matrix[i][j][k]=0.0;
+                    number[i][j][k]=0;
+                }
             }
         }
         for(Edge edge:graph.edgeSet()) {
@@ -82,18 +84,21 @@ public class GraphManager { //单例
         for(Paper paper:papers){
             if(paper.getIsAlive()) continue;
             int paperRank = paper.getLevel().getIndex();
+            int citationRank = CoefficientStrategy.getCitationLevel(paper).getIndex();
             Map<String,Double> imp = calNewPaperImp(dataGatherManager,paper,graph);
             for(String orcid: imp.keySet()){
                 Author author = dataGatherManager.dicOrcidAuthor.get(orcid);
                 int authorRank = author.getLevel().getIndex();
-                Matrix[authorRank][paperRank] += imp.get(orcid);
-                number[authorRank][paperRank]++;
+                Matrix[authorRank][paperRank][citationRank] += imp.get(orcid);
+                number[authorRank][paperRank][citationRank]++;
             }
         }
         for(int i=0;i<5;i++){
             for(int j=0;j<5;j++){
-                if(number[i][j]!=0){
-                    Matrix[i][j]/=number[i][j];
+                for(int k=0;k<3;k++){
+                    if(number[i][j][k]!=0){
+                        Matrix[i][j][k]/=number[i][j][k];
+                    }
                 }
             }
         }
