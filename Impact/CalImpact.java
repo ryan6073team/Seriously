@@ -123,10 +123,11 @@ public class CalImpact {
         for(String doi:protectedPapers){
             Paper paper = DataGatherManager.getInstance().paperGet(doi);
             LevelManager.Level paperLevel = paper.getLevel();
+            LevelManager.CitationLevel citationLevel = CoefficientStrategy.getCitationLevel(paper);
             for(String orcid:paper.getAuthorIDList()){
                 Author author = DataGatherManager.getInstance().dicOrcidAuthor.get(orcid);
                 LevelManager.Level authorLevel = author.getLevel();
-                author.setAuthorImpact(author.getAuthorImpact()+ImpactForm.getInstance().getAuthorPaperImpact(authorLevel,paperLevel));
+                author.setAuthorImpact(author.getAuthorImpact()+ImpactForm.getInstance().getAuthorPaperImpact(authorLevel,paperLevel,citationLevel));
             }
         }
     }
