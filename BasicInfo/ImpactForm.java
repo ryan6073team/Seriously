@@ -30,7 +30,7 @@ public class ImpactForm {
     }
     public double getAuthorPaperImpact(LevelManager.Level authorLevel, LevelManager.Level paperLevel){
         //含义为一位authorlevel的作者发表或删除一篇paperlevel的论文将会对该作者的影响力产生多大的影响
-        Vector<Paper>  curruntpapers=DataGatherManager.getInstance().papers;
+        Vector<Paper> curruntpapers=DataGatherManager.getInstance().papers;
         Vector<Author> authors=new Vector<>();
         Vector<Paper> papers=new Vector<>();
         List<Double> impacts = new ArrayList<>();

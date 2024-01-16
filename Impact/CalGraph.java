@@ -5,10 +5,8 @@ import com.github.ryan6073.Seriously.BasicInfo.Edge;
 import Jama.Matrix;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.traverse.BreadthFirstIterator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.Vector;
+
+import java.util.*;
 
 public class CalGraph {
     public static double[][] getGraphMatrix(DirectedGraph<Author, Edge> mGraph){
@@ -39,23 +37,22 @@ public class CalGraph {
                 Author citedAuthor = mGraph.getEdgeTarget(edgeItem);
                 int nowAuthorOrder = DataGatherManager.getInstance().dicOrcidMatrixOrder.get(nowAuthor.getOrcid());
                 int citedAuthorOrder = DataGatherManager.getInstance().dicOrcidMatrixOrder.get(citedAuthor.getOrcid());
-                //此矩阵实际上与定义的引用矩阵互为转置矩阵
-                Matrix[nowAuthorOrder][citedAuthorOrder]+=edgeItem.getCitingKey();
+                Matrix[citedAuthorOrder][nowAuthorOrder]+=edgeItem.getCitingKey();
             }
         }
         return Matrix;
     }
 
     public static void processTransitionMatrix(double [][] sourceMatrix, int MatrixSize){
-        //此矩阵为转移矩阵的转置矩阵
+        //对矩阵进行归一化处理
         for(int i=0;i<MatrixSize;i++){
             double sum = 0.0;
             for(int j=0;j<MatrixSize;j++)
-                sum += sourceMatrix[i][j];
+                sum += sourceMatrix[j][i];
             for(int j=0;j<MatrixSize;j++)
                 if(sum!=0.0)
-                    sourceMatrix[i][j]=sourceMatrix[i][j]/sum;
-                else sourceMatrix[i][j]=0.0;
+                    sourceMatrix[j][i]=sourceMatrix[j][i]/sum;
+                else sourceMatrix[j][i]=0.0;
         }
     }
     public static double [] getTargetVector( double [][] transitionMatrix, int matrixSize, double D){
@@ -63,7 +60,7 @@ public class CalGraph {
         for(int i=0;i<matrixSize;i++){
             double sum=0.0;
             for(int j=0;j<matrixSize;j++){
-                sum+=transitionMatrix[i][j];
+                sum+=transitionMatrix[j][i];
             }
             if(sum!=1.0) {
                 System.out.println("矩阵归一化异常");
@@ -76,14 +73,12 @@ public class CalGraph {
             authorVector[0][i] = 1.0/matrixSize;
             tempVector[0][i] = (1.0-D)/matrixSize;
         }
-        Matrix temp = new Matrix(transitionMatrix);
-        //因为转移矩阵 列->行 为引用关系，而初始化时 行->列 为引用关系，因此需要转置
-        Matrix transpose = temp.transpose();
+        Matrix transpose = new Matrix(transitionMatrix);
         //列向量
         //作者向量
         Matrix author = (new Matrix(authorVector)).transpose();
         //阻尼因子
-        temp = (new Matrix(tempVector)).transpose();
+        Matrix temp = (new Matrix(tempVector)).transpose();
         //算一百次？？？？？？？？？
         for(int i=0;i<100;i++){
             author = (transpose.times(author)).times(D).plus(temp);
@@ -122,13 +117,9 @@ public class CalGraph {
 //        }
 //    }
 
-    public static double[] getGraphItemImpact(DirectedGraph<Author,Edge> graphItem){
-
-        return null;
-    }
 
     public static Vector<Double> getGraphImpact(DirectedGraph<Author, Edge> mGraph){
-        int matrixSize = mGraph.vertexSet().size();
+        int matrixSize = DataGatherManager.getInstance().authorNum;
         //获得引用矩阵
         double [][] targetMatrix = getGraphMatrix(mGraph);
         //获得转移矩阵

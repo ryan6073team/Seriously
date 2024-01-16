@@ -17,18 +17,18 @@ public class CalImpact {
 
     static double [][] tempPapersImpact;
 
-    static public void loadTempPapersImpact(){
-        tempPapersImpact = new double[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
+    //讲论文分为9类，求出每类论文的平均影响力数值
+    static public void loadAveragePapersImpact(CoefficientStrategy coefficientStrategy){
+        tempPapersImpact = coefficientStrategy.averagePapersImpact;
         int[][] numForm = new int[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
         for(int i=0;i<LevelManager.Level.levelNum;i++)
             for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++) {
                 numForm[i][j] = 0;
                 tempPapersImpact[i][j] = 0.0;
             }
-        CoefficientStrategy coefficientStrategy = new CoefficientStrategy();
         for(Paper paper:DataGatherManager.getInstance().papers){
             LevelManager.Level level = paper.getLevel();
-            LevelManager.CitationLevel citationLevel = coefficientStrategy.getCitationLevel(paper);
+            LevelManager.CitationLevel citationLevel = CoefficientStrategy.getCitationLevel(paper);
             numForm[level.getIndex()][citationLevel.getIndex()]++;
             tempPapersImpact[level.getIndex()][citationLevel.getIndex()]+=paper.getPaperImpact();
         }
@@ -42,6 +42,7 @@ public class CalImpact {
                 }
             }
     }
+    //根据作者影响力计算论文影响力
     public static double calPaperImpact(String _doi){
         Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(_doi);
         Vector<String> citedDois = paper.getCitedList();
@@ -59,6 +60,7 @@ public class CalImpact {
         }
         return sumImpact;
     }
+    //根据pagerank算法计算作者影响力
     public static void initAuthorImpact(Vector<Double> graphImpact){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         for(Map.Entry<String,Integer> entry:dataGatherManager.dicOrcidMatrixOrder.entrySet()){
@@ -66,6 +68,7 @@ public class CalImpact {
             dataGatherManager.dicOrcidAuthor.get(entry.getKey()).setAuthorImpact(graphImpact.get(entry.getValue()));
         }
     }
+    //计算所有论文的影响力
     public static void initPapersImpact(){
         Vector<Paper> papers = DataGatherManager.getInstance().papers;
         Iterator<Paper> paperIterator = papers.iterator();
@@ -75,6 +78,7 @@ public class CalImpact {
             paperItem.setPaperImpact(calPaperImpact(paperItem.getDoi()));
         }
     }
+    //期刊影响力为平均论文影响力
     public static void initJournalImpact(){
         Iterator<Journal> journalIterator = DataGatherManager.getInstance().journals.iterator();
         while(journalIterator.hasNext()){
@@ -88,6 +92,7 @@ public class CalImpact {
             journalItem.setJournalImpact(sumImpact/journalItem.getJournalPapers().size());
         }
     }
+    //机构影响力为平均作者影响力
     public static void initInstitutionImpact(){
         Iterator<Institution> institutionIterator = DataGatherManager.getInstance().institutions.iterator();
         while (institutionIterator.hasNext()){
@@ -125,10 +130,6 @@ public class CalImpact {
             }
         }
     }
-    //在只考虑成熟论文的情况下更新作者影响力
-    public static void updateMatureAuthor(Vector<Vector<String>> currentPapers){
-
-    }
     public static void updatePaperImpact(Vector<Vector<String>> currentPapers){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         GraphManager graphManager = GraphManager.getInstance();
@@ -143,8 +144,7 @@ public class CalImpact {
             Paper paper = dataGatherManager.dicDoiPaper.get(doi);
             //将论文所处期刊的等级设为自身等级
             paper.setLevel(LevelManager.RanktoLevel(dataGatherManager.dicNameJournal.get(paper.getJournal()).getRank()));
-            double[] state = dataGatherManager.currentCoefficientStrategy.getStateDistribution(paper);
-            paper.setPaperImpact(dataGatherManager.currentCoefficientStrategy.getPaperImpactCoefficientExpectation(state));
+            paper.setPaperImpact(dataGatherManager.currentCoefficientStrategy.getPaperImpactCoefficientExpectation(paper));
         }
         //对新增的成熟的论文影响力进行更新
         for(String doi:maturePapers){
@@ -221,12 +221,12 @@ public class CalImpact {
         updateInstitutionImpact();
     }
     public static Vector<Double> getImpact(DirectedGraph<Author, Edge> graph, DataGatherManager dataGatherManager){
-        Vector<Double> graphImpact = CalGraph.getGraphImpact(graph);
+        Vector<Double> graphImpact = CalGraph.getGraphImpact(graph);//
         initAll(dataGatherManager, graphImpact, dataGatherManager.startYear,dataGatherManager.startMonth);
+        loadAveragePapersImpact(dataGatherManager.currentCoefficientStrategy);
         for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
-            loadTempPapersImpact();
-            CoefficientStrategy coefficientStrategy = new CoefficientStrategy();
             updateAll(dataGatherManager,graphImpact,i/12,i%12);
+            loadAveragePapersImpact(dataGatherManager.currentCoefficientStrategy);
         }
         //***
         return graphImpact;
