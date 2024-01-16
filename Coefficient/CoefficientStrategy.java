@@ -12,8 +12,6 @@ public class CoefficientStrategy {
     public Set<String> currentYearPapers;
     int currentYear = 0;
     //论文等级level 年龄状态time 状态转移矩阵
-    public double[][] averagePapersImpact = new double[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
-    //几类论文的平均影响力数值
     Map<Integer,double[][][][]> transitionMatrixs = new HashMap<>();
     //估计值
     double[][][][] estimatedMatrix = new double[LevelManager.Level.levelNum][LevelManager.PaperAgeGroup.ageGroupNum][LevelManager.CitationLevel.citationLevelNum][LevelManager.CitationLevel.citationLevelNum];
@@ -155,7 +153,7 @@ public class CoefficientStrategy {
         return paperTransitionMatrix;
     }
     //只能用于不成熟论文，获取论文目前的状态矩阵
-    private double[] getStateDistribution(Paper paper){
+    public double[] getStateDistribution(Paper paper){
         double[] initialState;
         if(getCitationLevel(paper)== LevelManager.CitationLevel.HIGH)
             initialState = new double[]{1.0,0.0,0.0};
@@ -176,21 +174,6 @@ public class CoefficientStrategy {
         for(int i=0;i<initialState.length;i++)
             initialState[i] = stateDistribution.getArray()[i][0];
         return initialState; // 返回stateDistribution的二维数组表示
-    }
-
-    // 定义一个方法，根据论文的状态分布，计算论文的影响力系数的期望值
-    public double getPaperImpactCoefficientExpectation(Paper paper){
-        double paperImpactCoefficientExpectation = 0; // 定义一个变量，表示论文的影响力系数的期望值
-        double[] stateDistribution = getStateDistribution(paper);
-        if(stateDistribution == null){
-            System.out.println("论文:"+paper.getDoi()+" 状态矩阵获取失败");
-            return -1.0;
-        }
-        for(int i = 0; i < 3; i++){
-            // 论文的影响力的期望值等于它的状态分布和它的状态影响力的加权平均值
-            paperImpactCoefficientExpectation += stateDistribution[i] * averagePapersImpact[paper.getLevel().getIndex()][paper.getCitationLevel().getIndex()]; // 将论文在当前状态的概率乘以论文在当前状态的影响力，累加
-        }
-        return paperImpactCoefficientExpectation; // 返回论文的影响力系数的期望值
     }
 
     // 定义一个方法，根据论文的被引排名，划分论文的引用量区间

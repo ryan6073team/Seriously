@@ -8,10 +8,7 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 
 public class CalImpact {
 
@@ -123,10 +120,14 @@ public class CalImpact {
         for(String doi:protectedPapers){
             Paper paper = DataGatherManager.getInstance().paperGet(doi);
             LevelManager.Level paperLevel = paper.getLevel();
+            double[] stateDistribution = DataGatherManager.getInstance().currentCoefficientStrategy.getStateDistribution(paper);
             for(String orcid:paper.getAuthorIDList()){
                 Author author = DataGatherManager.getInstance().dicOrcidAuthor.get(orcid);
                 LevelManager.Level authorLevel = author.getLevel();
-                author.setAuthorImpact(author.getAuthorImpact()+ImpactForm.getInstance().getAuthorPaperImpact(authorLevel,paperLevel));
+                double tempImpact = 0.0;
+                for(int i=0;i<LevelManager.CitationLevel.citationLevelNum;i++)
+                    tempImpact+=stateDistribution[i]*ImpactForm.getInstance().getAuthorPaperImpact(authorLevel,paperLevel,LevelManager.CitationLevel.getCitationLevelByIndex(i));
+                author.setAuthorImpact(author.getAuthorImpact()+tempImpact);
             }
         }
     }
@@ -143,8 +144,8 @@ public class CalImpact {
         for(String doi:protectedPapers){
             Paper paper = dataGatherManager.dicDoiPaper.get(doi);
             //将论文所处期刊的等级设为自身等级
-            paper.setLevel(LevelManager.RanktoLevel(dataGatherManager.dicNameJournal.get(paper.getJournal()).getRank()));
-            paper.setPaperImpact(dataGatherManager.currentCoefficientStrategy.getPaperImpactCoefficientExpectation(paper));
+            double targetImpact = calPaperImpact(paper.getDoi());
+            paper.setPaperImpact(targetImpact);
         }
         //对新增的成熟的论文影响力进行更新
         for(String doi:maturePapers){
