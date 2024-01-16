@@ -36,7 +36,7 @@ public class JournalKMeans {
 
         //更新rank
         int i=0;
-        int rank=1;
+        int rank=0;
         for(List<Double> cluster : clusters){
             for(double item:cluster){
                 dataGatherManager.journals.get(i).setRank(rank);

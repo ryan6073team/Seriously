@@ -177,13 +177,13 @@ public class FileInput {
             dataGatherManager.addDicDP(paper);
             dataGatherManager.addPaper(paper);
 
-            if(dataGatherManager.journals.contains(journal)){
-                journal = dataGatherManager.journals.get(dataGatherManager.journals.indexOf(journal));
+            if(dataGatherManager.journalFind(paperJournal)){
+                journal = dataGatherManager.journalGet(paperJournal);
                 journal.journalPapers.add(paper.doi);
             }
             else{
                 dataGatherManager.addJournal(journal);
-                dataGatherManager.addDicNJ(paper.getJournal(), journal);
+                dataGatherManager.addDicNJ(paperJournal,journal);
             }
             author_papers.add(paper);
             reader.readLine();//读取空行

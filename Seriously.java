@@ -56,7 +56,7 @@ public class Seriously {
 //            throw new RuntimeException(e);
 //        }
 
-        Vector<Double> ans = CalImpact.getImpact(graphManager.Graph,dataGatherManager);
+        Vector<Double> ans = CalImpact.getImpact(dataGatherManager);
         for(Double dou:ans)
             System.out.println(dou);
 

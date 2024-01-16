@@ -109,6 +109,13 @@ public class DataGatherManager {//单例模式
             dicEliteAuthorPaper.get(author).add(paper);
         }
     }
+    public boolean journalFind(String paperJournal) {
+        return dicNameJournal.containsKey(paperJournal);
+    }
+
+    public Journal journalGet(String paperJournal) {
+        return dicNameJournal.get(paperJournal);
+    }
     //添加作者-论文映射
     public Vector<Paper> getElite(Vector<Paper> papers){
         Vector<Paper> elitePapers = papers;

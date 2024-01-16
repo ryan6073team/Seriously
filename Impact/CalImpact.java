@@ -12,33 +12,31 @@ import java.util.*;
 
 public class CalImpact {
 
-    static double [][] tempPapersImpact;
-
     //讲论文分为9类，求出每类论文的平均影响力数值
-    static public void loadAveragePapersImpact(CoefficientStrategy coefficientStrategy){
-        tempPapersImpact = coefficientStrategy.averagePapersImpact;
-        int[][] numForm = new int[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
-        for(int i=0;i<LevelManager.Level.levelNum;i++)
-            for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++) {
-                numForm[i][j] = 0;
-                tempPapersImpact[i][j] = 0.0;
-            }
-        for(Paper paper:DataGatherManager.getInstance().papers){
-            LevelManager.Level level = paper.getLevel();
-            LevelManager.CitationLevel citationLevel = CoefficientStrategy.getCitationLevel(paper);
-            numForm[level.getIndex()][citationLevel.getIndex()]++;
-            tempPapersImpact[level.getIndex()][citationLevel.getIndex()]+=paper.getPaperImpact();
-        }
-        for(int i=0;i<LevelManager.Level.levelNum;i++)
-            for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++) {
-                if(numForm[i][j]!=0)
-                    tempPapersImpact[i][j] = tempPapersImpact[i][j]/numForm[i][j];
-                else{
-                    tempPapersImpact[i][j] = 0.0;
-                    System.out.println("存在空集的论文种类:"+" Level:"+i+" | "+ " CitationLevel:" + j);
-                }
-            }
-    }
+//    static public void loadAveragePapersImpact(CoefficientStrategy coefficientStrategy){
+//        tempPapersImpact = coefficientStrategy.averagePapersImpact;
+//        int[][] numForm = new int[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
+//        for(int i=0;i<LevelManager.Level.levelNum;i++)
+//            for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++) {
+//                numForm[i][j] = 0;
+//                tempPapersImpact[i][j] = 0.0;
+//            }
+//        for(Paper paper:DataGatherManager.getInstance().papers){
+//            LevelManager.Level level = paper.getLevel();
+//            LevelManager.CitationLevel citationLevel = CoefficientStrategy.getCitationLevel(paper);
+//            numForm[level.getIndex()][citationLevel.getIndex()]++;
+//            tempPapersImpact[level.getIndex()][citationLevel.getIndex()]+=paper.getPaperImpact();
+//        }
+//        for(int i=0;i<LevelManager.Level.levelNum;i++)
+//            for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++) {
+//                if(numForm[i][j]!=0)
+//                    tempPapersImpact[i][j] = tempPapersImpact[i][j]/numForm[i][j];
+//                else{
+//                    tempPapersImpact[i][j] = 0.0;
+//                    System.out.println("存在空集的论文种类:"+" Level:"+i+" | "+ " CitationLevel:" + j);
+//                }
+//            }
+//    }
     //根据作者影响力计算论文影响力
     public static double calPaperImpact(String _doi){
         Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(_doi);
@@ -221,13 +219,22 @@ public class CalImpact {
         updateJournalImpact();
         updateInstitutionImpact();
     }
-    public static Vector<Double> getImpact(DirectedGraph<Author, Edge> graph, DataGatherManager dataGatherManager){
-        Vector<Double> graphImpact = CalGraph.getGraphImpact(graph);//
+    public static Vector<Double> getImpact(DataGatherManager dataGatherManager){
+        Vector<Double> graphImpact = CalGraph.getGraphImpact(GraphManager.getInstance().getMatureGraph());
+        //初始化的时候作者影响力只考虑成熟的引用关系，update的时候作者影响力再考虑不成熟的引用关系
         initAll(dataGatherManager, graphImpact, dataGatherManager.startYear,dataGatherManager.startMonth);
-        loadAveragePapersImpact(dataGatherManager.currentCoefficientStrategy);
         for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
-            updateAll(dataGatherManager,graphImpact,i/12,i%12);
-            loadAveragePapersImpact(dataGatherManager.currentCoefficientStrategy);
+            //注意在startyear startmonth的时候就开始更新了
+            int year,month;
+            if(i%12==0){
+                month = 12;
+                year = i/12-1;
+            }
+            else{
+                month = i%12;
+                year = i/12;
+            }
+            updateAll(dataGatherManager,graphImpact,year,month);
         }
         //***
         return graphImpact;

@@ -22,16 +22,16 @@ public class LevelManager {
         }
         public static Level getLevelByIndex(int rank){
             switch (rank) {
-                case 1 -> {
+                case 0 -> {
                     return Level.A;
                 }
-                case 2 -> {
+                case 1 -> {
                     return Level.B;
                 }
-                case 3 -> {
+                case 2 -> {
                     return Level.C;
                 }
-                case 4 -> {
+                case 3 -> {
                     return Level.D;
                 }
                 default -> {
