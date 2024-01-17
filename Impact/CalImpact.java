@@ -201,7 +201,8 @@ public class CalImpact {
         CalPapers calPapers = new CalPapers(thenPaperDois);
         calPapers.excute();
     }
-    public static void initAll(DataGatherManager dataGatherManager, Vector<Double> graphImpact, int year, int month){
+    public static void initAll(DataGatherManager dataGatherManager, int year, int month){
+        Vector<Double> graphImpact = CalGraph.getGraphImpact(GraphManager.getInstance().getMatureGraph());
         initAuthorImpact(graphImpact);
         initPapersImpact();
         initJournalImpact();
@@ -209,7 +210,7 @@ public class CalImpact {
         DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(year,month);
         calGraphItemImpact(dataGatherManager,graphItem,graphImpact,year,month);
     }
-    public static void updateAll(DataGatherManager dataGatherManager, Vector<Double> graphImpact, int year, int month){
+    public static void updateAll(DataGatherManager dataGatherManager, int year, int month){
         //更新母图并获取论文集
         Vector<Vector<String>> currentPapers = GraphManager.getInstance().updateGraph(year,month);
         //更新论文等级和影响力
@@ -219,10 +220,10 @@ public class CalImpact {
         updateJournalImpact();
         updateInstitutionImpact();
     }
-    public static Vector<Double> getImpact(DataGatherManager dataGatherManager){
-        Vector<Double> graphImpact = CalGraph.getGraphImpact(GraphManager.getInstance().getMatureGraph());
+    public static Double[] getImpact(DataGatherManager dataGatherManager){
+
         //初始化的时候作者影响力只考虑成熟的引用关系，update的时候作者影响力再考虑不成熟的引用关系
-        initAll(dataGatherManager, graphImpact, dataGatherManager.startYear,dataGatherManager.startMonth);
+        initAll(dataGatherManager, dataGatherManager.startYear,dataGatherManager.startMonth);
         for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
             //注意在startyear startmonth的时候就开始更新了
             int year,month;
@@ -234,10 +235,17 @@ public class CalImpact {
                 month = i%12;
                 year = i/12;
             }
-            updateAll(dataGatherManager,graphImpact,year,month);
+            updateAll(dataGatherManager,year,month);
         }
-        //***
-        return graphImpact;
+        Double[] ans = new Double[dataGatherManager.authorNum];
+        for(int i=0;i< dataGatherManager.authorNum;i++)
+            ans[i]=-1.0;
+        for(Map.Entry<String,Author> entry:dataGatherManager.dicOrcidAuthor.entrySet()){
+            int order = dataGatherManager.dicOrcidMatrixOrder.get(entry.getKey());
+            if(entry.getValue().getIfExist()==1)
+                ans[order] = entry.getValue().getAuthorImpact();
+        }
+        return ans;
     }
 }
 

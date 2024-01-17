@@ -9,15 +9,22 @@ import org.jgrapht.traverse.BreadthFirstIterator;
 import java.util.*;
 
 public class CalGraph {
-    public static double[][] getGraphMatrix(DirectedGraph<Author, Edge> mGraph){
+    static Map<Integer,String> tempMap;
+    private static double[][] getGraphMatrix(DirectedGraph<Author, Edge> mGraph){
         Iterator<Author> mBreadthFirstIterator = new BreadthFirstIterator<>(mGraph);
-        int authorNum = DataGatherManager.getInstance().dicOrcidAuthor.size();
-        double[][] Matrix = new double[authorNum][authorNum];
-        //初始化
+        int authorNum = mGraph.vertexSet().size();
+        Map<Integer,String> _tempMap = new HashMap<>();
+        Map<String,Integer> _tempMap2 = new HashMap<>();
+        double[][] tempMatrix = new double[mGraph.vertexSet().size()][mGraph.vertexSet().size()];
         for(int i=0;i<authorNum;i++)
             for(int j=0;j<authorNum;j++)
-                Matrix[i][j]=0.0;
-        int publishednum=0;
+                tempMatrix[i][j] = 0.0;
+        int i=0;
+        for(Author author:mGraph.vertexSet()){
+            _tempMap.put(i,author.getOrcid());
+            _tempMap2.put(author.getOrcid(),i);
+            i++;
+        }
         while (mBreadthFirstIterator.hasNext()){
             Author nowAuthor = mBreadthFirstIterator.next();
             Set<Edge> outgoingEdges = mGraph.edgesOf(nowAuthor);
@@ -35,31 +42,33 @@ public class CalGraph {
             while(outgoingIterator.hasNext()){
                 Edge edgeItem = outgoingIterator.next();
                 Author citedAuthor = mGraph.getEdgeTarget(edgeItem);
-                int nowAuthorOrder = DataGatherManager.getInstance().dicOrcidMatrixOrder.get(nowAuthor.getOrcid());
-                int citedAuthorOrder = DataGatherManager.getInstance().dicOrcidMatrixOrder.get(citedAuthor.getOrcid());
-                Matrix[citedAuthorOrder][nowAuthorOrder]+=edgeItem.getCitingKey();
+                int nowAuthorOrder = _tempMap2.get(nowAuthor.getOrcid());
+                int citedAuthorOrder = _tempMap2.get(citedAuthor.getOrcid());
+                tempMatrix[citedAuthorOrder][nowAuthorOrder]+=edgeItem.getCitingKey();
             }
         }
-        return Matrix;
+        tempMap = _tempMap;
+        return tempMatrix;
     }
 
-    public static void processTransitionMatrix(double [][] sourceMatrix, int MatrixSize){
+    private static void processTransitionMatrix(double [][] sourceMatrix){
         //对矩阵进行归一化处理
-        for(int i=0;i<MatrixSize;i++){
+        for(int i=0;i<sourceMatrix.length;i++){
             double sum = 0.0;
-            for(int j=0;j<MatrixSize;j++)
+            for(int j=0;j<sourceMatrix.length;j++)
                 sum += sourceMatrix[j][i];
-            for(int j=0;j<MatrixSize;j++)
+            for(int j=0;j<sourceMatrix.length;j++)
                 if(sum!=0.0)
                     sourceMatrix[j][i]=sourceMatrix[j][i]/sum;
                 else sourceMatrix[j][i]=0.0;
         }
     }
-    public static double [] getTargetVector( double [][] transitionMatrix, int matrixSize, double D){
+    private static double [] getTargetVector( double [][] transitionMatrix, int matrixSize, double D){
         D = 0.85;
-        for(int i=0;i<matrixSize;i++){
+        int currentAuthorNum = transitionMatrix.length;
+        for(int i=0;i<currentAuthorNum;i++){
             double sum=0.0;
-            for(int j=0;j<matrixSize;j++){
+            for(int j=0;j<currentAuthorNum;j++){
                 sum+=transitionMatrix[j][i];
             }
             if(sum!=1.0) {
@@ -67,11 +76,11 @@ public class CalGraph {
                 return null;
             }
         }
-        double [][] authorVector = new double[1][matrixSize];
-        double [][] tempVector = new double[1][matrixSize];
-        for(int i=0;i<matrixSize;i++){
-            authorVector[0][i] = 1.0/matrixSize;
-            tempVector[0][i] = (1.0-D)/matrixSize;
+        double [][] authorVector = new double[1][currentAuthorNum];
+        double [][] tempVector = new double[1][currentAuthorNum];
+        for(int i=0;i<currentAuthorNum;i++){
+            authorVector[0][i] = 1.0/currentAuthorNum;
+            tempVector[0][i] = (1.0-D)/currentAuthorNum;
         }
         Matrix transpose = new Matrix(transitionMatrix);
         //列向量
@@ -86,44 +95,28 @@ public class CalGraph {
         }
         //权重向量归一化
         double sum=0.0;
-        for(int i=0;i<matrixSize;i++)
+        for(int i=0;i<currentAuthorNum;i++)
             sum+=author.getArray()[i][0];
-        double[] ans = new double[matrixSize];
-        for(int i=0;i<matrixSize;i++)
+        double[] ans = new double[currentAuthorNum];
+        for(int i=0;i<currentAuthorNum;i++)
             ans[i]=author.getArray()[i][0]/sum;
-        return ans;
+
+        double[] ret = new double[matrixSize];
+        for(int i=0;i<matrixSize;i++)
+            ret[i]=-1.0;
+
+        for(int i=0;i<currentAuthorNum;i++){
+            ret[DataGatherManager.getInstance().dicOrcidMatrixOrder.get(tempMap.get(i))] = ans[i];
+        }
+        return ret;
     }
-
-//    public static void calAccuImpact(double[] impactArray, int authorNum){
-//        for(int i=DataGatherManager.getInstance().startMonth;i<=12;i++){
-//            DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(DataGatherManager.getInstance().startYear,i);
-//            double[] tempImpact = getGraphItemImpact(graphItem);
-//            for(int j=0;j<authorNum;j++)
-//                impactArray[j] += tempImpact[j];
-//        }
-//        for(int i=DataGatherManager.getInstance().startYear+1;i<=DataGatherManager.getInstance().finalYear-1;i++){
-//            for(int j=1;j<=12;j++){
-//                DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(i,j);
-//                double[] tempImpact = getGraphItemImpact(graphItem);
-//                for(int k=0;k<authorNum;k++)
-//                    impactArray[k] += tempImpact[k];
-//            }
-//        }
-//        for(int i=1;i<=DataGatherManager.getInstance().finalMonth;i++){
-//            DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(DataGatherManager.getInstance().finalYear,i);
-//            double[] tempImpact = getGraphItemImpact(graphItem);
-//            for(int j=0;j<authorNum;j++)
-//                impactArray[j] += tempImpact[j];
-//        }
-//    }
-
 
     public static Vector<Double> getGraphImpact(DirectedGraph<Author, Edge> mGraph){
         int matrixSize = DataGatherManager.getInstance().authorNum;
         //获得引用矩阵
         double [][] targetMatrix = getGraphMatrix(mGraph);
         //获得转移矩阵
-        processTransitionMatrix(targetMatrix,matrixSize);
+        processTransitionMatrix(targetMatrix);
         //获得作者影响力数组
         double[] impactArray = getTargetVector(targetMatrix, matrixSize, 0.85);
         //转换成向量输出
