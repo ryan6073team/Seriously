@@ -23,15 +23,38 @@ public class GraphManager { //单例
         }
         return null;
     }
-    public DirectedGraph<Author ,Edge> getMatureGraph(){
-        DirectedGraph<Author ,Edge> graph = Graph;
-        for(Edge edge:graph.edgeSet()){
-            if(DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()){
-                graph.removeEdge(edge);
+//    public DirectedGraph<Author ,Edge> getMatureGraph(){
+//        DirectedGraph<Author ,Edge> graph = Graph;
+//        for(Edge edge:graph.edgeSet()){
+//            if(DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()){
+//                graph.removeEdge(edge);
+//            }
+//        }
+//        return graph;
+//    }
+    public DirectedGraph<Author, Edge> getMatureGraph() {
+        DirectedGraph<Author, Edge> originalGraph = Graph;  // 假设 Graph 是你的原始图
+        // 创建一个新的、可修改的图
+        DirectedGraph<Author, Edge> graph = new DefaultDirectedGraph<>(Edge.class);
+        // 复制节点
+        for (Author author : originalGraph.vertexSet()) {
+            graph.addVertex(author);
+        }
+        // 复制边，但不包括不活跃的边
+        for (Edge edge : originalGraph.edgeSet()) {
+            if (!DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()) {
+                graph.addEdge(originalGraph.getEdgeSource(edge), originalGraph.getEdgeTarget(edge), edge);
+            }
+        }
+        //删除孤立点
+        for (Author author : graph.vertexSet()) {
+            if (graph.inDegreeOf(author) == 0 && graph.outDegreeOf(author) == 0) {
+                graph.removeVertex(author);
             }
         }
         return graph;
     }
+
     //加入目标子图
     public void addGraphItem(int year, int month, DirectedGraph<Author,Edge> Item){GraphItems.put(new TimeInfo(year,month),Item);}
     //创建初始图，一切故事从这里开始
