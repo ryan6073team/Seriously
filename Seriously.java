@@ -13,6 +13,7 @@ import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -22,7 +23,7 @@ import static com.github.ryan6073.Seriously.BasicInfo.FileInput.initJournalToIF;
 public class Seriously {
 
     public static void main(String[] args) {
-//      GraphStore.createTestGraph();
+//        GraphStore.createTestGraph();
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
 //      initJournalToIF(dataGatherManager);//更新期刊IF的映射
 
@@ -56,7 +57,7 @@ public class Seriously {
 //            throw new RuntimeException(e);
 //        }
 
-        Vector<Double> ans = CalImpact.getImpact(dataGatherManager);
+        Double[] ans = CalImpact.getImpact(dataGatherManager);
         for(Double dou:ans)
             System.out.println(dou);
 

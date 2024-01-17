@@ -12,31 +12,6 @@ import java.util.*;
 
 public class CalImpact {
 
-    //讲论文分为9类，求出每类论文的平均影响力数值
-//    static public void loadAveragePapersImpact(CoefficientStrategy coefficientStrategy){
-//        tempPapersImpact = coefficientStrategy.averagePapersImpact;
-//        int[][] numForm = new int[LevelManager.Level.levelNum][LevelManager.CitationLevel.citationLevelNum];
-//        for(int i=0;i<LevelManager.Level.levelNum;i++)
-//            for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++) {
-//                numForm[i][j] = 0;
-//                tempPapersImpact[i][j] = 0.0;
-//            }
-//        for(Paper paper:DataGatherManager.getInstance().papers){
-//            LevelManager.Level level = paper.getLevel();
-//            LevelManager.CitationLevel citationLevel = CoefficientStrategy.getCitationLevel(paper);
-//            numForm[level.getIndex()][citationLevel.getIndex()]++;
-//            tempPapersImpact[level.getIndex()][citationLevel.getIndex()]+=paper.getPaperImpact();
-//        }
-//        for(int i=0;i<LevelManager.Level.levelNum;i++)
-//            for(int j=0;j<LevelManager.CitationLevel.citationLevelNum;j++) {
-//                if(numForm[i][j]!=0)
-//                    tempPapersImpact[i][j] = tempPapersImpact[i][j]/numForm[i][j];
-//                else{
-//                    tempPapersImpact[i][j] = 0.0;
-//                    System.out.println("存在空集的论文种类:"+" Level:"+i+" | "+ " CitationLevel:" + j);
-//                }
-//            }
-//    }
     //根据作者影响力计算论文影响力
     public static double calPaperImpact(String _doi){
         Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(_doi);
@@ -193,24 +168,14 @@ public class CalImpact {
             institutionItem.setInstitutionImpact(sumImpact/authorNum);
         }
     }
-    public static void calGraphItemImpact(DataGatherManager dataGatherManager,DirectedGraph<Author,Edge> graphItem,Vector<Double> graphImpact,int year,int month){
-        //实例化并调用相论文处理类
-        Vector<String> thenPaperDois = dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month));
-        if(thenPaperDois==null)//没有相应的时间数据
-            return;
-        CalPapers calPapers = new CalPapers(thenPaperDois);
-        calPapers.excute();
-    }
-    public static void initAll(DataGatherManager dataGatherManager, int year, int month){
+    public static void initAll(){
         Vector<Double> graphImpact = CalGraph.getGraphImpact(GraphManager.getInstance().getMatureGraph());
         initAuthorImpact(graphImpact);
         initPapersImpact();
         initJournalImpact();
         initInstitutionImpact();
-        DirectedGraph<Author,Edge> graphItem = GraphManager.getInstance().getGraphItem(year,month);
-        calGraphItemImpact(dataGatherManager,graphItem,graphImpact,year,month);
     }
-    public static void updateAll(DataGatherManager dataGatherManager, int year, int month){
+    public static void updateAll(int year, int month){
         //更新母图并获取论文集
         Vector<Vector<String>> currentPapers = GraphManager.getInstance().updateGraph(year,month);
         //更新论文等级和影响力
@@ -223,7 +188,7 @@ public class CalImpact {
     public static Double[] getImpact(DataGatherManager dataGatherManager){
 
         //初始化的时候作者影响力只考虑成熟的引用关系，update的时候作者影响力再考虑不成熟的引用关系
-        initAll(dataGatherManager, dataGatherManager.startYear,dataGatherManager.startMonth);
+        initAll();
         for(int i=dataGatherManager.startYear*12+dataGatherManager.startMonth;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth;i++) {
             //注意在startyear startmonth的时候就开始更新了
             int year,month;
@@ -235,7 +200,7 @@ public class CalImpact {
                 month = i%12;
                 year = i/12;
             }
-            updateAll(dataGatherManager,year,month);
+            updateAll(year,month);
         }
         Double[] ans = new Double[dataGatherManager.authorNum];
         for(int i=0;i< dataGatherManager.authorNum;i++)
