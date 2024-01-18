@@ -31,6 +31,14 @@ public class CalImpact {
         return sumImpact;
     }
     //根据pagerank算法计算作者影响力
+    public static void initAuthorImpact(){
+        Vector<Double> graphImpact = CalGraph.getGraphImpact(GraphManager.getInstance().getMatureGraph());
+        DataGatherManager dataGatherManager = DataGatherManager.getInstance();
+        for(Map.Entry<String,Integer> entry:dataGatherManager.dicOrcidMatrixOrder.entrySet()){
+            //更新作者影响力
+            dataGatherManager.dicOrcidAuthor.get(entry.getKey()).setAuthorImpact(graphImpact.get(entry.getValue()));
+        }
+    }
     public static void initAuthorImpact(Vector<Double> graphImpact){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         for(Map.Entry<String,Integer> entry:dataGatherManager.dicOrcidMatrixOrder.entrySet()){
@@ -82,10 +90,8 @@ public class CalImpact {
         //因此在更新过程中要进行加权运算
         //获得相应时间点的论文
         Vector<String> protectedPapers = currentPapers.get(0);
-        //更新成熟引用图
-        DirectedGraph<Author, Edge> matureGraph = GraphManager.getInstance().getMatureGraph();
         //更新作者影响力
-        initAuthorImpact(CalGraph.getGraphImpact(matureGraph));
+        initAuthorImpact();
         //更新作者等级
         AuthorKMeans.AuthorKMeans(DataGatherManager.getInstance());
         //利用成熟论文的引用关系通过PageRank算法计算作者影响力
@@ -169,8 +175,7 @@ public class CalImpact {
         }
     }
     public static void initAll(){
-        Vector<Double> graphImpact = CalGraph.getGraphImpact(GraphManager.getInstance().getMatureGraph());
-        initAuthorImpact(graphImpact);
+        initAuthorImpact();
         initPapersImpact();
         initJournalImpact();
         initInstitutionImpact();
@@ -178,10 +183,10 @@ public class CalImpact {
     public static void updateAll(int year, int month){
         //更新母图并获取论文集
         Vector<Vector<String>> currentPapers = GraphManager.getInstance().updateGraph(year,month);
-        //更新论文等级和影响力
-        updatePaperImpact(currentPapers);
         //更新作者等级和影响力
         updateAuthorImpact(currentPapers);
+        //更新论文等级和影响力
+        updatePaperImpact(currentPapers);
         updateJournalImpact();
         updateInstitutionImpact();
     }

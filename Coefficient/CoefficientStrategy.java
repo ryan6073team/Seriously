@@ -177,24 +177,32 @@ public class CoefficientStrategy {
     }
 
     // 定义一个方法，根据论文的被引排名，划分论文的引用量区间
-    static public LevelManager.CitationLevel getCitationLevel(Paper paper){
+    // 定义一个方法，根据论文的被引排名，划分论文的引用量区间
+    public static LevelManager.CitationLevel getCitationLevel(Paper paper){
         int citationRank = getCitationRank(paper);
+        List<Paper> similarPapers = getSimilarPapers(paper);
+        int totalPapers = similarPapers.size();
+
+        // 计算排名比例
+        double citationPercentage = (double) citationRank / totalPapers;
+
         LevelManager.CitationLevel citationLevel; // 定义一个变量，表示论文的引用量区间
-        if(citationRank <= 0.1){
+        if(citationPercentage <= 0.1){
             // 论文的被引排名在前10%的属于高引用量区间，返回 LevelManager.CitationLevel.HIGH
             citationLevel = LevelManager.CitationLevel.HIGH;
-        }else if(citationRank > 0.1 && citationRank <= 0.5){
+        } else if(citationPercentage > 0.1 && citationPercentage <= 0.5){
             // 论文的被引排名在10%到50%之间的属于中引用量区间，返回 LevelManager.CitationLevel.MEDIUM
             citationLevel = LevelManager.CitationLevel.MEDIUM;
-        }else{
+        } else {
             // 论文的被引排名在50%以下的属于低引用量区间，返回 LevelManager.CitationLevel.LOW
             citationLevel = LevelManager.CitationLevel.LOW;
         }
         return citationLevel; // 返回论文的引用量区间
     }
+
     //获取排名
-// 定义一个方法 getSimilarPapers，用来获取和一个论文相同年份，相同期刊的其他论文的列表
-    static private Vector<Paper> getSimilarPapers(Paper paper) {
+    // 定义一个方法 getSimilarPapers，用来获取和0
+    public static Vector<Paper> getSimilarPapers(Paper paper) {
         // 创建一个空的向量，用来存储符合条件的论文
         Vector<Paper> similarPapers = new Vector<>();
         // 获取论文的年份，期刊
@@ -212,7 +220,7 @@ public class CoefficientStrategy {
     }
 
     // 定义一个方法 sortPapersByCitation，用来对一个论文向量按照引用量从高到低进行排序
-    static private void sortPapersByCitation(Vector<Paper> papers) {
+    public static void sortPapersByCitation(Vector<Paper> papers) {
         // 使用 Collections 类的 sort 方法，传入一个自定义的比较器，按照引用量从高到低进行排序
         Collections.sort(papers, new Comparator<Paper>() {
             // 重写 compare 方法，比较两个论文的引用量
@@ -231,7 +239,7 @@ public class CoefficientStrategy {
         });
     }
 
-    static private int getCitationRank(Paper paper) {
+    static int getCitationRank(Paper paper) {
         // 获取和论文相同领域，相同年份，相同期刊的其他论文的列表
         List<Paper> similarPapers = getSimilarPapers(paper);
         // 对论文列表按照引用量从高到低进行排序
@@ -241,7 +249,7 @@ public class CoefficientStrategy {
         // 遍历论文列表，找到论文的位置
         for (Paper p : similarPapers) {
             // 如果论文的引用量大于或等于当前遍历的论文的引用量，说明论文的排名不变，继续遍历
-            if (paper.getCitedList().size() >= p.getCitedList().size()) {
+            if (paper.getPaperImpact()>= p.getPaperImpact()) {
                 continue;
             } else {
                 // 否则，说明论文的排名下降了，排名加一，继续遍历

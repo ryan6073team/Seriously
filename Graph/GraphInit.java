@@ -99,14 +99,6 @@ public class GraphInit {
             else paper.setLife(lifeSpan);
             System.out.println(paper.getDoi() + "的存活时间为" + paper.getLife());
 
-            //更新论文的citationlevel
-            if(lifeSpan==4)
-                paper.youthCitationLevel = CoefficientStrategy.getCitationLevel(paper);
-            else if(lifeSpan==8)
-                paper.strongCitationLevel = CoefficientStrategy.getCitationLevel(paper);
-            else if(lifeSpan==12)
-                paper.matureCitationLevel = CoefficientStrategy.getCitationLevel(paper);
-
             //在论文图中添加论文结点
             if(!paperGraph.containsVertex(paper)){
                 paperGraph.addVertex(paper);
@@ -160,8 +152,9 @@ public class GraphInit {
                 }
             }
         }
-        initCitedInfo();//更新被引信息
-        //初始化论文的引用等级
+        //更新被引信息
+        initCitedInfo();
+        //初始化原始总图的论文的引用等级
         initPapersCitationLevel();
         //将去年和今年发表的论文分别存储
         for(TimeInfo timeInfo:dataGatherManager.dicTimeInfoDoi.keySet()){
