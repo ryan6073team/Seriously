@@ -65,7 +65,13 @@ public class FileInput {
             Institution institution = new Institution();
             institution.institutionName = authorInstitution;
             institution.institutionAuthors.add(orcid);
-            dataGatherManager.addInstitution(institution);
+            if(dataGatherManager.institutionFind(authorInstitution)){
+                institution = dataGatherManager.institutionGet(authorInstitution);
+                institution.institutionAuthors.add(orcid);
+            }
+            else{
+                dataGatherManager.addInstitution(institution);
+            }
         } else{
             Vector<String> authorInstitution = new Vector<>(Arrays.asList(institutions));
             author = new Author(authorName, orcid, authorInstitution);
@@ -73,7 +79,13 @@ public class FileInput {
                 Institution institution = new Institution();
                 institution.institutionName = institutionName;
                 institution.institutionAuthors.add(orcid);
-                dataGatherManager.addInstitution(institution);
+                if(dataGatherManager.institutionFind(institutionName)){
+                    institution = dataGatherManager.institutionGet(institutionName);
+                    institution.institutionAuthors.add(orcid);
+                }
+                else{
+                    dataGatherManager.addInstitution(institution);
+                }
             }
         }
         authors.add(author);
@@ -189,7 +201,7 @@ public class FileInput {
             reader.readLine();//读取空行
         }
         //将论文交给其作者
-        dataGatherManager.addDicDA(author, author_papers);
+        dataGatherManager.addDicAP(author, author_papers);
     }
 
 //    public static void rankJournal(DataGatherManager dataGatherManager){

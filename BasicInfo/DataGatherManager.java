@@ -97,7 +97,7 @@ public class DataGatherManager {//单例模式
 //            dicAuthorPaper.put(author, paperList);
 //        }
 //    }
-    public void addDicDA(Author author,Vector<Paper> papers){
+    public void addDicAP(Author author,Vector<Paper> papers){
         dicAuthorPaper.put(author,papers);
     }
     public void addDicNJ(String journalName, Journal journal) {
@@ -139,11 +139,17 @@ public class DataGatherManager {//单例模式
         papers = new Vector<>();
     }
 
+    public boolean institutionFind(String authorInstitution) {
+        for(Institution institution:institutions){
+            if(institution.getInstitutionName().equals(authorInstitution)) return true;
+        }
+        return false;
+    }
+
+    public Institution institutionGet(String authorInstitution) {
+        for(Institution institution:institutions){
+            if(institution.getInstitutionName().equals(authorInstitution)) return institution;
+        }
+        return null;
+    }
 }
-//arraylist和vector的区别
-//arraylist是非线程安全的，vector是线程安全的
-//arraylist是异步的，vector是同步的
-//arraylist是不安全的，vector是安全的
-//arraylist是快速的，vector是慢速的
-//arraylist是轻量级的，vector是重量级的
-//部分vector确实可以用arraylist，比如institutions，journals，但是dicAuthorPaper，dicDoiPaper，dicOrcidAuthor，dicEliteAuthorPaper，recPapers，accPapers，revPapers，pubPapers，这些都是需要线程安全的，所以用vector比较好
