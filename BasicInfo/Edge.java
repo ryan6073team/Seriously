@@ -6,12 +6,14 @@ public class Edge {
     String doi;
     int year = 0;
     int month = 0;
+    String citingDoi;
 
-    public Edge(double _citingKey,int _year,String _doi ){
+    public Edge(double _citingKey,int _year,String _doi,String _citingDoi){
         citingKey = _citingKey;
         year = _year;
         doi = _doi;
         month = DataGatherManager.getInstance().dicDoiPaper.get(_doi).publishedMonth;
+        citingDoi = _citingDoi;
     }
     public Edge(double _citingKey,int _year,String _doi, int _month ){
         citingKey = _citingKey;

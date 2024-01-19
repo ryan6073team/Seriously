@@ -76,9 +76,10 @@ public class GraphStore {
                 Author source = authors.get(record.get("sourceName").asString());
                 Author target = authors.get(record.get("targetName").asString());
                 String doi = record.get("doi").asString();
+                String citingDoi = record.get("citingDoi").asString();
                 double citingKey = record.get("citingKey").asDouble();
                 int year = record.get("year").asInt();
-                graph.addEdge(source, target, new Edge(citingKey,year,doi)); // Assuming Edge has a default constructor
+                graph.addEdge(source, target, new Edge(citingKey,year,doi,citingDoi)); // Assuming Edge has a default constructor
             }
         }
         return graph;

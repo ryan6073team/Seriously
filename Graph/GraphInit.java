@@ -143,8 +143,8 @@ public class GraphInit {
                                 graphManager.Graph.addVertex(author);
                                 author.setIfExist(1);
                             }
-                            double citingKey = (double) 1 /(startNum * endNum);
-                            Edge edge = new Edge(citingKey, paper.getPublishedYear(),paper.getDoi());  //论文状态为此篇论文状态
+                            double citingKey = (double) 1 /(startNum * endNum * paper.getCitingList().size());
+                            Edge edge = new Edge(citingKey, paper.getPublishedYear(),paper.getDoi(),doi);  //论文状态为此篇论文状态
                             graphManager.Graph.addEdge(author,endAuthor,edge);
                             dataGatherManager.dicDoiPaper.get(paper.getDoi()).getEdgeList().add(edge);
                         }
@@ -202,8 +202,8 @@ public class GraphInit {
                             if(!GraphTemp.containsVertex(author)){
                                 GraphTemp.addVertex(author);
                             }
-                            double citingKey = (double) 1 /(startNum * endNum);
-                            Edge edge = new Edge(citingKey, paper.getPublishedYear(), paper.getDoi());  //论文状态为此篇论文状态
+                            double citingKey = (double) 1 /(startNum * endNum * paper.getCitingList().size());
+                            Edge edge = new Edge(citingKey, paper.getPublishedYear(), paper.getDoi(),doi);  //论文状态为此篇论文状态
                             GraphTemp.addEdge(author,endAuthor,edge);
                             dataGatherManager.dicDoiPaper.get(paper.getDoi()).getEdgeList().add(edge);
                         }
