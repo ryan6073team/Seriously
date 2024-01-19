@@ -12,7 +12,8 @@ public class AuthorKMeans {
         // 创建一维数据
         List<Double> data = new ArrayList<>();
         for (Author author : authors) {
-            data.add(author.getAuthorImpact());
+            if(author.getIfExist()==1)
+                data.add(author.getAuthorImpact());
         }
 
         // 指定簇的数量 (K)
@@ -36,15 +37,10 @@ public class AuthorKMeans {
         }
 
         // 更新作者的等级（rank）
-        int i = 0;
-        int rank = 1;
+        int rank = 0;
         for (List<Double> cluster : clusters) {
             for (Double item : cluster) {
-                Author author = getAuthorByImpact(dataGatherManager, item);
-                if (author != null) {
-                    author.setRank(rank);
-                }
-                i++;
+                setAuthorLevelbyImpact(dataGatherManager, item, rank);
             }
             rank++;
         }
@@ -107,13 +103,13 @@ public class AuthorKMeans {
         return newClusterCenters;
     }
 
-    // 根据作者影响力找到对应的作者
-    public static Author getAuthorByImpact(DataGatherManager dataGatherManager, Double impact) {
+    // 设置作者等级
+    public static void setAuthorLevelbyImpact(DataGatherManager dataGatherManager, Double impact, int rank) {
         for (Author author : dataGatherManager.dicOrcidAuthor.values()) {
             if (author.getAuthorImpact().equals(impact)) {
-                return author;
+                LevelManager.Level level = LevelManager.Level.getLevelByIndex(rank);
+                author.setLevel(level);
             }
         }
-        return null;
     }
 }
