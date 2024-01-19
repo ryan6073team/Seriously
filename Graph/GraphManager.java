@@ -36,20 +36,14 @@ public class GraphManager { //单例
         DirectedGraph<Author, Edge> originalGraph = Graph;  // 假设 Graph 是你的原始图
         // 创建一个新的、可修改的图
         DirectedGraph<Author, Edge> graph = new DefaultDirectedGraph<>(Edge.class);
-        // 复制节点
-        for (Author author : originalGraph.vertexSet()) {
-            graph.addVertex(author);
-        }
         // 复制边，但不包括不活跃的边
         for (Edge edge : originalGraph.edgeSet()) {
             if (!DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()) {
+                //将该边的结点添加上去
+                graph.addVertex(originalGraph.getEdgeSource(edge));
+                graph.addVertex(originalGraph.getEdgeTarget(edge));
+                //将该边添加上去
                 graph.addEdge(originalGraph.getEdgeSource(edge), originalGraph.getEdgeTarget(edge), edge);
-            }
-        }
-        //删除孤立点
-        for (Author author : graph.vertexSet()) {
-            if (graph.inDegreeOf(author) == 0 && graph.outDegreeOf(author) == 0) {
-                graph.removeVertex(author);
             }
         }
         return graph;
@@ -157,6 +151,8 @@ public class GraphManager { //单例
                 dataGatherManager.currentCoefficientStrategy.updateOtherTransitionMatrixs();
             }
         }
+        //更新impactForm
+        ImpactForm.getInstance().cal_impact();
         return ans;
     }
     //更新论文life，定期更新论文CitationLevel

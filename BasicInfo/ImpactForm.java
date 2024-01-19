@@ -24,13 +24,10 @@ public class ImpactForm {
     //更新影响关系表
     public void updateForm(){}
 
-    public double cal_impact(Author author,Paper paper){//用于计算一篇处于特定等级的论文对一个特定等级作者的影响
-
-        return 0;
+    public void cal_impact(){//用于计算一篇处于特定等级的论文对一个特定等级作者的影响
+        authorPaperForm = GraphManager.getInstance().calAllPaperImp(DataGatherManager.getInstance(), GraphManager.getInstance().getMatureGraph());
     }
     public double getAuthorPaperImpact(LevelManager.Level authorLevel, LevelManager.Level paperLevel, LevelManager.CitationLevel citationLevel){
-        //含义为一位authorlevel的作者发表或删除一篇paperlevel的论文将会对该作者的影响力产生多大的影响
-        authorPaperForm = GraphManager.getInstance().calAllPaperImp(DataGatherManager.getInstance(), GraphManager.getInstance().getMatureGraph());
         return authorPaperForm[authorLevel.getIndex()][paperLevel.getIndex()][citationLevel.getIndex()];
     }
 //    public void init_authorPaperForm(){

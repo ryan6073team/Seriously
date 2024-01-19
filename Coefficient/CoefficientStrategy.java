@@ -22,6 +22,8 @@ public class CoefficientStrategy {
 
     public CoefficientStrategy(){
         initMatrixs();
+        lastYearPapers = new HashSet<>();
+        currentYearPapers = new HashSet<>();
     }
 
     private void initMatrixs(){
@@ -109,7 +111,7 @@ public class CoefficientStrategy {
             }
             transitionMatrixs.put(currentYear-1,transitionMatrix);
             lastYearPapers = currentYearPapers;
-            currentYearPapers = null;
+            currentYearPapers = new HashSet<>();
         }
     }
 
