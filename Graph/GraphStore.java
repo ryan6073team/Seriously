@@ -3,8 +3,7 @@ package com.github.ryan6073.Seriously.Graph;
 import com.github.ryan6073.Seriously.BasicInfo.Author;
 import com.github.ryan6073.Seriously.BasicInfo.ConfigReader;
 import com.github.ryan6073.Seriously.BasicInfo.Edge;
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 
@@ -24,7 +23,7 @@ public class GraphStore {
     public void close() {
         driver.close();
     }
-    public void saveGraphToNeo4j(String graphName, DirectedGraph<Author, Edge> graph) {
+    public void saveGraphToNeo4j(String graphName, DirectedMultigraph<Author, Edge> graph) {
         try (Session session = driver.session()) {
             // 遍历图中的节点并创建节点
             for (Author author : graph.vertexSet()) {
@@ -43,14 +42,14 @@ public class GraphStore {
         }
     }
 
-    public static void store(String graphName, DirectedGraph<Author, Edge> graph) {
+    public static void store(String graphName, DirectedMultigraph<Author, Edge> graph) {
         GraphStore graphStorage = new GraphStore("bolt://localhost:7687", ConfigReader.getUser(), ConfigReader.getPassword());//这里修改为自己的用户名，密码
         graphStorage.saveGraphToNeo4j(graphName, graph);
         graphStorage.close();
     }
 
-    public DirectedGraph<Author, Edge> readGraphFromNeo4j(String graphName) {
-        DirectedGraph<Author, Edge> graph = new DefaultDirectedGraph<>(Edge.class);
+    public DirectedMultigraph<Author, Edge> readGraphFromNeo4j(String graphName) {
+        DirectedMultigraph<Author, Edge> graph = new DirectedMultigraph<>(Edge.class);
 
         Map<String, Author> authors = new HashMap<>();
         try (Session session = driver.session()) {
@@ -85,46 +84,10 @@ public class GraphStore {
         return graph;
     }
 
-    public static DirectedGraph<Author, Edge> read(String graphName) {
+    public static DirectedMultigraph<Author, Edge> read(String graphName) {
         GraphStore graphStorage = new GraphStore("bolt://localhost:7687", ConfigReader.getUser(), ConfigReader.getPassword());//这里修改为自己的用户名，密码
-        DirectedGraph<Author, Edge> graph = graphStorage.readGraphFromNeo4j(graphName);
+        DirectedMultigraph<Author, Edge> graph = graphStorage.readGraphFromNeo4j(graphName);
         graphStorage.close();
         return graph;
-    }
-
-    public static void createTestGraph(){
-        DirectedGraph<Author, Edge> testGraph1 = new DefaultDirectedGraph<>(Edge.class);
-        DirectedGraph<Author, Edge> testGraph2 = new DefaultDirectedGraph<>(Edge.class);
-        for(int i=1;i<=5;i++){
-            Author author = new Author("author"+i, String.valueOf(i),"institution"+i);
-            testGraph1.addVertex(author);
-            testGraph2.addVertex(author);
-        }
-        for(Author author1:testGraph2.vertexSet()){
-            for(Author author2:testGraph2.vertexSet()){
-                if(author1.getOrcid().equals("1")){
-                    if(author2.getOrcid().equals("2")) {
-                        Edge edge = new Edge(0.5, 2024, "1", 1);
-                        testGraph2.addEdge(author1, author2, edge);
-                    }
-                    if(author2.getOrcid().equals("3")) {
-                        Edge edge = new Edge(0.5, 2023, "2", 2);
-                        testGraph2.addEdge(author1, author2, edge);
-                    }
-                }
-                if(author1.getOrcid().equals("3")){
-                    if(author2.getOrcid().equals("4")) {
-                        Edge edge = new Edge(0.5, 2022, "3", 3);
-                        testGraph2.addEdge(author1, author2, edge);
-                    }
-                    if(author2.getOrcid().equals("5")) {
-                        Edge edge = new Edge(0.5, 2021, "4", 4);
-                        testGraph2.addEdge(author1, author2, edge);
-                    }
-                }
-            }
-        }
-        GraphStore.store("test1", testGraph1);
-        GraphStore.store("test2", testGraph2);
     }
 }

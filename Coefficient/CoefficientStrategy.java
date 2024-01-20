@@ -1,8 +1,6 @@
 package com.github.ryan6073.Seriously.Coefficient;
 import com.github.ryan6073.Seriously.BasicInfo.*;
 import Jama.Matrix;
-import com.github.ryan6073.Seriously.TimeInfo;
-import org.jgrapht.DirectedGraph;
 
 import java.util.*;
 

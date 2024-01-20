@@ -3,14 +3,14 @@ import com.github.ryan6073.Seriously.BasicInfo.Author;
 import com.github.ryan6073.Seriously.BasicInfo.DataGatherManager;
 import com.github.ryan6073.Seriously.BasicInfo.Edge;
 import Jama.Matrix;
-import org.jgrapht.DirectedGraph;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.jgrapht.traverse.BreadthFirstIterator;
 
 import java.util.*;
 
 public class CalGraph {
     static Map<Integer,String> tempMap;
-    private static double[][] getGraphMatrix(DirectedGraph<Author, Edge> mGraph){
+    private static double[][] getGraphMatrix(DirectedMultigraph<Author, Edge> mGraph){
         Iterator<Author> mBreadthFirstIterator = new BreadthFirstIterator<>(mGraph);
         int authorNum = mGraph.vertexSet().size();
         Map<Integer,String> _tempMap = new HashMap<>();
@@ -111,8 +111,24 @@ public class CalGraph {
         return ret;
     }
 
-    public static Vector<Double> getGraphImpact(DirectedGraph<Author, Edge> mGraph){
+    public static Vector<Double> getGraphImpact(DirectedMultigraph<Author, Edge> mGraph){
         int matrixSize = DataGatherManager.getInstance().authorNum;
+
+//        //打印图的信息
+//        System.out.println("图的信息如下：");
+//        System.out.println("图的顶点数目为："+mGraph.vertexSet().size());
+//        System.out.println("图的边数目为："+mGraph.edgeSet().size());
+//        System.out.println("图的顶点集合为：");
+//        for(Author author:mGraph.vertexSet()){
+//            System.out.println(author.getOrcid());
+//        }
+//        System.out.println("图的边集合为：");
+//        for(Edge edge:mGraph.edgeSet()){
+//            System.out.println(edge.getDoi());
+//            System.out.println(mGraph.getEdgeSource(edge).getOrcid()+"->"+mGraph.getEdgeTarget(edge).getOrcid());
+//            System.out.println("引用次数为："+edge.getCitingKey());
+//        }
+
         //获得引用矩阵
         double [][] targetMatrix = getGraphMatrix(mGraph);
         //获得转移矩阵

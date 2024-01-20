@@ -10,6 +10,7 @@ public class JournalKMeans {
         // 创建一维数据
         double[] data = new double[dataGatherManager.journals.size()];
         for(int i=0;i<dataGatherManager.journals.size();i++){
+
             data[i]=dataGatherManager.journals.get(i).getJournalImpact();
         }
 
@@ -39,6 +40,7 @@ public class JournalKMeans {
         int rank=0;
         for(List<Double> cluster : clusters){
             for(double item:cluster){
+                //LevelManager.Level level = LevelManager.Level.getLevelByIndex(rank);
                 dataGatherManager.journals.get(i).setRank(rank);
                 i++;
             }

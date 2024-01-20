@@ -4,7 +4,6 @@ import com.github.ryan6073.Seriously.Coefficient.CoefficientStrategy;
 import com.github.ryan6073.Seriously.Graph.GraphManager;
 import com.github.ryan6073.Seriously.Impact.CalGraph;
 import com.github.ryan6073.Seriously.TimeInfo;
-import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 
 import java.util.*;

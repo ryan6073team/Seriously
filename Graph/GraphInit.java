@@ -6,10 +6,9 @@ import com.github.ryan6073.Seriously.TimeInfo;
 import com.mxgraph.layout.mxCircleLayout;
 import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.util.mxCellRenderer;
-import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
 import org.jgrapht.ext.JGraphXAdapter;
-import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.jgrapht.graph.DefaultEdge;
 
 import javax.imageio.ImageIO;
@@ -17,13 +16,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 public class GraphInit {
-    private static DirectedGraph<Paper, DefaultEdge> paperGraph = new DefaultDirectedGraph<>(DefaultEdge.class);  //创建一个论文的图用以检验是否存在环
-    public static void deleteSinglePoint(DirectedGraph<Author,Edge> graph){
+    private static DirectedMultigraph<Paper, DefaultEdge> paperGraph = new DirectedMultigraph<>(DefaultEdge.class);  //创建一个论文的图用以检验是否存在环
+    public static void deleteSinglePoint(DirectedMultigraph<Author,Edge> graph){
         if(graph.edgeSet().isEmpty()) return;
         for (Author vertex : graph.vertexSet()) {
             int inDegree = graph.inDegreeOf(vertex);
@@ -33,7 +30,7 @@ public class GraphInit {
     }// 删除图中孤立点
 
     //检查是否存在环
-    public static void DetectCycles(DirectedGraph<Paper,DefaultEdge> detectGraph) {
+    public static void DetectCycles(DirectedMultigraph<Paper,DefaultEdge> detectGraph) {
         CycleDetector<Paper, DefaultEdge> cycleDetector
                 = new CycleDetector<Paper, DefaultEdge>(detectGraph);
 
@@ -171,8 +168,9 @@ public class GraphInit {
         //deleteSinglePoint(graphManager.Graph);
     }
     //新增函数，即将x年y月的作者引用关系构成一张图并将其存储在GraphItems中
+    //GraphItems中包含了从start到final的所有时间段，部分没有更新信息的item存在但size为0，但是并不代表相应的item=null
     public static void initGraphItem(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
-        DirectedGraph<Author,Edge> GraphTemp = new DefaultDirectedGraph<>(Edge.class);
+        DirectedMultigraph<Author,Edge> GraphTemp = new DirectedMultigraph<>(Edge.class);
         Vector<Paper> papers = getPapers(year,month);
         for(Paper paper: papers){
             if(paper.getPublishedYear()!=year || paper.getPublishedMonth()!=month) continue;

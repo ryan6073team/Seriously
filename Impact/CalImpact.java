@@ -2,11 +2,6 @@ package com.github.ryan6073.Seriously.Impact;
 
 import com.github.ryan6073.Seriously.BasicInfo.*;
 import com.github.ryan6073.Seriously.Graph.GraphManager;
-import com.github.ryan6073.Seriously.TimeInfo;
-import com.github.ryan6073.Seriously.Coefficient.CoefficientStrategy;
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultDirectedGraph;
 
 import java.util.*;
 

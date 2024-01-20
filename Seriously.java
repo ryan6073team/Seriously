@@ -1,24 +1,10 @@
 package com.github.ryan6073.Seriously;
 
-//import com.github.ryan6073.Seriously.BasicInfo.BasicDataInit;
 import com.github.ryan6073.Seriously.BasicInfo.*;
 import com.github.ryan6073.Seriously.Graph.GraphInit;
 import com.github.ryan6073.Seriously.Graph.GraphManager;
 import com.github.ryan6073.Seriously.Graph.GraphStore;
-import com.github.ryan6073.Seriously.Impact.CalGraph;
 import com.github.ryan6073.Seriously.Impact.CalImpact;
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.neo4j.driver.*;
-import org.neo4j.driver.Record;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
-
-import static com.github.ryan6073.Seriously.BasicInfo.FileInput.initJournalToIF;
 
 public class Seriously {
 

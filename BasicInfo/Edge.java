@@ -21,6 +21,15 @@ public class Edge {
         doi = _doi;
         month = _month;
     }
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Edge)) {
+            return false;
+        }
+        Edge product = (Edge) o;
+        return (this.doi.compareTo(product.doi)==0) && (this.citingDoi.compareTo(product.citingDoi)==0);
+    }
+
     public Double getCitingKey(){return citingKey;}
     public String getDoi(){
         return doi;
