@@ -5,25 +5,29 @@ import com.github.ryan6073.Seriously.Coefficient.CoefficientStrategy;
 import com.github.ryan6073.Seriously.Impact.CalGraph;
 import com.github.ryan6073.Seriously.Impact.CalImpact;
 import com.github.ryan6073.Seriously.TimeInfo;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.ClassBasedEdgeFactory;
+import org.jgrapht.graph.DirectedPseudograph;
 
 import java.util.*;
 
 
 public class GraphManager { //单例
     private static GraphManager mGraphManager = new GraphManager();
-    public static GraphManager getInstance(){return mGraphManager;}
-    private Map<TimeInfo,DirectedMultigraph<Author,Edge>> GraphItems = new HashMap<>();
+    public static GraphManager getInstance(){
+        return mGraphManager;
+    }
+    private Map<TimeInfo,DirectedPseudograph<Author,Edge>> GraphItems = new HashMap<>();
     //获取目标子图
-    public DirectedMultigraph<Author,Edge> getGraphItem(int year,int month){
-        for(Map.Entry<TimeInfo,DirectedMultigraph<Author,Edge>> entry : GraphItems.entrySet()){
+    public DirectedPseudograph<Author,Edge> getGraphItem(int year,int month){
+        for(Map.Entry<TimeInfo,DirectedPseudograph<Author,Edge>> entry : GraphItems.entrySet()){
             if(entry.getKey().year==year&&entry.getKey().month==month)
                 return entry.getValue();
         }
         return null;
     }
-    //    public DirectedMultigraph<Author ,Edge> getMatureGraph(){
-//        DirectedMultigraph<Author ,Edge> graph = Graph;
+    //    public DirectedPseudograph<Author ,Edge> getMatureGraph(){
+//        DirectedPseudograph<Author ,Edge> graph = Graph;
 //        for(Edge edge:graph.edgeSet()){
 //            if(DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()){
 //                graph.removeEdge(edge);
@@ -31,10 +35,10 @@ public class GraphManager { //单例
 //        }
 //        return graph;
 //    }
-    public DirectedMultigraph<Author, Edge> getMatureGraph() {
-        DirectedMultigraph<Author, Edge> originalGraph = Graph;  // 假设 Graph 是你的原始图
+    public DirectedPseudograph<Author, Edge> getMatureGraph() {
+        DirectedPseudograph<Author, Edge> originalGraph = Graph;  // 假设 Graph 是你的原始图
         // 创建一个新的、可修改的图
-        DirectedMultigraph<Author, Edge> graph = new DirectedMultigraph<>(Edge.class);
+        DirectedPseudograph<Author, Edge> graph = new DirectedPseudograph<>(Edge.class);
         // 复制边，但不包括不活跃的边
         for (Edge edge : originalGraph.edgeSet()) {
             if (!DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()) {
@@ -51,20 +55,20 @@ public class GraphManager { //单例
     }
 
     //加入目标子图
-    public void addGraphItem(int year, int month, DirectedMultigraph<Author,Edge> Item){GraphItems.put(new TimeInfo(year,month),Item);}
+    public void addGraphItem(int year, int month, DirectedPseudograph<Author,Edge> Item){GraphItems.put(new TimeInfo(year,month),Item);}
     //创建初始图，一切故事从这里开始
-    public DirectedMultigraph<Author,Edge> Graph = new DirectedMultigraph<>(Edge.class);
+    public DirectedPseudograph<Author,Edge>  Graph = new DirectedPseudograph<>(Edge.class);
     //关于初始图和子图的创建时间参数请查看DataGatherManager新增的startYear/Month和finalYear/Month
     //注意这些图都是作者引用图，而GraphInit中的paperGraph是论文引用图
     private GraphManager(){}
-    public DirectedMultigraph<Author,Edge> createNewGraph(Paper paper, DirectedMultigraph<Author,Edge> graph){
+    public DirectedPseudograph<Author,Edge> createNewGraph(Paper paper, DirectedPseudograph<Author,Edge> graph){
 
         for(Edge edge: paper.getEdgeList()){
             graph.removeEdge(edge);
         }
         return graph;
     }//生成删除了要研究论文的图
-    public Map<String,Double> calNewPaperImp(DataGatherManager dataGatherManager,Paper paper, DirectedMultigraph<Author,Edge> graph){
+    public Map<String,Double> calNewPaperImp(DataGatherManager dataGatherManager,Paper paper, DirectedPseudograph<Author,Edge> graph){
         Map<String,Double> imp = new HashMap<>();
         for(String orcid : dataGatherManager.dicOrcidMatrixOrder.keySet()){
             imp.put(orcid,dataGatherManager.dicOrcidAuthor.get(orcid).getAuthorImpact());
@@ -84,7 +88,7 @@ public class GraphManager { //单例
         CalImpact.initAuthorImpact(CalGraph.getGraphImpact(graph));//恢复原作者影响力
         return imp;
     }//计算删除了要研究论文的图的作者影响力
-    public double[][][] calAllPaperImp(DataGatherManager dataGatherManager,DirectedMultigraph<Author,Edge> graph){
+    public double[][][] calAllPaperImp(DataGatherManager dataGatherManager,DirectedPseudograph<Author,Edge> graph){
         double [][][] Matrix = new double[5][5][3];
         int [][][] number = new int[5][5][3];
         Set<Paper> papers = new HashSet<>();
@@ -125,7 +129,7 @@ public class GraphManager { //单例
     }//计算全部不在保护期的论文对作者的平均影响力
     //将year年month月的图更新到图里，同时更新Strategy的矩阵
     public Vector<Vector<String>> updateGraph(int year, int month){
-        DirectedMultigraph<Author,Edge> graphItem = getGraphItem(year, month);
+        DirectedPseudograph<Author,Edge> graphItem = getGraphItem(year, month);
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         //如果更新时间是start，那么不用更新图和论文信息直接返回现有图的成熟论文和不成熟论文即可
         if(year==DataGatherManager.getInstance().startYear&&month==DataGatherManager.getInstance().startMonth){
@@ -179,7 +183,7 @@ public class GraphManager { //单例
         return ans;
     }
     //更新论文life，定期更新论文CitationLevel
-    private Vector<Vector<String>> updatePaperLifeInfo(DirectedMultigraph<Author,Edge> graph, DataGatherManager dataGatherManager){
+    private Vector<Vector<String>> updatePaperLifeInfo(DirectedPseudograph<Author,Edge> graph, DataGatherManager dataGatherManager){
         Set<Paper> papers = new HashSet<>();
         for(Edge edge:graph.edgeSet()) {
             Paper sourcePaper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
@@ -223,8 +227,8 @@ public class GraphManager { //单例
 
     public static void createTestGraph(){
         // 创建测试图并存入数据库
-        DirectedMultigraph<Author, Edge> testGraph1 = new DirectedMultigraph<>(Edge.class);
-        DirectedMultigraph<Author, Edge> testGraph2 = new DirectedMultigraph<>(Edge.class);
+        DirectedPseudograph<Author, Edge> testGraph1 = new DirectedPseudograph<>(Edge.class);
+        DirectedPseudograph<Author, Edge> testGraph2 = new DirectedPseudograph<>(Edge.class);
         for(int i=1;i<=5;i++){
             Author author = new Author("author"+i, String.valueOf(i),"institution"+i);
             testGraph1.addVertex(author);

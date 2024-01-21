@@ -3,7 +3,7 @@ package com.github.ryan6073.Seriously.Graph;
 import com.github.ryan6073.Seriously.BasicInfo.Author;
 import com.github.ryan6073.Seriously.BasicInfo.ConfigReader;
 import com.github.ryan6073.Seriously.BasicInfo.Edge;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.DirectedPseudograph;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 
@@ -23,7 +23,7 @@ public class GraphStore {
     public void close() {
         driver.close();
     }
-    public void saveGraphToNeo4j(String graphName, DirectedMultigraph<Author, Edge> graph) {
+    public void saveGraphToNeo4j(String graphName, DirectedPseudograph<Author, Edge> graph) {
         try (Session session = driver.session()) {
             // 遍历图中的节点并创建节点
             for (Author author : graph.vertexSet()) {
@@ -42,14 +42,14 @@ public class GraphStore {
         }
     }
 
-    public static void store(String graphName, DirectedMultigraph<Author, Edge> graph) {
+    public static void store(String graphName, DirectedPseudograph<Author, Edge> graph) {
         GraphStore graphStorage = new GraphStore("bolt://localhost:7687", ConfigReader.getUser(), ConfigReader.getPassword());//这里修改为自己的用户名，密码
         graphStorage.saveGraphToNeo4j(graphName, graph);
         graphStorage.close();
     }
 
-    public DirectedMultigraph<Author, Edge> readGraphFromNeo4j(String graphName) {
-        DirectedMultigraph<Author, Edge> graph = new DirectedMultigraph<>(Edge.class);
+    public DirectedPseudograph<Author, Edge> readGraphFromNeo4j(String graphName) {
+        DirectedPseudograph<Author, Edge> graph = new DirectedPseudograph<>(Edge.class);
 
         Map<String, Author> authors = new HashMap<>();
         try (Session session = driver.session()) {
@@ -84,9 +84,9 @@ public class GraphStore {
         return graph;
     }
 
-    public static DirectedMultigraph<Author, Edge> read(String graphName) {
+    public static DirectedPseudograph<Author, Edge> read(String graphName) {
         GraphStore graphStorage = new GraphStore("bolt://localhost:7687", ConfigReader.getUser(), ConfigReader.getPassword());//这里修改为自己的用户名，密码
-        DirectedMultigraph<Author, Edge> graph = graphStorage.readGraphFromNeo4j(graphName);
+        DirectedPseudograph<Author, Edge> graph = graphStorage.readGraphFromNeo4j(graphName);
         graphStorage.close();
         return graph;
     }

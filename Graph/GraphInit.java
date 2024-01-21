@@ -8,7 +8,7 @@ import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.util.mxCellRenderer;
 import org.jgrapht.alg.CycleDetector;
 import org.jgrapht.ext.JGraphXAdapter;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.DirectedPseudograph;
 import org.jgrapht.graph.DefaultEdge;
 
 import javax.imageio.ImageIO;
@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class GraphInit {
-    private static DirectedMultigraph<Paper, DefaultEdge> paperGraph = new DirectedMultigraph<>(DefaultEdge.class);  //创建一个论文的图用以检验是否存在环
-    public static void deleteSinglePoint(DirectedMultigraph<Author,Edge> graph){
+    private static DirectedPseudograph<Paper, DefaultEdge> paperGraph = new DirectedPseudograph<>(DefaultEdge.class);  //创建一个论文的图用以检验是否存在环
+    public static void deleteSinglePoint(DirectedPseudograph<Author,Edge> graph){
         if(graph.edgeSet().isEmpty()) return;
         for (Author vertex : graph.vertexSet()) {
             int inDegree = graph.inDegreeOf(vertex);
@@ -30,7 +30,7 @@ public class GraphInit {
     }// 删除图中孤立点
 
     //检查是否存在环
-    public static void DetectCycles(DirectedMultigraph<Paper,DefaultEdge> detectGraph) {
+    public static void DetectCycles(DirectedPseudograph<Paper,DefaultEdge> detectGraph) {
         CycleDetector<Paper, DefaultEdge> cycleDetector
                 = new CycleDetector<Paper, DefaultEdge>(detectGraph);
 
@@ -170,7 +170,7 @@ public class GraphInit {
     //新增函数，即将x年y月的作者引用关系构成一张图并将其存储在GraphItems中
     //GraphItems中包含了从start到final的所有时间段，部分没有更新信息的item存在但size为0，但是并不代表相应的item=null
     public static void initGraphItem(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
-        DirectedMultigraph<Author,Edge> GraphTemp = new DirectedMultigraph<>(Edge.class);
+        DirectedPseudograph<Author,Edge> GraphTemp = new DirectedPseudograph<>(Edge.class);
         Vector<Paper> papers = getPapers(year,month);
         for(Paper paper: papers){
             //获取存在于数据源中的作者数量

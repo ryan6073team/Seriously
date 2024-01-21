@@ -3,7 +3,7 @@ import com.github.ryan6073.Seriously.BasicInfo.Author;
 import com.github.ryan6073.Seriously.BasicInfo.DataGatherManager;
 import com.github.ryan6073.Seriously.BasicInfo.Edge;
 import Jama.Matrix;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.DirectedPseudograph;
 import com.github.ryan6073.Seriously.BasicInfo.Paper;
 import org.jgrapht.traverse.BreadthFirstIterator;
 
@@ -20,7 +20,7 @@ public class CalGraph {
     // 都从作者i的论文中获得了启发性帮助，因此其影响力会相应的高
     // 而这种影响力数值的大小会在后续的转移矩阵的计算中体现
     static Map<Integer,String> tempMap;
-    private static double[][] getGraphMatrix(DirectedMultigraph<Author, Edge> mGraph){
+    private static double[][] getGraphMatrix(DirectedPseudograph<Author, Edge> mGraph){
         //传入的图中存在孤立点
         //这种情况是可能存在的：例如当某些作者只有一篇论文而程序恰好需要删去这篇论文来对比前后相关作者的影响力变化时，
         // 与论文相关的边都被删去该作者即变成孤立点
@@ -179,7 +179,7 @@ public class CalGraph {
         return ret;
     }
     //未出现的作者影响力值为-1
-    public static Vector<Double> getGraphImpact(DirectedMultigraph<Author, Edge> mGraph){
+    public static Vector<Double> getGraphImpact(DirectedPseudograph<Author, Edge> mGraph){
         int matrixSize = DataGatherManager.getInstance().authorNum;
 
 //        //打印图的信息
