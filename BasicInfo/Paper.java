@@ -1,7 +1,7 @@
 package com.github.ryan6073.Seriously.BasicInfo;
 
 import com.github.ryan6073.Seriously.Coefficient.CoefficientStrategy;
-
+import java.util.Objects;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Vector;
@@ -132,8 +132,8 @@ public class Paper {
         // 获取论文的诞生时长，以月为单位
         int lifespan = this.getLife();
         // 根据论文的诞生时长，返回相应的年龄组枚举值
-        if(lifespan > 0 && lifespan <= 4){
-            // 如果论文的诞生时长在1-4月之间，属于青年期
+        if(lifespan >= 0 && lifespan <= 4){
+            // 如果论文的诞生时长在0-4月之间，属于青年期
             return LevelManager.PaperAgeGroup.CHILD;
         }else if(lifespan > 4 && lifespan <= 8){
             // 如果论文的诞生时长在5-8月之间，属于壮年期
@@ -145,6 +145,7 @@ public class Paper {
             // 如果论文的诞生时长为13，表示论文已经超过一年，属于成熟期
             return LevelManager.PaperAgeGroup.MATURE;
         }else{
+            System.out.println(lifespan);
             // 如果论文的诞生时长不在上述范围内，返回null
             return null;
         }
@@ -168,5 +169,18 @@ public class Paper {
         // 返回月份数的绝对值，因为不考虑日期的先后顺序
         return Math.abs(months);
     }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Paper paper = (Paper) o;
+        return Objects.equals(doi, paper.doi);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(doi);
+    }
+
 
 }

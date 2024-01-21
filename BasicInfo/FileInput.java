@@ -265,4 +265,26 @@ public class FileInput {
             item.setIF(dataGatherManager);
         }
     }
+
+    public static void tempInit(DataGatherManager dataGatherManager,String filePath){
+        Vector<Author> authors = new Vector<>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filePath));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Author author = initAuthor(dataGatherManager, line, authors);
+                initPaperandJournal(reader, dataGatherManager, line, author);
+                initDicTimeInfoDoi(dataGatherManager);
+                dataGatherManager.initMatrixOrder();
+
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for(Journal item:dataGatherManager.journals){
+            item.setIF(dataGatherManager);
+        }
+    }
 }

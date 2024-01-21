@@ -45,15 +45,14 @@ public class DataGatherManager {//单例模式
         boolean flag = true;
         TimeInfo lastItem = null;
         for(TimeInfo item:timeInfoList){
-            if(num>dicDoiPaper.size()/2 && flag){//即startyear startmonth之前的论文数（不包含startyear和startmonth本身）恰好大于或等于总数的一半
+            num+=dicTimeInfoDoi.get(item).size();
+            if(num>=dicDoiPaper.size()/2 && flag){//即startyear startmonth之前的论文数（不包含startyear和startmonth本身）恰好大于或等于总数的一半
                 startYear = item.year;
                 startMonth = item.month;
-                flag = false;
+                break;
             }
-            num+=dicTimeInfoDoi.get(item).size();
-            if(item==timeInfoList.getLast())
-                lastItem = item;
         }
+        lastItem = timeInfoList.getLast();
         finalYear = lastItem.year;
         finalMonth = lastItem.month;
     }

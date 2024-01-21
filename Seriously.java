@@ -20,10 +20,6 @@ public class Seriously {
         dataGatherManager.initYearMonth();
         System.out.println("完成时间初始化");
 
-        //更新等级
-        AuthorKMeans.AuthorKMeans(dataGatherManager);
-        System.out.println("完成作者等级更新");
-
         JournalKMeans.JournalkMeans(dataGatherManager);
         System.out.println("完成期刊等级更新");
 
@@ -31,6 +27,10 @@ public class Seriously {
 
         GraphInit.initGraph(graphManager,dataGatherManager,dataGatherManager.startYear,dataGatherManager.startMonth);
         System.out.println("完成初始总图的初始化");
+
+        //更新等级
+        AuthorKMeans.AuthorKMeans(dataGatherManager);
+        System.out.println("完成作者等级更新");
 
         GraphStore.store("0000-0", graphManager.Graph);
         System.out.println("完成初始总图的存储");

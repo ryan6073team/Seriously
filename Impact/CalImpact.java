@@ -101,6 +101,9 @@ public class CalImpact {
                 double tempImpact = 0.0;
                 for(int i=0;i<LevelManager.CitationLevel.citationLevelNum;i++)
                     tempImpact+=stateDistribution[i]*ImpactForm.getInstance().getAuthorPaperImpact(authorLevel,paperLevel,LevelManager.CitationLevel.getCitationLevelByIndex(i));
+                //若出现作者在遍历这篇论文之前没有被算过
+                if(author.getAuthorImpact()==-1.0)
+                    author.setAuthorImpact(0.0);
                 author.setAuthorImpact(author.getAuthorImpact()+tempImpact);
             }
         }

@@ -34,5 +34,6 @@ public class Edge {
     public String getDoi(){
         return doi;
     }
+    public String getCitingDoi(){return citingDoi;}
 }
 

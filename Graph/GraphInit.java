@@ -173,8 +173,6 @@ public class GraphInit {
         DirectedMultigraph<Author,Edge> GraphTemp = new DirectedMultigraph<>(Edge.class);
         Vector<Paper> papers = getPapers(year,month);
         for(Paper paper: papers){
-            if(paper.getPublishedYear()!=year || paper.getPublishedMonth()!=month) continue;
-            paper.setIsRead(1);
             //获取存在于数据源中的作者数量
             int startNum = getAuthorNumber(paper,dataGatherManager);  //引用作者数量，即与边起点有关的作者数
 

@@ -58,6 +58,7 @@ public class GraphManager { //单例
     //注意这些图都是作者引用图，而GraphInit中的paperGraph是论文引用图
     private GraphManager(){}
     public DirectedMultigraph<Author,Edge> createNewGraph(Paper paper, DirectedMultigraph<Author,Edge> graph){
+
         for(Edge edge: paper.getEdgeList()){
             graph.removeEdge(edge);
         }
@@ -86,7 +87,7 @@ public class GraphManager { //单例
     public double[][][] calAllPaperImp(DataGatherManager dataGatherManager,DirectedMultigraph<Author,Edge> graph){
         double [][][] Matrix = new double[5][5][3];
         int [][][] number = new int[5][5][3];
-        Vector<Paper> papers = new Vector<>();
+        Set<Paper> papers = new HashSet<>();
         for(int i=0;i<5;i++){
             for(int j=0;j<5;j++){
                 for(int k=0;k<3;k++){
@@ -97,7 +98,7 @@ public class GraphManager { //单例
         }
         for(Edge edge:graph.edgeSet()) {
             Paper paper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
-            if (!papers.contains(paper)) papers.add(paper);
+            papers.add(paper);
         }
         for(Paper paper:papers){
             if(paper.getIsAlive()) continue;
@@ -125,8 +126,30 @@ public class GraphManager { //单例
     //将year年month月的图更新到图里，同时更新Strategy的矩阵
     public Vector<Vector<String>> updateGraph(int year, int month){
         DirectedMultigraph<Author,Edge> graphItem = getGraphItem(year, month);
-
-        if(graphItem == null||graphItem.vertexSet().size()==0) return updatePaperLifeInfo(Graph,DataGatherManager.getInstance());
+        DataGatherManager dataGatherManager = DataGatherManager.getInstance();
+        //如果更新时间是start，那么不用更新图和论文信息直接返回现有图的成熟论文和不成熟论文即可
+        if(year==DataGatherManager.getInstance().startYear&&month==DataGatherManager.getInstance().startMonth){
+            Vector<Vector<String>> ans = new Vector<>();
+            Vector<String> alive = new Vector<>();
+            Vector<String> dead = new Vector<>();
+            for(Edge edge:Graph.edgeSet()){
+                if(dataGatherManager.dicDoiPaper.get(edge.getDoi()).getIsAlive()==false)
+                    dead.add(edge.getDoi());
+                else alive.add(edge.getDoi());
+            }
+            ans.add(alive);
+            ans.add(dead);
+            //但是impactForm需要初始化
+            ImpactForm.getInstance().cal_impact();
+            return ans;
+        }
+        //若当前时间不存在新的引用关系，则不需要更新图只需要更新现有图论文的信息即可
+        if(graphItem == null||graphItem.vertexSet().size()==0) {
+            Vector<Vector<String>> ans = updatePaperLifeInfo(Graph,dataGatherManager);
+            //论文状态被更新之后需要重新运行cal_impact更新form
+            ImpactForm.getInstance().cal_impact();
+            return ans;
+        }
 
         for(Author author:graphItem.vertexSet()){
             if(!Graph.containsVertex(author)){
@@ -136,11 +159,10 @@ public class GraphManager { //单例
         }
         for(Edge edge:graphItem.edgeSet()){
             Graph.addEdge(graphItem.getEdgeSource(edge),graphItem.getEdgeTarget(edge),edge);
-            DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).setIsRead(1);
+            dataGatherManager.dicDoiPaper.get(edge.getDoi()).setIsRead(1);
         }
-        Vector<Vector<String>> ans = updatePaperLifeInfo(Graph,DataGatherManager.getInstance());
+        Vector<Vector<String>> ans = updatePaperLifeInfo(Graph,dataGatherManager);
         //更新Strategy的矩阵
-        DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         //更新该年论文集
         dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month)));
         if(month==12) {
@@ -158,10 +180,12 @@ public class GraphManager { //单例
     }
     //更新论文life，定期更新论文CitationLevel
     private Vector<Vector<String>> updatePaperLifeInfo(DirectedMultigraph<Author,Edge> graph, DataGatherManager dataGatherManager){
-        Vector<Paper> papers = new Vector<>();
+        Set<Paper> papers = new HashSet<>();
         for(Edge edge:graph.edgeSet()) {
-            Paper paper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
-            if (!papers.contains(paper)) papers.add(paper);
+            Paper sourcePaper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
+            Paper targetPaper = dataGatherManager.dicDoiPaper.get(edge.getCitingDoi());
+            papers.add(sourcePaper);
+            papers.add(targetPaper);
         }
         Vector<String> alive = new Vector<>();
         Vector<String> dead = new Vector<>();

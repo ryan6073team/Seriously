@@ -4,13 +4,26 @@ import com.github.ryan6073.Seriously.BasicInfo.DataGatherManager;
 import com.github.ryan6073.Seriously.BasicInfo.Edge;
 import Jama.Matrix;
 import org.jgrapht.graph.DirectedMultigraph;
+import com.github.ryan6073.Seriously.BasicInfo.Paper;
 import org.jgrapht.traverse.BreadthFirstIterator;
 
 import java.util.*;
 
 public class CalGraph {
+    //对于转移矩阵做如下理解：
+    //transition的第j列都代表作者j的学术来源分布，做归一化处理后transition[i][j]代表作者j的所有学术成果从作者i获得的启发性帮助占其在科研过程中获得的
+    //全部帮助(即第j列数值和，已归一化为1.0)的比例，但这种设想是建立在
+    // 1.作者的每一篇论文所获取的启发性帮助相同（一篇论文的发出的边的citingkey之和皆为1）
+    // 2.被引用论文对作者提供的启发性帮助被被引论文的作者平均分配（因为没有考虑论文作者的贡献大小，因此只能平均分配）（一条Edge的citingkey=1/被引论文和引用论文作者数量的乘积）
+    // 的基础上
+    // 在这些假设的基础上可以得出初步判断：若发现转移矩阵中很多列的数值（即获得的启发性帮助占比）都向某或者某几行（以i行为例）聚集，则代表很多作者
+    // 都从作者i的论文中获得了启发性帮助，因此其影响力会相应的高
+    // 而这种影响力数值的大小会在后续的转移矩阵的计算中体现
     static Map<Integer,String> tempMap;
     private static double[][] getGraphMatrix(DirectedMultigraph<Author, Edge> mGraph){
+        //传入的图中存在孤立点
+        //这种情况是可能存在的：例如当某些作者只有一篇论文而程序恰好需要删去这篇论文来对比前后相关作者的影响力变化时，
+        // 与论文相关的边都被删去该作者即变成孤立点
         Iterator<Author> mBreadthFirstIterator = new BreadthFirstIterator<>(mGraph);
         int authorNum = mGraph.vertexSet().size();
         Map<Integer,String> _tempMap = new HashMap<>();
@@ -46,6 +59,13 @@ public class CalGraph {
                 int citedAuthorOrder = _tempMap2.get(citedAuthor.getOrcid());
                 tempMatrix[citedAuthorOrder][nowAuthorOrder]+=edgeItem.getCitingKey();
             }
+            //再处理作者引用列表为空的论文,将其设置为自引,即代表学术来源nowAuthor+1
+            for (Paper paper:DataGatherManager.getInstance().dicAuthorPaper.get(nowAuthor)){
+                if(paper.getCitingList().size()==0){
+                    int nowAuthorOrder = _tempMap2.get(nowAuthor.getOrcid());
+                    tempMatrix[nowAuthorOrder][nowAuthorOrder]+=1.0;
+                }
+            }
         }
         tempMap = _tempMap;
         return tempMatrix;
@@ -60,29 +80,70 @@ public class CalGraph {
             for(int j=0;j<sourceMatrix.length;j++)
                 if(sum!=0.0)
                     sourceMatrix[j][i]=sourceMatrix[j][i]/sum;
-                else sourceMatrix[j][i]=0.0;
         }
     }
+    //会存在于转移矩阵的都是有成熟作品的作者，但同时还存在只有不成熟作品和暂未出现的作者，对于他们ans没有对应值，归一化亦与他们无关，但是TargetVector应该包含他们
+    //其中前者初始值设置为0 后者初始值设置为-1
     private static double [] getTargetVector( double [][] transitionMatrix, int matrixSize, double D){
         D = 0.85;
         int currentAuthorNum = transitionMatrix.length;
+        int[] authorMark = new int[currentAuthorNum];
+        int singlePointNum = 0;
         for(int i=0;i<currentAuthorNum;i++){
             double sum=0.0;
+            authorMark[i]=0;
             for(int j=0;j<currentAuthorNum;j++){
                 sum+=transitionMatrix[j][i];
             }
-            if(sum!=1.0) {
+            if(sum==0.0){
+                //代表此作者在图中为孤立点
+                authorMark[i]=-1;
+                singlePointNum++;
+            }
+            else if(sum!=1.0) {
                 System.out.println("矩阵归一化异常");
                 return null;
             }
         }
-        double [][] authorVector = new double[1][currentAuthorNum];
-        double [][] tempVector = new double[1][currentAuthorNum];
-        for(int i=0;i<currentAuthorNum;i++){
-            authorVector[0][i] = 1.0/currentAuthorNum;
-            tempVector[0][i] = (1.0-D)/currentAuthorNum;
+        if(currentAuthorNum==0){
+            double[] ret = new double[matrixSize];
+            for(int i=0;i<matrixSize;i++)
+                ret[i]=-1.0;
+            //存在的作者初始化影响力值应该为0 不存在的作者影响力值非法应该为-1.0
+            for(String orcid:DataGatherManager.getInstance().dicOrcidAuthor.keySet())
+                if(DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getIfExist()==1)
+                    ret[DataGatherManager.getInstance().dicOrcidMatrixOrder.get(orcid)]=0.0;
+            return ret;
         }
-        Matrix transpose = new Matrix(transitionMatrix);
+        double [][] tureTransitionMatrix;
+        int trueSize=currentAuthorNum - singlePointNum;
+        // 当存在孤立点时重构转移矩阵
+        if (singlePointNum != 0) {
+            tureTransitionMatrix = new double[trueSize][trueSize];
+            int row = 0; // 新矩阵的行索引
+            for (int i = 0; i < currentAuthorNum; i++) {
+                if (authorMark[i] == 0) { // 如果authorMark[i]为0，说明不是孤立点
+                    int col = 0; // 新矩阵的列索引
+                    for (int j = 0; j < currentAuthorNum; j++) {
+                        if (authorMark[j] == 0) { // 同样检查列是否为孤立点
+                            tureTransitionMatrix[row][col] = transitionMatrix[i][j];
+                            col++;
+                        }
+                    }
+                    row++;
+                }
+            }
+        } else {
+            tureTransitionMatrix = transitionMatrix;
+        }
+
+        double [][] authorVector = new double[1][trueSize];
+        double [][] tempVector = new double[1][trueSize];
+        for(int i=0;i<trueSize;i++){
+            authorVector[0][i] = 1.0/trueSize;
+            tempVector[0][i] = (1.0-D)/trueSize;
+        }
+        Matrix transpose = new Matrix(tureTransitionMatrix);
         //列向量
         //作者向量
         Matrix author = (new Matrix(authorVector)).transpose();
@@ -95,22 +156,29 @@ public class CalGraph {
         }
         //权重向量归一化
         double sum=0.0;
-        for(int i=0;i<currentAuthorNum;i++)
+        for(int i=0;i<trueSize;i++)
             sum+=author.getArray()[i][0];
-        double[] ans = new double[currentAuthorNum];
-        for(int i=0;i<currentAuthorNum;i++)
+        double[] ans = new double[trueSize];
+        for(int i=0;i<trueSize;i++)
             ans[i]=author.getArray()[i][0]/sum;
 
         double[] ret = new double[matrixSize];
         for(int i=0;i<matrixSize;i++)
             ret[i]=-1.0;
-
-        for(int i=0;i<currentAuthorNum;i++){
-            ret[DataGatherManager.getInstance().dicOrcidMatrixOrder.get(tempMap.get(i))] = ans[i];
+        //存在的作者初始化影响力值应该为0 不存在的作者影响力值非法应该为-1.0
+        for(String orcid:DataGatherManager.getInstance().dicOrcidAuthor.keySet())
+            if(DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getIfExist()==1)
+                ret[DataGatherManager.getInstance().dicOrcidMatrixOrder.get(orcid)]=0.0;
+        int currentAuthorID=0;
+        for(int i=0;i<currentAuthorNum;i++) {
+            if (authorMark[i] == 0) {
+                ret[DataGatherManager.getInstance().dicOrcidMatrixOrder.get(tempMap.get(i))] = ans[currentAuthorID];
+                currentAuthorID++;
+            }
         }
         return ret;
     }
-
+    //未出现的作者影响力值为-1
     public static Vector<Double> getGraphImpact(DirectedMultigraph<Author, Edge> mGraph){
         int matrixSize = DataGatherManager.getInstance().authorNum;
 
@@ -131,6 +199,9 @@ public class CalGraph {
 
         //获得引用矩阵
         double [][] targetMatrix = getGraphMatrix(mGraph);
+//        if(targetMatrix.length!=0){
+//            System.out.println();
+//        }
         //获得转移矩阵
         processTransitionMatrix(targetMatrix);
         //获得作者影响力数组

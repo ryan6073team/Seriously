@@ -19,36 +19,21 @@ public class CoefficientStrategy {
     double[][][][] resultMatrix = new double[LevelManager.Level.levelNum][LevelManager.PaperAgeGroup.ageGroupNum][LevelManager.CitationLevel.citationLevelNum][LevelManager.CitationLevel.citationLevelNum];
 
     public CoefficientStrategy(){
-        initMatrixs();
         lastYearPapers = new HashSet<>();
         currentYearPapers = new HashSet<>();
-    }
-
-    private void initMatrixs(){
         for(int i=0;i<LevelManager.Level.levelNum;i++)
-            for(int j=0;j<LevelManager.PaperAgeGroup.ageGroupNum;j++)
-                for(int k=0;k<LevelManager.CitationLevel.citationLevelNum;k++)
-                    for(int m=0;m<LevelManager.CitationLevel.citationLevelNum;m++) {
+            for(int j=0;j<LevelManager.PaperAgeGroup.ageGroupNum;j++) {
+                for (int k = 0; k < LevelManager.CitationLevel.citationLevelNum; k++)
+                    for (int m = 0; m < LevelManager.CitationLevel.citationLevelNum; m++) {
                         estimatedMatrix[i][j][k][m] = 0.0;
                         devMatrix[i][j][k][m] = 0.0;
                         resultMatrix[i][j][k][m] = 0.0;
                     }
-    }
-
-
-
-    // 定义一个loadPapersAgeGroup方法，用于将论文按照年龄组进行分类，并返回相应映射
-    private Map<LevelManager.PaperAgeGroup, Vector<Paper>> loadPapersAgeGroup(Map<String,Paper> papers){
-        // 创建一个Map对象，用于存储不同年龄组的论文列表
-        Map<LevelManager.PaperAgeGroup, Vector<Paper>> map = new HashMap<>();
-        for(int i=0;i<LevelManager.PaperAgeGroup.ageGroupNum;i++)
-            map.put(LevelManager.PaperAgeGroup.getPaperAgeGroupByIndex(i),new Vector<Paper>());
-        // 遍历每个年龄组的枚举值
-        for(Map.Entry<String,Paper> paper:papers.entrySet()){
-            LevelManager.PaperAgeGroup paperAgeGroup = paper.getValue().getAgeGroup();
-            map.get(paperAgeGroup).add(paper.getValue());
-        }
-        return map;
+                for(int k = 0; k < LevelManager.CitationLevel.citationLevelNum; k++){
+                    estimatedMatrix[i][j][k][k] = 1.0;
+                    resultMatrix[i][j][k][k] = 1.0;
+                }
+            }
     }
 
     //在第一次求出转移矩阵（即startyear-1）后，对于otherMatrix进行初始化设置
