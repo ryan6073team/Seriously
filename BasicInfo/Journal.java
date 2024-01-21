@@ -10,21 +10,21 @@ public class Journal implements Comparable<Journal>{
     private String journalName;
     private Double journalImpact=0.0;
     private Double IF;
-    private Integer rank; //  用1、2、3、4划分为四个等级
+    private LevelManager.Level level; //  A,B,C,D,E 一共5个等级
     public Journal(){journalPapers = new Vector<>();}
     public static void updateLevelImpact(){
         int[] levelNum = new int[101];
         for(int i=0;i<101;i++)
             levelNum[i]=0;
-        for(Journal jounal:DataGatherManager.getInstance().journals){
-            levelNum[jounal.rank]++;
-            if (!levelImpact.containsKey(LevelManager.RanktoLevel(jounal.rank)))
-                levelImpact.put(LevelManager.RanktoLevel(jounal.rank), jounal.getJournalImpact());
+        for(Journal journal:DataGatherManager.getInstance().journals){
+            levelNum[journal.level.getIndex()]++;
+            if (!levelImpact.containsKey(journal.level))
+                levelImpact.put(journal.level, journal.getJournalImpact());
             else {
-                double impact = levelImpact.get(LevelManager.RanktoLevel(jounal.rank)) * (levelNum[jounal.rank] - 1);
-                impact += jounal.getJournalImpact();
-                impact = impact / levelNum[jounal.rank];
-                levelImpact.put(LevelManager.RanktoLevel(jounal.rank), impact);
+                double impact = levelImpact.get(journal.level) * (levelNum[journal.level.getIndex()] - 1);
+                impact += journal.getJournalImpact();
+                impact = impact / levelNum[journal.level.getIndex()];
+                levelImpact.put(journal.level, impact);
             }
         }
     }
@@ -47,11 +47,11 @@ public class Journal implements Comparable<Journal>{
     public Double getIF() {
         return IF;
     }
-    public void setRank(Integer rank) {
-        this.rank = rank;
+    public void setLevel(LevelManager.Level level) {
+        this.level = level;
     }
-    public Integer getRank(){
-        return rank;
+    public LevelManager.Level getLevel(){
+        return level;
     }
     @Override
     public int compareTo(Journal o) {

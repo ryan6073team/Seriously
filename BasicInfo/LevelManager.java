@@ -20,8 +20,8 @@ public class LevelManager {
         public int getIndex() {
             return index;
         }
-        public static Level getLevelByIndex(int rank){
-            switch (rank) {
+        public static Level getLevelByIndex(int index){
+            switch (index) {
                 case 0 -> {
                     return Level.A;
                 }
@@ -107,26 +107,6 @@ public class LevelManager {
                 default -> {
                     return null;
                 }
-            }
-        }
-    }
-
-    public static Level RanktoLevel(int rank){
-        switch (rank) {
-            case 1 -> {
-                return Level.A;
-            }
-            case 2 -> {
-                return Level.B;
-            }
-            case 3 -> {
-                return Level.C;
-            }
-            case 4 -> {
-                return Level.D;
-            }
-            default -> {
-                return Level.E;
             }
         }
     }

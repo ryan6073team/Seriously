@@ -35,16 +35,16 @@ public class JournalKMeans {
 
         }
 
-        //更新rank
+        //更新level
         int i=0;
-        int rank=0;
+        int level=0;
         for(List<Double> cluster : clusters){
             for(double item:cluster){
                 //LevelManager.Level level = LevelManager.Level.getLevelByIndex(rank);
-                dataGatherManager.journals.get(i).setRank(rank);
+                dataGatherManager.journals.get(i).setLevel(LevelManager.Level.getLevelByIndex(level));
                 i++;
             }
-            rank++;
+            level++;
         }
     }
 
