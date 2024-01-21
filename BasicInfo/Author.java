@@ -5,8 +5,7 @@ import java.util.Vector;
 public class Author implements Comparable<Author>{
     LevelManager.Level level= LevelManager.Level.E; //初始默认为E等级
     String authorName,orcid;
-    Integer rank; // 用1、2、3、4划分为四个等级
-    int ifExist = 0;//0代表未出现 1代表已出现
+    int ifExist = 0;//0 代表未出现 1 代表已出现
     Vector<String> authorInstitution;
     Double authorImpact = 0.0;
     boolean flag;//是否存在于数据源中
@@ -59,10 +58,6 @@ public class Author implements Comparable<Author>{
     }
     public Vector<String> getAuthorInstitutions(){
         return authorInstitution;
-    }
-    //设置等级
-    public void setRank(Integer _rank) {
-        rank = _rank;
     }
     @Override
     public int compareTo(Author o) {
