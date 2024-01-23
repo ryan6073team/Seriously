@@ -100,7 +100,7 @@ public class CalGraph {
                 authorMark[i]=-1;
                 singlePointNum++;
             }
-            else if(sum!=1.0) {
+            else if(Math.abs(sum-1.0)>0.0000001) {
                 System.out.println("矩阵归一化异常");
                 return null;
             }

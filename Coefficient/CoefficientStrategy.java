@@ -49,7 +49,8 @@ public class CoefficientStrategy {
     }
 
     //定义一个initTransitionMatrixItems方法，用于计算特定等级论文特定时间段的转移矩阵
-    public void initorUpdateTransitionMatrixItems(){
+    public void initorUpdateTransitionMatrixItems(int year){
+        currentYear = year;
         if(transitionMatrixs.get(currentYear)==null) {
             double[][][][] transitionMatrix = new double[LevelManager.Level.levelNum][LevelManager.PaperAgeGroup.ageGroupNum][LevelManager.CitationLevel.citationLevelNum][LevelManager.CitationLevel.citationLevelNum];
             DataGatherManager dataGatherManager = DataGatherManager.getInstance();

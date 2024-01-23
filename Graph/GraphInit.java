@@ -153,7 +153,7 @@ public class GraphInit {
         //更新被引信息
         initCitedInfo();
         //初始化原始总图的论文的引用等级
-        initPapersCitationLevel();
+        initorUpdatePapersCitationLevel(graphManager.Graph);
         //将去年和今年发表的论文分别存储
         for(TimeInfo timeInfo:dataGatherManager.dicTimeInfoDoi.keySet()){
             if(timeInfo.year==year-1)
@@ -163,7 +163,7 @@ public class GraphInit {
         }
         //初始化strategy的矩阵
         if(month==12){
-            dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems();
+            dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year);
             dataGatherManager.currentCoefficientStrategy.initOtherMatrixs();
         }
         //deleteSinglePoint(graphManager.Graph);
@@ -211,11 +211,6 @@ public class GraphInit {
         }
         //deleteSinglePoint(GraphTemp);
 
-        //更新被引信息
-        initCitedInfo();
-        //初始化原始总图的论文的引用等级
-        initPapersCitationLevel();
-
         graphManager.addGraphItem(year,month,GraphTemp);
         System.out.println("完成"+year+"年"+month+"月的图初始化");
 
@@ -258,9 +253,10 @@ public class GraphInit {
         }
     }
 
-    public static void initPapersCitationLevel(){
-        for (Paper vertex : paperGraph.vertexSet()) {
-            vertex.setCitationLevel(CoefficientStrategy.getCitationLevel(vertex));
+    public static void initorUpdatePapersCitationLevel(DirectedPseudograph<Author,Edge> graph){
+        for(Edge edge:graph.edgeSet()){
+            Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi());
+            paper.setCitationLevel(CoefficientStrategy.getCitationLevel(paper));
         }
     }
 

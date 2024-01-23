@@ -183,7 +183,43 @@ public class GraphManager { //单例
     public Vector<Vector<String>> updateGraph(int year, int month){
         DirectedPseudograph<Author,Edge> graphItem = getGraphItem(year, month);
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
+        Vector<Vector<String>> ans = new Vector<>();
 
+        //如果更新时间是start，那么不用更新图和论文信息直接返回现有图的成熟论文和不成熟论文即可
+        if(year==DataGatherManager.getInstance().startYear&&month==DataGatherManager.getInstance().startMonth){
+            Vector<String> alive = new Vector<>();
+            Vector<String> dead = new Vector<>();
+            for(Edge edge:Graph.edgeSet()){
+                if(dataGatherManager.dicDoiPaper.get(edge.getDoi()).getIsAlive()==false)
+                    dead.add(edge.getDoi());
+                else alive.add(edge.getDoi());
+            }
+            ans.add(alive);
+            ans.add(dead);
+            //但是impactForm需要初始化
+            ImpactForm.getInstance().cal_impact();
+        }
+        //若当前时间不存在新的引用关系，则不需要更新图只需要更新现有图论文的信息即可
+        else if(graphItem == null||graphItem.vertexSet().size()==0) {
+            ans = updatePaperLifeInfo(Graph,dataGatherManager);
+            //论文状态被更新之后需要重新运行cal_impact更新form
+            ImpactForm.getInstance().cal_impact();
+        }
+        else {
+            for (Author author : graphItem.vertexSet()) {
+                if (!Graph.containsVertex(author)) {
+                    Graph.addVertex(author);
+                    author.setIfExist(1);
+                }
+            }
+            for (Edge edge : graphItem.edgeSet()) {
+                Graph.addEdge(graphItem.getEdgeSource(edge), graphItem.getEdgeTarget(edge), edge);
+                dataGatherManager.dicDoiPaper.get(edge.getDoi()).setIsRead(1);
+            }
+            ans = updatePaperLifeInfo(Graph, dataGatherManager);
+        }
+
+        GraphInit.initorUpdatePapersCitationLevel(GraphManager.getInstance().Graph);
         //更新Strategy的矩阵
         //更新该年论文集
         TimeInfo timeInfo = new TimeInfo(year,month);
@@ -196,48 +232,14 @@ public class GraphManager { //单例
         //dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month)));
         if(month==12) {
             if(year== dataGatherManager.startYear){
-                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems();
+                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year);
                 dataGatherManager.currentCoefficientStrategy.initOtherMatrixs();
             }else {
-                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems();
+                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year);
                 dataGatherManager.currentCoefficientStrategy.updateOtherTransitionMatrixs();
             }
         }
 
-        //如果更新时间是start，那么不用更新图和论文信息直接返回现有图的成熟论文和不成熟论文即可
-        if(year==DataGatherManager.getInstance().startYear&&month==DataGatherManager.getInstance().startMonth){
-            Vector<Vector<String>> ans = new Vector<>();
-            Vector<String> alive = new Vector<>();
-            Vector<String> dead = new Vector<>();
-            for(Edge edge:Graph.edgeSet()){
-                if(dataGatherManager.dicDoiPaper.get(edge.getDoi()).getIsAlive()==false)
-                    dead.add(edge.getDoi());
-                else alive.add(edge.getDoi());
-            }
-            ans.add(alive);
-            ans.add(dead);
-            //但是impactForm需要初始化
-            ImpactForm.getInstance().cal_impact();
-            return ans;
-        }
-        //若当前时间不存在新的引用关系，则不需要更新图只需要更新现有图论文的信息即可
-        if(graphItem == null||graphItem.vertexSet().size()==0) {
-            Vector<Vector<String>> ans = updatePaperLifeInfo(Graph,dataGatherManager);
-            //论文状态被更新之后需要重新运行cal_impact更新form
-            ImpactForm.getInstance().cal_impact();
-            return ans;
-        }
-        for(Author author:graphItem.vertexSet()){
-            if(!Graph.containsVertex(author)){
-                Graph.addVertex(author);
-                author.setIfExist(1);
-            }
-        }
-        for(Edge edge:graphItem.edgeSet()){
-            Graph.addEdge(graphItem.getEdgeSource(edge),graphItem.getEdgeTarget(edge),edge);
-            dataGatherManager.dicDoiPaper.get(edge.getDoi()).setIsRead(1);
-        }
-        Vector<Vector<String>> ans = updatePaperLifeInfo(Graph,dataGatherManager);
         //更新impactForm
         ImpactForm.getInstance().cal_impact();
         return ans;
