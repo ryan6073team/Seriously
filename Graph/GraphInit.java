@@ -144,6 +144,7 @@ public class GraphInit {
                             Edge edge = new Edge(citingKey, paper.getPublishedYear(),paper.getDoi(),doi);  //论文状态为此篇论文状态
                             graphManager.Graph.addEdge(author,endAuthor,edge);
                             dataGatherManager.dicDoiPaper.get(paper.getDoi()).getEdgeList().add(edge);
+                            dataGatherManager.dicDoiPaper.get(doi).getEdgeList().add(edge);
                         }
                     }
                 }
@@ -202,12 +203,19 @@ public class GraphInit {
                             Edge edge = new Edge(citingKey, paper.getPublishedYear(), paper.getDoi(),doi);  //论文状态为此篇论文状态
                             GraphTemp.addEdge(author,endAuthor,edge);
                             dataGatherManager.dicDoiPaper.get(paper.getDoi()).getEdgeList().add(edge);
+                            dataGatherManager.dicDoiPaper.get(doi).getEdgeList().add(edge);
                         }
                     }
                 }
             }
         }
         //deleteSinglePoint(GraphTemp);
+
+        //更新被引信息
+        initCitedInfo();
+        //初始化原始总图的论文的引用等级
+        initPapersCitationLevel();
+
         graphManager.addGraphItem(year,month,GraphTemp);
         System.out.println("完成"+year+"年"+month+"月的图初始化");
 

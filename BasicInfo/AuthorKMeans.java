@@ -12,8 +12,7 @@ public class AuthorKMeans {
         // 创建一维数据
         List<Double> data = new ArrayList<>();
         for (Author author : authors) {
-            if(author.getIfExist()==1)
-                data.add(author.getAuthorImpact());
+            data.add(author.getAuthorImpact());
         }
         //先顶一下
         if(data.size()<5)

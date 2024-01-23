@@ -6,6 +6,7 @@ import com.github.ryan6073.Seriously.Impact.CalGraph;
 import com.github.ryan6073.Seriously.Impact.CalImpact;
 import com.github.ryan6073.Seriously.TimeInfo;
 import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
 import org.jgrapht.graph.DirectedPseudograph;
 
@@ -51,6 +52,22 @@ public class GraphManager { //单例
         }
         if(graph.vertexSet().size()==0)
             System.out.println("成熟矩阵为空");
+
+//        //打印图的信息
+//        System.out.println("图的信息如下：");
+//        System.out.println("图的顶点数目为："+graph.vertexSet().size());
+//        System.out.println("图的边数目为："+graph.edgeSet().size());
+//        System.out.println("图的顶点集合为：");
+//        for(Author author:graph.vertexSet()){
+//            System.out.println(author.getOrcid());
+//        }
+//        System.out.println("图的边集合为：");
+//        for(Edge edge:graph.edgeSet()){
+//            System.out.println(edge.getDoi());
+//            System.out.println(graph.getEdgeSource(edge).getOrcid()+"->"+graph.getEdgeTarget(edge).getOrcid());
+//            System.out.println("引用次数为："+edge.getCitingKey());
+//        }
+
         return graph;
     }
 
@@ -62,11 +79,45 @@ public class GraphManager { //单例
     //注意这些图都是作者引用图，而GraphInit中的paperGraph是论文引用图
     private GraphManager(){}
     public DirectedPseudograph<Author,Edge> createNewGraph(Paper paper, DirectedPseudograph<Author,Edge> graph){
-
-        for(Edge edge: paper.getEdgeList()){
-            graph.removeEdge(edge);
+        DirectedPseudograph<Author,Edge> newGraph = new DirectedPseudograph<>(Edge.class);
+        for(Author author:graph.vertexSet()){
+            newGraph.addVertex(author);
         }
-        return graph;
+        for(Edge edge:graph.edgeSet()){
+            newGraph.addEdge(graph.getEdgeSource(edge),graph.getEdgeTarget(edge),edge);
+        }
+        for(Edge edge: paper.getEdgeList()){
+            newGraph.removeEdge(edge);
+        }
+        boolean ifExistsOutDegreeZero = true;
+        while(ifExistsOutDegreeZero){
+            ifExistsOutDegreeZero = false;
+            for(Author author:newGraph.vertexSet()){
+                if(newGraph.outDegreeOf(author)==0&&newGraph.inDegreeOf(author)!=0){
+                    newGraph.removeVertex(author);
+                    newGraph.addVertex(author);
+                    ifExistsOutDegreeZero = true;
+                    break;
+                }
+            }
+        }
+
+//        //打印图的信息
+//        System.out.println("图的信息如下：");
+//        System.out.println("图的顶点数目为："+newGraph.vertexSet().size());
+//        System.out.println("图的边数目为："+newGraph.edgeSet().size());
+//        System.out.println("图的顶点集合为：");
+//        for(Author author:newGraph.vertexSet()){
+//            System.out.println(author.getOrcid());
+//        }
+//        System.out.println("图的边集合为：");
+//        for(Edge edge:newGraph.edgeSet()){
+//            System.out.println(edge.getDoi());
+//            System.out.println(newGraph.getEdgeSource(edge).getOrcid()+"->"+newGraph.getEdgeTarget(edge).getOrcid());
+//            System.out.println("引用次数为："+edge.getCitingKey());
+//        }
+
+        return newGraph;
     }//生成删除了要研究论文的图
     public Map<String,Double> calNewPaperImp(DataGatherManager dataGatherManager,Paper paper, DirectedPseudograph<Author,Edge> graph){
         Map<String,Double> imp = new HashMap<>();
@@ -109,6 +160,7 @@ public class GraphManager { //单例
             int paperRank = paper.getLevel().getIndex();
             int citationRank = CoefficientStrategy.getCitationLevel(paper).getIndex();
             Map<String,Double> imp = calNewPaperImp(dataGatherManager,paper,graph);
+
             for(String orcid: imp.keySet()){
                 Author author = dataGatherManager.dicOrcidAuthor.get(orcid);
                 int authorRank = author.getLevel().getIndex();
@@ -131,6 +183,27 @@ public class GraphManager { //单例
     public Vector<Vector<String>> updateGraph(int year, int month){
         DirectedPseudograph<Author,Edge> graphItem = getGraphItem(year, month);
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
+
+        //更新Strategy的矩阵
+        //更新该年论文集
+        TimeInfo timeInfo = new TimeInfo(year,month);
+        for(TimeInfo item:dataGatherManager.dicTimeInfoDoi.keySet()){
+            if(timeInfo.equals(item)){
+                dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(item));
+                break;
+            }
+        }
+        //dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month)));
+        if(month==12) {
+            if(year== dataGatherManager.startYear){
+                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems();
+                dataGatherManager.currentCoefficientStrategy.initOtherMatrixs();
+            }else {
+                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems();
+                dataGatherManager.currentCoefficientStrategy.updateOtherTransitionMatrixs();
+            }
+        }
+
         //如果更新时间是start，那么不用更新图和论文信息直接返回现有图的成熟论文和不成熟论文即可
         if(year==DataGatherManager.getInstance().startYear&&month==DataGatherManager.getInstance().startMonth){
             Vector<Vector<String>> ans = new Vector<>();
@@ -154,7 +227,6 @@ public class GraphManager { //单例
             ImpactForm.getInstance().cal_impact();
             return ans;
         }
-
         for(Author author:graphItem.vertexSet()){
             if(!Graph.containsVertex(author)){
                 Graph.addVertex(author);
@@ -166,18 +238,6 @@ public class GraphManager { //单例
             dataGatherManager.dicDoiPaper.get(edge.getDoi()).setIsRead(1);
         }
         Vector<Vector<String>> ans = updatePaperLifeInfo(Graph,dataGatherManager);
-        //更新Strategy的矩阵
-        //更新该年论文集
-        dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month)));
-        if(month==12) {
-            if(year== dataGatherManager.startYear){
-                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems();
-                dataGatherManager.currentCoefficientStrategy.initOtherMatrixs();
-            }else {
-                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems();
-                dataGatherManager.currentCoefficientStrategy.updateOtherTransitionMatrixs();
-            }
-        }
         //更新impactForm
         ImpactForm.getInstance().cal_impact();
         return ans;
