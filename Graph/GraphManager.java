@@ -124,7 +124,7 @@ public class GraphManager { //单例
         for(String orcid : dataGatherManager.dicOrcidMatrixOrder.keySet()){
             imp.put(orcid,dataGatherManager.dicOrcidAuthor.get(orcid).getAuthorImpact());
         }
-        CalImpact.initAuthorImpact(CalGraph.getGraphImpact(createNewGraph(paper, graph)));//更新删除了结点图的作者影响力
+        CalImpact.calAuthorsMatureImpact(CalGraph.getGraphImpact(createNewGraph(paper, graph)));//更新删除了结点图的作者影响力
         Map<String, Double> itemsToReturn = new HashMap<>();
         //只统计paper的作者
         for (String orcid : paper.getAuthorIDList()) {
@@ -133,7 +133,7 @@ public class GraphManager { //单例
             if(pre>=0&& !Objects.equals(cur, pre))
                 itemsToReturn.put(orcid,pre-cur);
         }
-        CalImpact.initAuthorImpact(CalGraph.getGraphImpact(graph));//恢复原作者影响力
+        CalImpact.calAuthorsMatureImpact(CalGraph.getGraphImpact(graph));//恢复原作者影响力
         return itemsToReturn;
     }//计算删除了要研究论文的图的作者影响力
     public double[][][] calAllPaperImp(DataGatherManager dataGatherManager,DirectedPseudograph<Author,Edge> graph){
@@ -176,33 +176,31 @@ public class GraphManager { //单例
         }
         return Matrix;
     }//计算全部不在保护期的论文对作者的平均影响力
-    //将year年month月的图更新到图里，同时更新Strategy的矩阵
+    //将year年month月的图更新到图里，同时更新全部信息
+    //关于更新的介绍：
+    // 由于现存作者影响力的更新取决于成熟论文引用关系以及未成熟论文的状态向量，
+    // 而论文影响力大小取决与作者影响力，这将间接影响到论文和期刊的等级和论文的影响力排名，
+    // 也就是说：随着时间的推移，作者影响力不断变化，导致论文和期刊影响力也不断变化，相应的等级和排名自然也不断变动，
+    // 从而进一步导致作者的影响力发生变化，作者和论文双方的影响力是相互牵扯、影响的
+    // 因此每隔一个月，都要用新的现存作者影响力值重新计算现存的论文和机构影响力，相应的等级排名也应该刷新，
+    // 而最难处理的便是随时间不断变化的影响力排名，因为程序必定存在到达成熟期后论文影响力排名仍然不断变化的情况，
+    // 不如说这种变化才是正常的，而我们只决定记录论文前一年各阶段的引用量排名并将其用于计算，这本来就是一种取舍，
+    // 这代表我们只预测一年时间的论文的状态变化情况，对于一年后的论文的状态如何，状态转移矩阵没有考虑那么长远，
+    // 那么这种取舍的依据是什么？我们认为任何论文影响力的增长都类似生物的成长过程，当经历过前期一段时间迅猛的增长后，
+    // 论文的“新陈代谢”趋于平缓，影响力波动不再明显，就像一位经历青春期后体型不再增长的成年人，这也是为什么我们
+    // 将life=13的论文年龄状态命名为mature。与之对应的，我们认定一篇论文的影响力生长期，也就是它的青春期大致为12，
+    // 这是基于统计规律得出的长度--我们认为，论文在到达life>12的成熟期后，其排名和影响力虽然会略微变动但是已经不再剧烈，
+    // 其对于学术圈的大致贡献已经定型。当然不否定类似于孟德尔一类的特殊情况，但这毕竟是少数
+    // 将预测能力运用到作者影响力的计算上面后，这代表着我们实际上是在预测某位作者在当前状态下，他对于学术圈的贡献，
+    // 也就是影响力会是多少：对于那些已经处于成熟期的论文，我们的pageRank网络已经能够处理，但对于处于青春期的论文们，
+    // 我们的预测模型将更精准的判断它未来对于学术圈的贡献，而不是将眼光局限于论文现在的成绩。
     public Vector<Vector<String>> updateGraph(int year, int month){
         DirectedPseudograph<Author,Edge> graphItem = getGraphItem(year, month);
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
-        Vector<Vector<String>> ans = new Vector<>();
+        Vector<Vector<String>> ans;
 
-        //如果更新时间是start，那么不用更新图和论文信息直接返回现有图的成熟论文和不成熟论文即可
-        if(year==DataGatherManager.getInstance().startYear&&month==DataGatherManager.getInstance().startMonth){
-            Vector<String> alive = new Vector<>();
-            Vector<String> dead = new Vector<>();
-            for(Edge edge:Graph.edgeSet()){
-                if(dataGatherManager.dicDoiPaper.get(edge.getDoi()).getIsAlive()==false)
-                    dead.add(edge.getDoi());
-                else alive.add(edge.getDoi());
-            }
-            ans.add(alive);
-            ans.add(dead);
-            //但是impactForm需要初始化
-            ImpactForm.getInstance().cal_impact();
-        }
         //若当前时间不存在新的引用关系，则不需要更新图只需要更新现有图论文的信息即可
-        else if(graphItem == null||graphItem.vertexSet().size()==0) {
-            ans = updatePaperLifeInfo(Graph,dataGatherManager);
-            //论文状态被更新之后需要重新运行cal_impact更新form
-            ImpactForm.getInstance().cal_impact();
-        }
-        else {
+        if(graphItem != null&&graphItem.vertexSet().size()!=0) {
             for (Author author : graphItem.vertexSet()) {
                 if (!Graph.containsVertex(author)) {
                     Graph.addVertex(author);
@@ -213,12 +211,32 @@ public class GraphManager { //单例
                 Graph.addEdge(graphItem.getEdgeSource(edge), graphItem.getEdgeTarget(edge), edge);
                 dataGatherManager.dicDoiPaper.get(edge.getDoi()).setIsRead(1);
             }
-            ans = updatePaperLifeInfo(Graph, dataGatherManager);
         }
 
-        GraphInit.initorUpdatePapersCitationLevel(GraphManager.getInstance().Graph);
-        //更新Strategy的矩阵
-        //更新该年论文集
+
+        //更新现存作者影响力
+        ans = updatePaperLifeInfo(Graph, dataGatherManager);
+        CalImpact.initorUpdateAuthorImpact(ans);
+        System.out.println("完成作者等级和影响力更新");
+
+        //更新全部现存论文影响力
+        CalImpact.updatePaperImpact();
+        System.out.println("完成论文影响力更新");
+
+        //更新期刊影响力
+        CalImpact.updateJournalImpact();
+        //初始化原始总图的期刊和相应的论文等级，不论论文是否出现或成熟，其等级已经确定和期刊等级一致，因此直接更新即可
+        JournalKMeans.JournalkMeans(dataGatherManager);
+        System.out.println("完成期刊和论文等级初始化");
+        //利用现存作者更新机构影响力
+        CalImpact.updateInstitutionImpact();
+        //更新现存的论文引用等级
+        DataGatherManager.updateCitationLevel();
+        System.out.println("完成论文引用等级更新");
+
+
+        //更新Strategy的状态转移矩阵
+            //更新该年论文集
         TimeInfo timeInfo = new TimeInfo(year,month);
         for(TimeInfo item:dataGatherManager.dicTimeInfoDoi.keySet()){
             if(timeInfo.equals(item)){
@@ -226,7 +244,7 @@ public class GraphManager { //单例
                 break;
             }
         }
-        //dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month)));
+            //如果时间已经到了最后一个月则通过今年与去年论文集的数据更新状态转移矩阵
         if(month==12) {
             if(year== dataGatherManager.startYear){
                 dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year);

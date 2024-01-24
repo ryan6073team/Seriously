@@ -26,7 +26,7 @@ public class CalImpact {
         return sumImpact;
     }
     //根据pagerank算法计算作者影响力
-    public static void initAuthorImpact(){
+    public static void calAuthorsMatureImpact(){
         Vector<Double> graphImpact = CalGraph.getGraphImpact(GraphManager.getInstance().getMatureGraph());
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         for(Map.Entry<String,Integer> entry:dataGatherManager.dicOrcidMatrixOrder.entrySet()){
@@ -34,7 +34,7 @@ public class CalImpact {
             dataGatherManager.dicOrcidAuthor.get(entry.getKey()).setAuthorImpact(graphImpact.get(entry.getValue()));
         }
     }
-    public static void initAuthorImpact(Vector<Double> graphImpact){
+    public static void calAuthorsMatureImpact(Vector<Double> graphImpact){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         for(Map.Entry<String,Integer> entry:dataGatherManager.dicOrcidMatrixOrder.entrySet()){
             //更新作者影响力
@@ -70,20 +70,21 @@ public class CalImpact {
             Vector<String> authors = institutionItem.getInstitutionAuthors();
             double sumImpact=0.0;
             for(String orcid:authors){
-                sumImpact+=DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getAuthorImpact();
+                if(DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getIfExist()==1)
+                    sumImpact+=DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getAuthorImpact();
             }
             //平均作者影响力
             institutionItem.setInstitutionImpact(sumImpact/institutionItem.getInstitutionAuthors().size());
         }
     }
-    public static void updateAuthorImpact(Vector<Vector<String>> currentPapers){
+    public static void initorUpdateAuthorImpact(Vector<Vector<String>> currentPapers){
         //对于引用网络的论文，其根据时间分为两类，一类已经脱离新手期，完全根据引用关系对作者影响力做出贡献
         //一类仍未成熟，引用关系和form值对于作者影响力各自按照权重比做出一定贡献
         //因此在更新过程中要进行加权运算
         //获得相应时间点的论文
         Vector<String> protectedPapers = currentPapers.get(0);
         //更新作者影响力
-        initAuthorImpact();
+        calAuthorsMatureImpact();
         //更新作者等级
         AuthorKMeans.AuthorKMeans(DataGatherManager.getInstance());
         //利用成熟论文的引用关系通过PageRank算法计算作者影响力
@@ -105,26 +106,16 @@ public class CalImpact {
             }
         }
     }
-    public static void updatePaperImpact(Vector<Vector<String>> currentPapers){
+    //更新全部现存论文的影响力
+    public static void updatePaperImpact(){
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
-        GraphManager graphManager = GraphManager.getInstance();
-        //获得相应时间点的论文
-        Vector<String> maturePapers = currentPapers.get(1);
-        Vector<String> protectedPapers = currentPapers.get(0);
-        //对它们进行分级，给予影响力
-            //更新期刊等级
-        JournalKMeans.JournalkMeans(dataGatherManager);
-            //给保护期论文相应的影响力
-        for(String doi:protectedPapers){
-            Paper paper = dataGatherManager.dicDoiPaper.get(doi);
-            //将论文所处期刊的等级设为自身等级
-            double targetImpact = calPaperImpact(paper.getDoi());
-            paper.setPaperImpact(targetImpact);
+        //获得全部现存论文
+        Vector<Paper> targetPapers = new Vector<>();
+        for(Paper paper: dataGatherManager.papers){
+            if(paper.getIsRead()==1)
+                targetPapers.add(paper);
         }
-        //对新增的成熟的论文影响力进行更新
-        for(String doi:maturePapers){
-            Paper paper = dataGatherManager.dicDoiPaper.get(doi);
-            //根据自身等级和寿命设定影响力数值，成熟论文寿命为0，公式的相应参数可以通过同一个表达式给出
+        for(Paper paper:targetPapers){
             double targetImpact = calPaperImpact(paper.getDoi());
             paper.setPaperImpact(targetImpact);
         }
@@ -149,7 +140,7 @@ public class CalImpact {
         }
     }
     public static void updateInstitutionImpact(){
-        // 此处存在问题，有些作者可能没有出现
+        // 根据现存作者进行机构影响力的计算
         Iterator<Institution> institutionIterator = DataGatherManager.getInstance().institutions.iterator();
         while (institutionIterator.hasNext()){
             Institution institutionItem = institutionIterator.next();
@@ -170,7 +161,7 @@ public class CalImpact {
         }
     }
     public static void initAll(){
-        initAuthorImpact();
+        calAuthorsMatureImpact();
         initPapersImpact();
         initJournalImpact();
         initInstitutionImpact();
@@ -179,9 +170,9 @@ public class CalImpact {
         //更新母图并获取论文集
         Vector<Vector<String>> currentPapers = GraphManager.getInstance().updateGraph(year,month);
         //更新作者等级和影响力
-        updateAuthorImpact(currentPapers);
+        initorUpdateAuthorImpact(currentPapers);
         //更新论文等级和影响力
-        updatePaperImpact(currentPapers);
+        updatePaperImpact();
         updateJournalImpact();
         updateInstitutionImpact();
     }

@@ -10,7 +10,6 @@ public class JournalKMeans {
         // 创建一维数据
         double[] data = new double[dataGatherManager.journals.size()];
         for(int i=0;i<dataGatherManager.journals.size();i++){
-
             data[i]=dataGatherManager.journals.get(i).getJournalImpact();
         }
 

@@ -2,6 +2,7 @@ package com.github.ryan6073.Seriously.Graph;
 
 import com.github.ryan6073.Seriously.BasicInfo.*;
 import com.github.ryan6073.Seriously.Coefficient.CoefficientStrategy;
+import com.github.ryan6073.Seriously.Impact.CalImpact;
 import com.github.ryan6073.Seriously.TimeInfo;
 import com.mxgraph.layout.mxCircleLayout;
 import com.mxgraph.layout.mxIGraphLayout;
@@ -79,12 +80,11 @@ public class GraphInit {
         }
         return papers;
     }
-    public static void initGraph2(GraphManager graphManager,DataGatherManager dataGatherManager){
-
-    }
 
     //新增函数，意在替换原函数，仅将x年y月之前的作者引用关系而不是所有作者引用关系构造为一张图
     public static void initGraph(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
+
+        //更新相应时间的论文，并利用该论文集形成原初图并更新处理相应的论文的life信息和isAlive.isRead信息，以及作者的ifExist信息
         Vector<Paper> papers = getAllPapers(year,month);
         for(Paper paper: papers){
             if(paper.getPublishedYear()>year) continue;
@@ -153,8 +153,68 @@ public class GraphInit {
                 }
             }
         }
-        initGraphItems(graphManager,dataGatherManager, dataGatherManager.firstYear, dataGatherManager.firstMonth, dataGatherManager.finalYear, dataGatherManager.finalMonth);
-        for(int i=dataGatherManager.firstYear*12+dataGatherManager.firstMonth;i< dataGatherManager.startYear*12+ dataGatherManager.startMonth;i++){
+
+
+
+        //初始化完图之后对于其它参数进行初始化为程序的后续运行提供必要的数据支持
+            //更新现存论文的被引用信息，包含被引文章列表以及被引次数，两项数据全部基于当下而不考虑未来
+        GraphInit.initCitedInfo();
+
+            //初始化原图的作者影响力和等级
+        Vector<Vector<String>> ans = new Vector<>();
+        Vector<String> alive = new Vector<>();
+        Vector<String> dead = new Vector<>();
+        for(Edge edge:graphManager.Graph.edgeSet()){
+            if(dataGatherManager.dicDoiPaper.get(edge.getDoi()).getIsAlive()==false)
+                dead.add(edge.getDoi());
+            else alive.add(edge.getDoi());
+        }
+        ans.add(alive);
+        ans.add(dead);
+        CalImpact.initorUpdateAuthorImpact(ans);
+        System.out.println("完成作者等级和影响力初始化");
+
+
+        //初始化原始总图的论文的影响力
+        CalImpact.initPapersImpact();
+        System.out.println("完成论文影响力初始化");
+        //初始化原始总图的期刊影响力
+        CalImpact.initJournalImpact();
+        //初始化原始总图的期刊和相应的论文等级，不论论文是否出现或成熟，其等级已经确定和期刊等级一致，因此直接更新即可
+        JournalKMeans.JournalkMeans(dataGatherManager);
+        System.out.println("完成期刊和论文等级初始化");
+        //初始化机构影响力
+        CalImpact.initInstitutionImpact();
+        //初始化原始总图的论文引用等级
+        DataGatherManager.updateCitationLevel();
+        System.out.println("完成论文引用等级初始化");
+        GraphInit.initGraphItems(graphManager,dataGatherManager,dataGatherManager.firstYear,dataGatherManager.firstMonth+1,dataGatherManager.finalYear,dataGatherManager.finalMonth);
+        System.out.println("完成初始图集的初始化");
+
+        //更新Strategy的状态转移矩阵
+            //更新该年论文集
+        TimeInfo timeInfo = new TimeInfo(year,month);
+        for(TimeInfo item:dataGatherManager.dicTimeInfoDoi.keySet()){
+            if(timeInfo.equals(item)){
+                dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(item));
+                break;
+            }
+        }
+            //如果时间已经到了最后一个月则通过今年与去年论文集的数据更新状态转移矩阵
+        if(month==12) {
+            if(year== dataGatherManager.startYear){
+                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year);
+                dataGatherManager.currentCoefficientStrategy.initOtherMatrixs();
+            }else {
+                dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year);
+                dataGatherManager.currentCoefficientStrategy.updateOtherTransitionMatrixs();
+            }
+        }
+
+        //更新impactForm
+        ImpactForm.getInstance().cal_impact();
+
+        for(int i=dataGatherManager.firstYear*12+dataGatherManager.firstMonth;i<= dataGatherManager.startYear*12+ dataGatherManager.startMonth;i++){
             //注意在startyear startmonth的时候就开始更新了
             int tempyear,tempmonth;
             if(i%12==0){
@@ -251,13 +311,6 @@ public class GraphInit {
             Paper startPoint = paperGraph.getEdgeSource(edge);
             Paper endPoint = paperGraph.getEdgeTarget(edge);
             endPoint.getCitedList().add(startPoint.getDoi());
-        }
-    }
-
-    public static void initorUpdatePapersCitationLevel(DirectedPseudograph<Author,Edge> graph){
-        for(Edge edge:graph.edgeSet()){
-            Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi());
-            paper.setCitationLevel(CoefficientStrategy.getCitationLevel(paper));
         }
     }
 
