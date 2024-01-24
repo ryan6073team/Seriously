@@ -79,6 +79,9 @@ public class GraphInit {
         }
         return papers;
     }
+    public static void initGraph2(GraphManager graphManager,DataGatherManager dataGatherManager){
+
+    }
 
     //新增函数，意在替换原函数，仅将x年y月之前的作者引用关系而不是所有作者引用关系构造为一张图
     public static void initGraph(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
@@ -150,21 +153,19 @@ public class GraphInit {
                 }
             }
         }
-        //更新被引信息
-        initCitedInfo();
-        //初始化原始总图的论文的引用等级
-        initorUpdatePapersCitationLevel(graphManager.Graph);
-        //将去年和今年发表的论文分别存储
-        for(TimeInfo timeInfo:dataGatherManager.dicTimeInfoDoi.keySet()){
-            if(timeInfo.year==year-1)
-                dataGatherManager.currentCoefficientStrategy.lastYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(timeInfo));
-            else if(timeInfo.year==year)
-                dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(timeInfo));
-        }
-        //初始化strategy的矩阵
-        if(month==12){
-            dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year);
-            dataGatherManager.currentCoefficientStrategy.initOtherMatrixs();
+        initGraphItems(graphManager,dataGatherManager, dataGatherManager.firstYear, dataGatherManager.firstMonth, dataGatherManager.finalYear, dataGatherManager.finalMonth);
+        for(int i=dataGatherManager.firstYear*12+dataGatherManager.firstMonth;i< dataGatherManager.startYear*12+ dataGatherManager.startMonth;i++){
+            //注意在startyear startmonth的时候就开始更新了
+            int tempyear,tempmonth;
+            if(i%12==0){
+                tempmonth = 12;
+                tempyear = i/12-1;
+            }
+            else{
+                tempmonth = i%12;
+                tempyear = i/12;
+            }
+            graphManager.updateGraph(tempyear,tempmonth);
         }
         //deleteSinglePoint(graphManager.Graph);
     }

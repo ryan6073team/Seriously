@@ -12,7 +12,7 @@ public class DataGatherManager {//单例模式
     private static DataGatherManager mDataGatherManager = new DataGatherManager();
     public static DataGatherManager getInstance(){return mDataGatherManager;}
     public int authorNum;
-    public int startYear,startMonth,finalYear,finalMonth;
+    public int startYear,startMonth,finalYear,finalMonth,firstYear,firstMonth;
     //新增，由用户自行设定，startYear和Month代表Graph累计包含至该时间点为止的引用关系，
     public CoefficientStrategy currentCoefficientStrategy;
     //finalYear和Month代表GraphItem的时间跨度，即从s.Year.Month到f.Year.Month这么多个月每个月都应有一个GraphItem
@@ -43,7 +43,10 @@ public class DataGatherManager {//单例模式
         Collections.sort(timeInfoList);
         int num=0;
         boolean flag = true;
-        TimeInfo lastItem = null;
+        TimeInfo lastItem,firstItem;
+        firstItem = timeInfoList.getFirst();
+        firstYear = firstItem.year;
+        firstMonth = firstItem.month;
         for(TimeInfo item:timeInfoList){
             num+=dicTimeInfoDoi.get(item).size();
             if(num>=dicDoiPaper.size()/2 && flag){//即startyear startmonth之前的论文数（不包含startyear和startmonth本身）恰好大于或等于总数的一半
@@ -149,5 +152,12 @@ public class DataGatherManager {//单例模式
             if(institution.getInstitutionName().equals(authorInstitution)) return institution;
         }
         return null;
+    }
+    public static void updateCitationLevel(){
+        for(Paper paper: getInstance().papers){
+            if(paper.getIsRead()==1){
+                paper.setCitationLevel(CoefficientStrategy.getCitationLevel(paper));
+            }
+        }
     }
 }

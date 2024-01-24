@@ -59,11 +59,11 @@ public class CalGraph {
                 int citedAuthorOrder = _tempMap2.get(citedAuthor.getOrcid());
                 tempMatrix[citedAuthorOrder][nowAuthorOrder]+=edgeItem.getCitingKey();
             }
-            //再处理作者引用列表为空的论文,将其设置为自引,即代表学术来源nowAuthor+1
+            //再处理作者引用列表为空的论文,将其设置为自引,即代表学术来源其本身
             for (Paper paper:DataGatherManager.getInstance().dicAuthorPaper.get(nowAuthor)){
                 if(paper.getCitingList().size()==0){
                     int nowAuthorOrder = _tempMap2.get(nowAuthor.getOrcid());
-                    tempMatrix[nowAuthorOrder][nowAuthorOrder]+=1.0;
+                    tempMatrix[nowAuthorOrder][nowAuthorOrder]+=1.0/paper.getAuthorIDList().size();
                 }
             }
         }

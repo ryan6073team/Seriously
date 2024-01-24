@@ -46,6 +46,10 @@ public class JournalKMeans {
             }
             level++;
         }
+        //更新期刊的论文等级
+        for(Paper paper: dataGatherManager.papers){
+            paper.setLevel(dataGatherManager.dicNameJournal.get(paper.journal).getLevel());
+        }
     }
 
     // 初始化簇中心

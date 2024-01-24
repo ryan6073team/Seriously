@@ -53,16 +53,13 @@ public class CalImpact {
     }
     //期刊影响力为平均论文影响力
     public static void initJournalImpact(){
-        Iterator<Journal> journalIterator = DataGatherManager.getInstance().journals.iterator();
-        while(journalIterator.hasNext()){
-            Journal journalItem = journalIterator.next();
-            Vector<String> paperDois = journalItem.getJournalPapers();
+        for(Journal journal:DataGatherManager.getInstance().journals){
             double sumImpact=0.0;
-            for (String doi:paperDois){
+            for (String doi:journal.getJournalPapers()){
                 sumImpact+=DataGatherManager.getInstance().dicDoiPaper.get(doi).getPaperImpact();
             }
             //平均论文影响力
-            journalItem.setJournalImpact(sumImpact/journalItem.getJournalPapers().size());
+            journal.setJournalImpact(sumImpact/journal.getJournalPapers().size());
         }
     }
     //机构影响力为平均作者影响力

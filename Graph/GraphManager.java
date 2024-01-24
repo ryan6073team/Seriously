@@ -125,19 +125,16 @@ public class GraphManager { //单例
             imp.put(orcid,dataGatherManager.dicOrcidAuthor.get(orcid).getAuthorImpact());
         }
         CalImpact.initAuthorImpact(CalGraph.getGraphImpact(createNewGraph(paper, graph)));//更新删除了结点图的作者影响力
-        Map<String, Double> itemsToRemove = new HashMap<>();
-        for (String orcid : dataGatherManager.dicOrcidMatrixOrder.keySet()) {
-            if (Objects.equals(dataGatherManager.dicOrcidAuthor.get(orcid).getAuthorImpact(), imp.get(orcid))) {
-                itemsToRemove.put(orcid,imp.get(orcid));
-            } else {
-                imp.replace(orcid, imp.get(orcid) - dataGatherManager.dicOrcidAuthor.get(orcid).getAuthorImpact());
-            }
-        }
-        for (String orcid : itemsToRemove.keySet()) {
-            imp.remove(orcid);
+        Map<String, Double> itemsToReturn = new HashMap<>();
+        //只统计paper的作者
+        for (String orcid : paper.getAuthorIDList()) {
+            Double pre = imp.get(orcid);
+            Double cur = dataGatherManager.dicOrcidAuthor.get(orcid).getAuthorImpact();
+            if(pre>=0&& !Objects.equals(cur, pre))
+                itemsToReturn.put(orcid,pre-cur);
         }
         CalImpact.initAuthorImpact(CalGraph.getGraphImpact(graph));//恢复原作者影响力
-        return imp;
+        return itemsToReturn;
     }//计算删除了要研究论文的图的作者影响力
     public double[][][] calAllPaperImp(DataGatherManager dataGatherManager,DirectedPseudograph<Author,Edge> graph){
         double [][][] Matrix = new double[5][5][3];
@@ -286,7 +283,9 @@ public class GraphManager { //单例
         ans.add(dead);
         return ans; // 0为仍保护的，1为脱离保护期的
     }
+    public static void updatePaperLevel(){
 
+    }
     public static void createTestGraph(){
         // 创建测试图并存入数据库
         DirectedPseudograph<Author, Edge> testGraph1 = new DirectedPseudograph<>(Edge.class);

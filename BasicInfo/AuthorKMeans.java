@@ -14,9 +14,6 @@ public class AuthorKMeans {
         for (Author author : authors) {
             data.add(author.getAuthorImpact());
         }
-        //先顶一下
-        if(data.size()<5)
-            return;
         // 指定簇的数量 (K)
         int k = 5;
 

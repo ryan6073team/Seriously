@@ -22,10 +22,17 @@ public class ImpactForm {
     private static ImpactForm mImpactForm = new ImpactForm();
     public static ImpactForm getInstance(){return mImpactForm;}
     //更新影响关系表
-    public void updateForm(){}
+    public double [][][] getForm(){return authorPaperForm;}
+    private ImpactForm(){
+        for (int i=0;i<LevelManager.Level.levelNum;i++)
+            for(int j=0;j< LevelManager.Level.levelNum;j++)
+                for(int k=0;k< LevelManager.CitationLevel.citationLevelNum;k++)
+                    authorPaperForm[i][j][k]=0.0;
+    }
 
     public void cal_impact(){//用于计算一篇处于特定等级的论文对一个特定等级作者的影响
         authorPaperForm = GraphManager.getInstance().calAllPaperImp(DataGatherManager.getInstance(), GraphManager.getInstance().getMatureGraph());
+        System.out.println("Form更新");
     }
     public double getAuthorPaperImpact(LevelManager.Level authorLevel, LevelManager.Level paperLevel, LevelManager.CitationLevel citationLevel){
         return authorPaperForm[authorLevel.getIndex()][paperLevel.getIndex()][citationLevel.getIndex()];
