@@ -10,8 +10,11 @@ public class Journal implements Comparable<Journal>{
     private String journalName;
     private Double journalImpact=0.0;
     private Double IF;
+    private int ifExist = 0;//0不存在1存在
     private LevelManager.Level level; //  A,B,C,D,E 一共5个等级
     public Journal(){journalPapers = new Vector<>();}
+    public void setIfExist(int ifExist){this.ifExist = ifExist;}
+    public int getIfExist(){return ifExist;}
     public static void updateLevelImpact(){
         int[] levelNum = new int[101];
         for(int i=0;i<101;i++)
@@ -34,7 +37,6 @@ public class Journal implements Comparable<Journal>{
     public void setJournalName(String journalName) {
         this.journalName = journalName;
     }
-
     public Double getJournalImpact(){return journalImpact;}
     public void setJournalImpact(Double _journalImpact){journalImpact = _journalImpact;}
     public Vector<String> getJournalPapers(){return journalPapers;}

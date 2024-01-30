@@ -1,19 +1,32 @@
 package com.github.ryan6073.Seriously.BasicInfo;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 public class AuthorKMeans {
     public static void AuthorKMeans(DataGatherManager dataGatherManager) {
-        Vector<Author> authors = new Vector<Author>(dataGatherManager.dicOrcidAuthor.values());
-        Collections.sort(authors);// 根据Impact进行排序
+        //只对已经存在于图中的作者进行等级排序
+        Vector<Author> authors = new Vector<>();
+        for(Author author:dataGatherManager.dicOrcidAuthor.values())
+            if(author.getIfExist()==1)
+                authors.add(author);
+        // 根据Impact进行排序
+        Collections.sort(authors);
+
+        Map<Double,Vector<Author>> dicImpAu = new HashMap<>();
         // 创建一维数据
         List<Double> data = new ArrayList<>();
         for (Author author : authors) {
             data.add(author.getAuthorImpact());
+            if(dicImpAu.containsKey(author.getAuthorImpact())){
+                dicImpAu.get(author.getAuthorImpact()).add(author);
+
+            }
+            else{
+                dicImpAu.put(author.getAuthorImpact(), new Vector<>());
+                dicImpAu.get(author.getAuthorImpact()).add(author);
+            }
         }
+
         // 指定簇的数量 (K)
         int k = 5;
 
@@ -24,7 +37,7 @@ public class AuthorKMeans {
         List<List<Double> > clusters = assignDataToClusters(data, clusterCenters);
 
         // 迭代次数
-        int maxIterations = 100;
+        int maxIterations = 100;////////////////////////////////////////////////////////////////////////!收敛问题
 
         for (int iteration = 0; iteration < maxIterations; iteration++) {
             // 分配数据点到最近的簇
@@ -38,7 +51,12 @@ public class AuthorKMeans {
         int rank = 0;
         for (List<Double> cluster : clusters) {
             for (Double item : cluster) {
-                setAuthorLevelbyImpact(dataGatherManager, item, rank);
+                if (dicImpAu.containsKey(item)) {
+                    for (Author author : dicImpAu.get(item)) {
+                        LevelManager.Level level = LevelManager.Level.getLevelByIndex(rank);
+                        author.setLevel(level);
+                    }
+                }
             }
             rank++;
         }
@@ -101,13 +119,5 @@ public class AuthorKMeans {
         return newClusterCenters;
     }
 
-    // 设置作者等级
-    public static void setAuthorLevelbyImpact(DataGatherManager dataGatherManager, Double impact, int rank) {
-        for (Author author : dataGatherManager.dicOrcidAuthor.values()) {
-            if (author.getAuthorImpact().equals(impact)) {
-                LevelManager.Level level = LevelManager.Level.getLevelByIndex(rank);
-                author.setLevel(level);
-            }
-        }
-    }
+
 }

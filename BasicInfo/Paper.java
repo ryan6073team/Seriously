@@ -10,10 +10,10 @@ public class Paper {
     boolean isAlive = true;
     int life = 0; //从零开始
     LevelManager.Level level = LevelManager.Level.E;
-    public LevelManager.CitationLevel startCitationLevel = LevelManager.CitationLevel.LOW;
-    public LevelManager.CitationLevel youthCitationLevel = LevelManager.CitationLevel.MEDIUM;
-    public LevelManager.CitationLevel strongCitationLevel = LevelManager.CitationLevel.HIGH;
-    public LevelManager.CitationLevel matureCitationLevel = LevelManager.CitationLevel.HIGH;
+    public LevelManager.CitationLevel startCitationLevel = null;
+    public LevelManager.CitationLevel youthCitationLevel = null;
+    public LevelManager.CitationLevel strongCitationLevel =null;
+    public LevelManager.CitationLevel matureCitationLevel =null;
     Double rankWeight = 1.0; //等级的权值在保护期开始为1;
     String paperName,doi,journal;
     Double paperImpact=0.0;//保存文章的影响力

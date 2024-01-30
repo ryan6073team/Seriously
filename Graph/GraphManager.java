@@ -200,22 +200,31 @@ public class GraphManager { //单例
         Vector<Vector<String>> ans;
 
         //若当前时间不存在新的引用关系，则不需要更新图只需要更新现有图论文的信息即可
+            //若存在新的引用关系或者新的作者节点
         if(graphItem != null&&graphItem.vertexSet().size()!=0) {
+            //合并点+作者激活
+            //子图的作者点包含了全部在目标时间段发表的论文的作者，可能由于暂时没有引用关系为孤立点
             for (Author author : graphItem.vertexSet()) {
                 if (!Graph.containsVertex(author)) {
                     Graph.addVertex(author);
                     author.setIfExist(1);
                 }
             }
+            //合并边
             for (Edge edge : graphItem.edgeSet()) {
                 Graph.addEdge(graphItem.getEdgeSource(edge), graphItem.getEdgeTarget(edge), edge);
-                dataGatherManager.dicDoiPaper.get(edge.getDoi()).setIsRead(1);
+            }
+            //激活论文
+            Vector<String> dois = dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month));
+            for(String doi:dois){
+                dataGatherManager.dicDoiPaper.get(doi).setIsRead(1);
+                dataGatherManager.dicNameJournal.get(dataGatherManager.dicDoiPaper.get(doi).getJournal()).setIfExist(1);
             }
         }
 
 
         //更新现存作者影响力
-        ans = updatePaperLifeInfo(Graph, dataGatherManager);
+        ans = updatePaperLifeInfo(year,month, dataGatherManager);
         CalImpact.initorUpdateAuthorImpact(ans);
         System.out.println("完成作者等级和影响力更新");
 
@@ -259,14 +268,26 @@ public class GraphManager { //单例
         ImpactForm.getInstance().cal_impact();
         return ans;
     }
-    //更新论文life，定期更新论文CitationLevel
-    private Vector<Vector<String>> updatePaperLifeInfo(DirectedPseudograph<Author,Edge> graph, DataGatherManager dataGatherManager){
-        Set<Paper> papers = new HashSet<>();
-        for(Edge edge:graph.edgeSet()) {
-            Paper sourcePaper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
-            Paper targetPaper = dataGatherManager.dicDoiPaper.get(edge.getCitingDoi());
-            papers.add(sourcePaper);
-            papers.add(targetPaper);
+    //更新论文life，定期更新论文CitationLevel，当月论文life=0
+    private Vector<Vector<String>> updatePaperLifeInfo(int year, int month, DataGatherManager dataGatherManager){
+        //导入已经读过了的论文
+        Vector<Paper> papers = new Vector<>();
+        int i=year*12+month-1;
+        for(int j=0;j<13;j++){
+            int tempyear,tempmonth;
+            if(i%12==0){
+                tempyear = i/12-1;
+                tempmonth = 12;
+            }else{
+                tempyear = i/12;
+                tempmonth = i%12;
+            }
+            Vector<String> somePapers = dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(tempyear,tempmonth));
+            if(somePapers!=null)
+                for(String doi:somePapers) {
+                    papers.add(dataGatherManager.dicDoiPaper.get(doi));
+                }
+            i--;
         }
         Vector<String> alive = new Vector<>();
         Vector<String> dead = new Vector<>();
@@ -301,9 +322,7 @@ public class GraphManager { //单例
         ans.add(dead);
         return ans; // 0为仍保护的，1为脱离保护期的
     }
-    public static void updatePaperLevel(){
 
-    }
     public static void createTestGraph(){
         // 创建测试图并存入数据库
         DirectedPseudograph<Author, Edge> testGraph1 = new DirectedPseudograph<>(Edge.class);

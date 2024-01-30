@@ -35,5 +35,7 @@ public class Edge {
         return doi;
     }
     public String getCitingDoi(){return citingDoi;}
+    public int getYear(){return year;}
+    public int getMonth() {return month;}
 }
 

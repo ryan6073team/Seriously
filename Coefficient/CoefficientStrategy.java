@@ -134,6 +134,8 @@ public class CoefficientStrategy {
     // 定义一个getEstimatedTransitionMatrix方法，根据论文的等级和年龄获取根据时间累计的状态转移矩阵
     public double[][] getResultTransitionMatrix( Paper paper){
         LevelManager.Level paperLevel = paper.getLevel(); // 获取论文的等级，返回0，1，2，3分别表示A，B，C，D
+        if(paperLevel==null)
+            System.out.println();
         LevelManager.PaperAgeGroup paperAgeGroup= paper.getAgeGroup();
         double[][] paperTransitionMatrix = resultMatrix[paperLevel.getIndex()][paperAgeGroup.getIndex()]; // 获取论文的状态转移概率矩阵
         return paperTransitionMatrix;

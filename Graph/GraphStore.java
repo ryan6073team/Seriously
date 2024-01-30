@@ -7,7 +7,9 @@ import org.jgrapht.graph.DirectedPseudograph;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GraphStore {
@@ -27,17 +29,28 @@ public class GraphStore {
         try (Session session = driver.session()) {
             // 遍历图中的节点并创建节点
             for (Author author : graph.vertexSet()) {
-                session.run("CREATE (:Author {name: $name, graphName: $graphName})", Values.parameters("name", author.getOrcid(),
-                        "graphName", graphName));
+                List<String> institutions = new ArrayList<>(author.getAuthorInstitutions());
+                session.run("CREATE (:Author {authorName: $authorName, orcid: $orcid, level: $level, ifExist: $ifExist, authorInstitutions: $authorInstitutions, authorImpact: $authorImpact, flag: $flag})",
+                        Values.parameters("authorName", author.getAuthorName(),
+                                "orcid", author.getOrcid(),
+                                "level", author.getLevel().toString(),
+                                "ifExist", author.getIfExist(),
+                                "authorInstitutions", institutions,
+                                "authorImpact", author.getAuthorImpact(),
+                                "flag", author.getFlag()));
             }
             // 遍历图中的边并创建关系
+            // 创建 Edge 关系
             for (Edge edge : graph.edgeSet()) {
                 Author source = graph.getEdgeSource(edge);
                 Author target = graph.getEdgeTarget(edge);
 
-                session.run("MATCH (source:Author {name: $sourceName, graphName: $graphName}), (target:Author {name: $targetName, graphName: $graphName}) " +
-                                "CREATE (source)-[:CITES {graphName: $graphName}]->(target)",
-                        Values.parameters("sourceName", source.getOrcid(), "targetName", target.getOrcid(), "graphName", graphName));
+                session.run("MATCH (source:Author {orcid: $sourceOrcid}), (target:Author {orcid: $targetOrcid}) " +
+                                "CREATE (source)-[:CITES {citingKey: $citingKey, doi: $doi, year: $year, month: $month, citingDoi: $citingDoi}]->(target)",
+                        Values.parameters("sourceOrcid", source.getOrcid(), "targetOrcid", target.getOrcid(),
+                                "citingKey", edge.getCitingKey(), "doi", edge.getDoi(),
+                                "year", edge.getYear(), "month", edge.getMonth(),
+                                "citingDoi", edge.getCitingDoi()));
             }
         }
     }

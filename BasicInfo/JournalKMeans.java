@@ -1,18 +1,32 @@
 package com.github.ryan6073.Seriously.BasicInfo;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class JournalKMeans {
     public static void JournalkMeans(DataGatherManager dataGatherManager) {
-        Collections.sort(dataGatherManager.journals);// 根据IF进行排序
+        //只对已经在图中有记载的期刊进行impact排序
+        Vector<Journal> journals = new Vector<>();
+        for(Journal journal: dataGatherManager.journals)
+            if(journal.getIfExist()==1)
+                journals.add(journal);
+        Collections.sort(journals);
         // 创建一维数据
-        double[] data = new double[dataGatherManager.journals.size()];
-        for(int i=0;i<dataGatherManager.journals.size();i++){
-            data[i]=dataGatherManager.journals.get(i).getJournalImpact();
+        double[] data = new double[journals.size()];
+        for(int i=0;i<journals.size();i++){
+            data[i]=journals.get(i).getJournalImpact();
         }
+        Map<Double,Vector<Journal>> dicImpJn = new HashMap<>();
+        // 创建一维数据
+        for (Journal journal : journals) {
+            if(dicImpJn.containsKey(journal.getJournalImpact())){
+                dicImpJn.get(journal.getJournalImpact()).add(journal);
 
+            }
+            else{
+                dicImpJn.put(journal.getJournalImpact(), new Vector<>());
+                dicImpJn.get(journal.getJournalImpact()).add(journal);
+            }
+        }
         // 指定簇的数量 (K)
         int k = 5;
 
@@ -35,13 +49,14 @@ public class JournalKMeans {
         }
 
         //更新level
-        int i=0;
-        int level=0;
-        for(List<Double> cluster : clusters){
-            for(double item:cluster){
-                //LevelManager.Level level = LevelManager.Level.getLevelByIndex(rank);
-                dataGatherManager.journals.get(i).setLevel(LevelManager.Level.getLevelByIndex(level));
-                i++;
+        int level = 0;
+        for (List<Double> cluster : clusters) {
+            for (double item : cluster) {
+                if (dicImpJn.containsKey(item)) {
+                    for (Journal journal : dicImpJn.get(item)) {
+                        journal.setLevel(LevelManager.Level.getLevelByIndex(level));
+                    }
+                }
             }
             level++;
         }

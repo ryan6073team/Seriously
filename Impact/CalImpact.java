@@ -42,39 +42,48 @@ public class CalImpact {
         }
     }
     //计算所有论文的影响力
-    public static void initPapersImpact(){
-        Vector<Paper> papers = DataGatherManager.getInstance().papers;
-        Iterator<Paper> paperIterator = papers.iterator();
-        //一重循环遍历所有的论文，并依次计算它们的影响力大小
-        while (paperIterator.hasNext()){
-            Paper paperItem = paperIterator.next();
-            paperItem.setPaperImpact(calPaperImpact(paperItem.getDoi()));
-        }
+    public static void initPapersImpact() {
+        for (Paper paper : DataGatherManager.getInstance().papers)
+            //已经被遍历的论文才有资格被初始化影响力，注意：存在于图中的论文是已经被遍历的论文的子集
+            if (paper.getIsRead() == 1)
+                paper.setPaperImpact(calPaperImpact(paper.getDoi()));
     }
+
     //期刊影响力为平均论文影响力
     public static void initJournalImpact(){
         for(Journal journal:DataGatherManager.getInstance().journals){
+            if(journal.getIfExist()==0)
+                continue;
             double sumImpact=0.0;
+            int currentPapersNum=0;
             for (String doi:journal.getJournalPapers()){
-                sumImpact+=DataGatherManager.getInstance().dicDoiPaper.get(doi).getPaperImpact();
+                Paper paper = DataGatherManager.getInstance().dicDoiPaper.get(doi);
+                if(paper.getIsRead()==1) {
+                    sumImpact += DataGatherManager.getInstance().dicDoiPaper.get(doi).getPaperImpact();
+                    currentPapersNum++;
+                }
             }
+            if(currentPapersNum!=0)
             //平均论文影响力
-            journal.setJournalImpact(sumImpact/journal.getJournalPapers().size());
+                journal.setJournalImpact(sumImpact/currentPapersNum);
         }
     }
     //机构影响力为平均作者影响力
     public static void initInstitutionImpact(){
         Iterator<Institution> institutionIterator = DataGatherManager.getInstance().institutions.iterator();
+        int currentAuthorsNum = 0;
         while (institutionIterator.hasNext()){
             Institution institutionItem = institutionIterator.next();
             Vector<String> authors = institutionItem.getInstitutionAuthors();
             double sumImpact=0.0;
             for(String orcid:authors){
-                if(DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getIfExist()==1)
-                    sumImpact+=DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getAuthorImpact();
+                if(DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getIfExist()==1) {
+                    sumImpact += DataGatherManager.getInstance().dicOrcidAuthor.get(orcid).getAuthorImpact();
+                    currentAuthorsNum++;
+                }
             }
             //平均作者影响力
-            institutionItem.setInstitutionImpact(sumImpact/institutionItem.getInstitutionAuthors().size());
+            institutionItem.setInstitutionImpact(sumImpact/currentAuthorsNum);
         }
     }
     public static void initorUpdateAuthorImpact(Vector<Vector<String>> currentPapers){
@@ -121,9 +130,9 @@ public class CalImpact {
         }
     }
     public static void updateJournalImpact(){
-        Iterator<Journal> journalIterator = DataGatherManager.getInstance().journals.iterator();
-        while(journalIterator.hasNext()){
-            Journal journalItem = journalIterator.next();
+        for(Journal journalItem:DataGatherManager.getInstance().journals){
+            if(journalItem.getIfExist()==0)
+                continue;
             Vector<String> paperDois = journalItem.getJournalPapers();
             double sumImpact=0.0;
             int paperNum=0;
