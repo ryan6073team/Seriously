@@ -188,7 +188,7 @@ public class FileInput {
             }
             dataGatherManager.addDicDP(paper);
             dataGatherManager.addPaper(paper);
-
+            initDicTimeInfoDoi(dataGatherManager,paper);
             if(dataGatherManager.journalFind(paperJournal)){
                 journal = dataGatherManager.journalGet(paperJournal);
                 journal.journalPapers.add(paper.doi);
@@ -221,14 +221,12 @@ public class FileInput {
 //        }
 //    }
 
-    public static void initDicTimeInfoDoi(DataGatherManager dataGatherManager){
-        dataGatherManager.dicTimeInfoDoi = new HashMap<>();
-        for(Map.Entry<String,Paper> entry:dataGatherManager.dicDoiPaper.entrySet()){
+    public static void initDicTimeInfoDoi(DataGatherManager dataGatherManager,Paper paper){
             //提取论文的时间信息
-            int year = entry.getValue().publishedYear;
-            int month = entry.getValue().publishedMonth;
+            int year = paper.publishedYear;
+            int month = paper.publishedMonth;
             TimeInfo timeInfo = new TimeInfo(year,month);
-            String doi = entry.getKey();
+            String doi = paper.getDoi();
             Vector<String> dois;
             if(dataGatherManager.dicTimeInfoDoi.containsKey(timeInfo)) {
                 dois = dataGatherManager.dicTimeInfoDoi.get(timeInfo);
@@ -239,7 +237,6 @@ public class FileInput {
                 dois.add(doi);
                 dataGatherManager.dicTimeInfoDoi.put(timeInfo,dois);
             }
-        }
     }
 
     public static void init(DataGatherManager dataGatherManager) {
@@ -252,10 +249,8 @@ public class FileInput {
             while ((line = reader.readLine()) != null) {
                 Author author = initAuthor(dataGatherManager, line, authors);
                 initPaperandJournal(reader, dataGatherManager, line, author);
-                initDicTimeInfoDoi(dataGatherManager);
-                dataGatherManager.initMatrixOrder();
-
             }
+            dataGatherManager.initMatrixOrder();
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -274,10 +269,8 @@ public class FileInput {
             while ((line = reader.readLine()) != null) {
                 Author author = initAuthor(dataGatherManager, line, authors);
                 initPaperandJournal(reader, dataGatherManager, line, author);
-                initDicTimeInfoDoi(dataGatherManager);
-                dataGatherManager.initMatrixOrder();
-
             }
+            dataGatherManager.initMatrixOrder();
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();

@@ -12,6 +12,8 @@ import org.jgrapht.graph.DirectedPseudograph;
 
 import java.util.*;
 
+import com.github.ryan6073.Seriously.Graph.GraphStore;
+
 
 public class GraphManager { //单例
     private static GraphManager mGraphManager = new GraphManager();
@@ -27,22 +29,20 @@ public class GraphManager { //单例
         }
         return null;
     }
-    //    public DirectedPseudograph<Author ,Edge> getMatureGraph(){
-//        DirectedPseudograph<Author ,Edge> graph = Graph;
-//        for(Edge edge:graph.edgeSet()){
-//            if(DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()){
-//                graph.removeEdge(edge);
-//            }
-//        }
-//        return graph;
-//    }
+    public DirectedPseudograph<Author,Edge> getGraphItemFromNeo4j(int year,int month){
+        return GraphStore.read(year+"-"+month);
+    }
+
+    //返回一个新的图，该图的应该包含所有原图已经存在的作者节点以及已经成熟的引用边
+    // 原因在于作者节点可能存在一些论文引用列表为空，此时论文虽然已成熟但是无法在图中得到体现
     public DirectedPseudograph<Author, Edge> getMatureGraph() {
         DirectedPseudograph<Author, Edge> originalGraph = Graph;  // 假设 Graph 是你的原始图
         // 创建一个新的、可修改的图
         DirectedPseudograph<Author, Edge> graph = new DirectedPseudograph<>(Edge.class);
         // 复制边，但不包括不活跃的边
+        //这里的成熟指的应该是已经成熟的论文的被引用关系
         for (Edge edge : originalGraph.edgeSet()) {
-            if (!DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()) {
+            if (!DataGatherManager.getInstance().dicDoiPaper.get(edge.getCitingDoi()).getIsAlive()) {
                 //将该边的结点添加上去
                 graph.addVertex(originalGraph.getEdgeSource(edge));
                 graph.addVertex(originalGraph.getEdgeTarget(edge));
@@ -51,7 +51,7 @@ public class GraphManager { //单例
             }
         }
         if(graph.vertexSet().size()==0)
-            System.out.println("成熟矩阵为空");
+            System.out.println("成熟图为空");
 
 //        //打印图的信息
 //        System.out.println("图的信息如下：");
@@ -195,7 +195,16 @@ public class GraphManager { //单例
     // 也就是影响力会是多少：对于那些已经处于成熟期的论文，我们的pageRank网络已经能够处理，但对于处于青春期的论文们，
     // 我们的预测模型将更精准的判断它未来对于学术圈的贡献，而不是将眼光局限于论文现在的成绩。
     public Vector<Vector<String>> updateGraph(int year, int month){
-        DirectedPseudograph<Author,Edge> graphItem = getGraphItem(year, month);
+
+
+        ////////////////////////////开关/////////////////////////////////////////////
+        //DirectedPseudograph<Author,Edge> graphItem = getGraphItem(year, month);
+        DirectedPseudograph<Author,Edge> graphItem = getGraphItemFromNeo4j(year,month);
+        System.out.println(year+"-"+month);
+        ///////////////////////////////////////////////////////////////////////////////
+
+
+
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
         Vector<Vector<String>> ans;
 
@@ -210,16 +219,18 @@ public class GraphManager { //单例
                     author.setIfExist(1);
                 }
             }
-            //合并边
+            //合并边,边并不是论文的全部，存在论文暂时没有引用关系
             for (Edge edge : graphItem.edgeSet()) {
                 Graph.addEdge(graphItem.getEdgeSource(edge), graphItem.getEdgeTarget(edge), edge);
             }
             //激活论文
             Vector<String> dois = dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month));
-            for(String doi:dois){
-                dataGatherManager.dicDoiPaper.get(doi).setIsRead(1);
-                dataGatherManager.dicNameJournal.get(dataGatherManager.dicDoiPaper.get(doi).getJournal()).setIfExist(1);
-            }
+            //存在目标时间段没有论文的可能
+            if(dois!=null)
+                for(String doi:dois){
+                    dataGatherManager.dicDoiPaper.get(doi).setIsRead(1);
+                    dataGatherManager.dicNameJournal.get(dataGatherManager.dicDoiPaper.get(doi).getJournal()).setIfExist(1);
+                }
         }
 
 
@@ -265,7 +276,7 @@ public class GraphManager { //单例
         }
 
         //更新impactForm
-        ImpactForm.getInstance().cal_impact();
+//        ImpactForm.getInstance().cal_impact();
         return ans;
     }
     //更新论文life，定期更新论文CitationLevel，当月论文life=0
@@ -321,42 +332,5 @@ public class GraphManager { //单例
         ans.add(alive);
         ans.add(dead);
         return ans; // 0为仍保护的，1为脱离保护期的
-    }
-
-    public static void createTestGraph(){
-        // 创建测试图并存入数据库
-        DirectedPseudograph<Author, Edge> testGraph1 = new DirectedPseudograph<>(Edge.class);
-        DirectedPseudograph<Author, Edge> testGraph2 = new DirectedPseudograph<>(Edge.class);
-        for(int i=1;i<=5;i++){
-            Author author = new Author("author"+i, String.valueOf(i),"institution"+i);
-            testGraph1.addVertex(author);
-            testGraph2.addVertex(author);
-        }
-        for(Author author1:testGraph2.vertexSet()){
-            for(Author author2:testGraph2.vertexSet()){
-                if(author1.getOrcid().equals("1")){
-                    if(author2.getOrcid().equals("2")) {
-                        Edge edge = new Edge(0.5, 2024, "1", 1);
-                        testGraph2.addEdge(author1, author2, edge);
-                    }
-                    if(author2.getOrcid().equals("3")) {
-                        Edge edge = new Edge(0.5, 2023, "2", 2);
-                        testGraph2.addEdge(author1, author2, edge);
-                    }
-                }
-                if(author1.getOrcid().equals("3")){
-                    if(author2.getOrcid().equals("4")) {
-                        Edge edge = new Edge(0.5, 2022, "3", 3);
-                        testGraph2.addEdge(author1, author2, edge);
-                    }
-                    if(author2.getOrcid().equals("5")) {
-                        Edge edge = new Edge(0.5, 2021, "4", 4);
-                        testGraph2.addEdge(author1, author2, edge);
-                    }
-                }
-            }
-        }
-        GraphStore.store("test1", testGraph1);
-        GraphStore.store("test2", testGraph2);
     }
 }

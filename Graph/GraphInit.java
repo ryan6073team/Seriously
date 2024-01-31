@@ -164,8 +164,6 @@ public class GraphInit {
         ans.add(dead);
         CalImpact.initorUpdateAuthorImpact(ans);
         System.out.println("完成作者等级和影响力初始化");
-
-
         //初始化原始总图的论文的影响力
         CalImpact.initPapersImpact();
         System.out.println("完成论文影响力初始化");
@@ -179,8 +177,19 @@ public class GraphInit {
         //初始化原始总图的论文引用等级
         DataGatherManager.updateCitationLevel();
         System.out.println("完成论文引用等级初始化");
-        GraphInit.initGraphItems(graphManager,dataGatherManager,dataGatherManager.firstYear,dataGatherManager.firstMonth+1,dataGatherManager.finalYear,dataGatherManager.finalMonth);
+
+
+
+
+
+        //////////////////////开关////////////////////////////
+        //MATCH (n) DETACH DELETE n  图的清空指令
+        //GraphInit.initGraphItemstoNeo4j(graphManager,dataGatherManager,dataGatherManager.firstYear,dataGatherManager.firstMonth+1,dataGatherManager.finalYear,dataGatherManager.finalMonth);
         System.out.println("完成初始图集的初始化");
+        ///////////////////////////////////////////////////////
+
+
+
 
         //更新Strategy的状态转移矩阵
             //更新该年论文集
@@ -222,7 +231,7 @@ public class GraphInit {
     }
     //新增函数，即将x年y月的作者引用关系构成一张图并将其存储在GraphItems中
     //GraphItems中包含了从start到final的所有时间段，部分没有更新信息的item存在但size为0，但是并不代表相应的item=null
-    public static void initGraphItem(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
+    private static void initGraphItem(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
         DirectedPseudograph<Author,Edge> GraphTemp = new DirectedPseudograph<>(Edge.class);
         Vector<Paper> papers = new Vector<>();
         //根据时间获取论文
@@ -280,10 +289,68 @@ public class GraphInit {
         graphManager.addGraphItem(year,month,GraphTemp);
         System.out.println("完成"+year+"年"+month+"月的图初始化");
 
-        String name = year+"-"+month;
-//        GraphStore.store(name, GraphTemp);
-//        System.out.println("完成"+year+"年"+month+"月的图存储");
     }
+
+    private static void initGraphItemtoNeo4j(GraphManager graphManager,DataGatherManager dataGatherManager,int year,int month){
+        DirectedPseudograph<Author,Edge> GraphTemp = new DirectedPseudograph<>(Edge.class);
+        Vector<Paper> papers = new Vector<>();
+        //根据时间获取论文
+        Vector<String> targetPapers = DataGatherManager.getInstance().dicTimeInfoDoi.get(new TimeInfo(year,month));
+        if(targetPapers!=null)
+            for(String doi:targetPapers)
+                papers.add(DataGatherManager.getInstance().dicDoiPaper.get(doi));
+
+        //遍历论文
+        for(Paper paper: papers){
+            //获取存在于数据源中的作者数量
+            int startNum = getAuthorNumber(paper,dataGatherManager);
+            // 引用作者数量，即与边起点有关的作者数
+            // 应该把建立作者节点的代码迁移到citinglist之前来，因为存在论文在目标时间发表但是没有引用，列表为空，这种论文的作者在item应该被添加存在，因为只有这样，
+            // update后的graph的author节点才是正确的
+            // 注意item的初始化不要将author的ifExist赋值为1，因为此时还没将item合并到图中
+            Vector<String> authorIDList = paper.getAuthorIDList();
+            for(String authorID: authorIDList) {
+                Author author = dataGatherManager.dicOrcidAuthor.get(authorID);
+                if (!GraphTemp.containsVertex(author)) {
+                    GraphTemp.addVertex(author);
+                }
+            }
+            //获取引用论文
+            for(String doi: paper.getCitingList()){
+
+                Paper citingPaper = dataGatherManager.dicDoiPaper.get(doi);
+                //获取作者数量
+                int endNum = getAuthorNumber(citingPaper,dataGatherManager);
+
+                for(String auOrcid: citingPaper.getAuthorIDList()){
+                    Author endAuthor = dataGatherManager.dicOrcidAuthor.get(auOrcid);
+                    //判断数据源中是否存在该作者
+                    if(endAuthor.getFlag()){
+                        //判断是否需要创建结点
+                        if(!GraphTemp.containsVertex(endAuthor)){
+                            GraphTemp.addVertex(endAuthor);
+                        }
+                        //创建边
+                        for(String authorID: authorIDList){
+                            //起始节点已经在循环外添加，不存在没被添加的可能
+                            Author author = dataGatherManager.dicOrcidAuthor.get(authorID);
+                            double citingKey = (double) 1 /(startNum * endNum * paper.getCitingList().size());
+                            Edge edge = new Edge(citingKey, paper.getPublishedYear(), paper.getDoi(),doi);  //论文状态为此篇论文状态
+                            GraphTemp.addEdge(author,endAuthor,edge);
+                            dataGatherManager.dicDoiPaper.get(paper.getDoi()).getEdgeList().add(edge);
+                            dataGatherManager.dicDoiPaper.get(doi).getEdgeList().add(edge);
+                        }
+                    }
+                }
+            }
+        }
+        //deleteSinglePoint(GraphTemp);
+        GraphStore.store(year+"-"+month,GraphTemp);
+        System.out.println("完成"+year+"年"+month+"月的图初始化");
+        System.out.println("完成"+year+"年"+month+"月的图存储");
+
+    }
+
     public static void initGraphItems(GraphManager graphManager,DataGatherManager dataGatherManager,int startYear,int startMonth, int endYear, int endMonth){
         if(startYear==endYear)
             for(int i=startMonth;i<=endMonth;++i){
@@ -303,6 +370,29 @@ public class GraphInit {
             }
         }
     }
+
+    public static void initGraphItemstoNeo4j(GraphManager graphManager,DataGatherManager dataGatherManager,int startYear,int startMonth, int endYear, int endMonth){
+        if(startYear==endYear)
+            for(int i=startMonth;i<=endMonth;++i){
+                initGraphItemtoNeo4j(graphManager,dataGatherManager,startYear,i);
+            }
+        else {
+            for(int i=startMonth;i<=12;++i){
+                initGraphItemtoNeo4j(graphManager,dataGatherManager,startYear,i);
+            }
+            for (int i = startYear + 1; i < endYear; ++i) {
+                for (int j =1;j<=12;++j){
+                    initGraphItemtoNeo4j(graphManager,dataGatherManager,i,j);
+                }
+            }
+            for(int i=1;i<=endMonth;++i){
+                initGraphItemtoNeo4j(graphManager,dataGatherManager,endYear,i);
+            }
+        }
+        //刷新Driver，提交事务
+        GraphStore.getInstance().renovateDriver();
+    }
+
     //新增函数，根据paperGraph将dataGatherManager中所有paper的citedList初始化，citedList是Paper新增成员变量
     //指的是引用该论文的论文集合，所以对于该论文来说是被动语态cited
     //可以将culCitedTimes和该函数合并成initCitedInfo
