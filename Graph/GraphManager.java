@@ -42,7 +42,7 @@ public class GraphManager { //单例
         // 复制边，但不包括不活跃的边
         //这里的成熟指的应该是已经成熟的论文的被引用关系
         for (Edge edge : originalGraph.edgeSet()) {
-            if (!DataGatherManager.getInstance().dicDoiPaper.get(edge.getCitingDoi()).getIsAlive()) {
+            if (!DataGatherManager.getInstance().dicDoiPaper.get(edge.getDoi()).getIsAlive()) {
                 //将该边的结点添加上去
                 graph.addVertex(originalGraph.getEdgeSource(edge));
                 graph.addVertex(originalGraph.getEdgeTarget(edge));
@@ -197,7 +197,7 @@ public class GraphManager { //单例
     public Vector<Vector<String>> updateGraph(int year, int month){
 
 
-        ////////////////////////////开关/////////////////////////////////////////////
+        ////////////////////////////开关,已失效/////////////////////////////////////////////
         //DirectedPseudograph<Author,Edge> graphItem = getGraphItem(year, month);
         DirectedPseudograph<Author,Edge> graphItem = getGraphItemFromNeo4j(year,month);
         System.out.println(year+"-"+month);
@@ -279,7 +279,7 @@ public class GraphManager { //单例
 //        ImpactForm.getInstance().cal_impact();
         return ans;
     }
-    //更新论文life，定期更新论文CitationLevel，当月论文life=0
+    //更新论文life，定期更新论文CitationLevel，当月论文life=0,返回更新范围内的成熟论文和未成熟论文
     private Vector<Vector<String>> updatePaperLifeInfo(int year, int month, DataGatherManager dataGatherManager){
         //导入已经读过了的论文
         Vector<Paper> papers = new Vector<>();
@@ -294,10 +294,11 @@ public class GraphManager { //单例
                 tempmonth = i%12;
             }
             Vector<String> somePapers = dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(tempyear,tempmonth));
-            if(somePapers!=null)
-                for(String doi:somePapers) {
+            if(somePapers!=null) {
+                for (String doi : somePapers) {
                     papers.add(dataGatherManager.dicDoiPaper.get(doi));
                 }
+            }
             i--;
         }
         Vector<String> alive = new Vector<>();

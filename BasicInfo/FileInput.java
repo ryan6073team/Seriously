@@ -6,14 +6,17 @@ import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FileInput {
-    public static void initJournalToIF(DataGatherManager dataGatherManager){
+    public static void initJournalToIF(DataGatherManager dataGatherManager) {
         // 创建 reader
         try (BufferedReader br = Files.newBufferedReader(Paths.get(Objects.requireNonNull(ConfigReader.getFilePath2())))) {
             // CSV文件的分隔符
@@ -31,62 +34,50 @@ public class FileInput {
             ex.printStackTrace();
         }
     }
-    public static Author initAuthor(DataGatherManager dataGatherManager, String line, Vector<Author> authors) {
+
+    public static Author initAuthor(DataGatherManager dataGatherManager, String line, Vector<Author> authors, BufferedReader reader) {
         // 解析作者信息
         // 正则表达式，匹配数字
-        Pattern pattern = Pattern.compile("\\d+");
-        Matcher matcher = pattern.matcher(line);
+        String[] parts = line.split("\\s+");
+        // 获取最后一个数字，即文章数
 
-        // 找到第一个数字的位置（作者编号）
-        int firstNumberIndex = 0;
-        if (matcher.find()) {
-            firstNumberIndex = matcher.start();
+        int paperCount = Integer.parseInt(parts[parts.length - 1]);
+        // 获取导数第二个数字，即机构数
+        int institutionCount = Integer.parseInt(parts[parts.length - 2]);
+        String authorId = parts[parts.length - 3];
+        StringBuilder authorNameBuilder = new StringBuilder();
+        for (int i = 0; i < parts.length - 3; i++) {
+            authorNameBuilder.append(parts[i]).append(" ");
         }
-        // 找到最后一个数字的位置（论文数）
-        int lastNumberIndex = 0;
-        while (matcher.find()) {
-            lastNumberIndex = matcher.start();
+        String authorName = authorNameBuilder.toString().trim();
+        Author author = new Author(authorName, authorId);
+
+
+
+        Vector<String> institutions = new Vector<>();
+        for (int i = 0; i < institutionCount; i++) {
+            try {
+                String institution = reader.readLine();
+                if(!Objects.equals(institution, "")){
+                    institutions.add(institution);
+                    author.addAuthorInstitution(institution);
+                    }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-        // 根据数字的位置拆分字符串
-        String authorName = line.substring(0, firstNumberIndex).trim();
-        // System.out.println(authorName);
-        String orcid = line.substring(firstNumberIndex, line.indexOf(" ", firstNumberIndex)).trim();
-        String insCount = line.substring(line.indexOf(" ", firstNumberIndex) + 1, line.indexOf(" ", line.indexOf(" ", firstNumberIndex) + 1)).trim();
-//                int insCountInt = Integer.parseInt(insCount);
-        int insCountInt = Integer.parseInt(insCount);
-        String institutionNames = line.substring(line.indexOf(" ", line.indexOf(" ", firstNumberIndex) + 1) + 1, lastNumberIndex).trim();
-        String[] institutions = institutionNames.split(";;");
-        Author author;
-        if(insCountInt==0) {
-            author = new Author(authorName, orcid);
-        } else if(insCountInt==1) {
-            String authorInstitution = institutions[0];
-            author = new Author(authorName, orcid, authorInstitution);
-            Institution institution = new Institution();
-            institution.institutionName = authorInstitution;
-            institution.institutionAuthors.add(orcid);
-            if(dataGatherManager.institutionFind(authorInstitution)){
-                institution = dataGatherManager.institutionGet(authorInstitution);
-                institution.institutionAuthors.add(orcid);
-            }
-            else{
-                dataGatherManager.addInstitution(institution);
-            }
-        } else{
-            Vector<String> authorInstitution = new Vector<>(Arrays.asList(institutions));
-            author = new Author(authorName, orcid, authorInstitution);
-            for (String institutionName : authorInstitution) {
+        for (String institutionName : institutions) {
+
+            if (dataGatherManager.institutionFind(institutionName)) {
+                Institution institution = dataGatherManager.institutionGet(institutionName);
+                institution.institutionAuthors.add(authorId);
+            } else {
                 Institution institution = new Institution();
                 institution.institutionName = institutionName;
-                institution.institutionAuthors.add(orcid);
-                if(dataGatherManager.institutionFind(institutionName)){
-                    institution = dataGatherManager.institutionGet(institutionName);
-                    institution.institutionAuthors.add(orcid);
-                }
-                else{
-                    dataGatherManager.addInstitution(institution);
-                }
+                institution.institutionAuthors.add(authorId);
+                dataGatherManager.addInstitution(institution.institutionName,institution);
             }
+
         }
         authors.add(author);
         dataGatherManager.addDicOA(author);
@@ -94,33 +85,30 @@ public class FileInput {
         dataGatherManager.authorNum += 1;//如果分批读取再做修改，改成+=即可    我觉得直接改成+1即可，这样可以直接处理分批读取问题
         return author;
     }
-    //initPaperandJournal需要修改：
-    //1.Paper中新增publishedMonth变量，需要在文件中初始化，month顶替了文件中原先status的位置，status指的是文章的出版状态，文件曾经用1 2 3 4指代published revised等四种出版状态
-    //2.如你所见，Paper中的出版状态变量已经删去，CitingStatusType类应该删除，现在Paper中关于时间的变量只有publishedYear和publishedMonth，需要将函数initPaperandJournal中
-    //跟xxxYear和CitingStatusType有关的代码进行删除调整，确保达到修改完代码之后删除CitingStatusType类此文件不会报错的程度
+
     public static void initPaperandJournal(BufferedReader reader, DataGatherManager dataGatherManager, String line, Author author) throws IOException {
         Vector<Paper> author_papers = new Vector<>();
-        Pattern pattern = Pattern.compile("\\d+");
-        Matcher matcher = pattern.matcher(line);
-        // 找到第一个数字的位置（作者编号）
-        int firstNumberIndex = 0;
-        if (matcher.find()) {
-            firstNumberIndex = matcher.start();
+
+        String[] parts = line.split("\\s+");
+        // 获取最后一个数字，即文章数
+        int paperCountInt = Integer.parseInt(parts[parts.length - 1]);
+        // 获取导数第二个数字，即机构数
+        int institutionCount = Integer.parseInt(parts[parts.length - 2]);
+        String authorId = parts[parts.length - 3];
+        StringBuilder authorNameBuilder = new StringBuilder();
+        for (int i = 0; i < parts.length - 3; i++) {
+            authorNameBuilder.append(parts[i]).append(" ");
         }
-        // 找到最后一个数字的位置（论文数）
-        int lastNumberIndex = 0;
-        while (matcher.find()) {
-            lastNumberIndex = matcher.start();
-        }
-        String paperCount = line.substring(lastNumberIndex).trim().split(" ")[0];
-        int paperCountInt = Integer.parseInt(paperCount);
-        String orcid = line.substring(firstNumberIndex, line.indexOf(" ", firstNumberIndex)).trim();
+        String authorName = authorNameBuilder.toString().trim();
+
+
         // 解析每篇论文信息
         for (int i = 0; i < paperCountInt; i++) {
             String CountLine = reader.readLine();
             String paperLine = reader.readLine();
+
             // 正则表达式匹配DOI，它以数字开始和结束
-            Pattern doiPattern = Pattern.compile("\\b\\d+\\.\\d+/\\S+\\.\\d+\\.\\d+\\b");
+            Pattern doiPattern = Pattern.compile("\\b(10\\S{6,})\\b");
             Matcher doiMatcher = doiPattern.matcher(paperLine);
             int citedPaperCount = Integer.parseInt(CountLine);
             // 找到DOI的位置
@@ -128,16 +116,17 @@ public class FileInput {
             if (doiMatcher.find()) {
                 paperDoi = doiMatcher.group();
             }
+
             // 使用DOI分割数据行，这样我们可以单独获取论文名和剩余部分
-            String[] parts = paperLine.split(paperDoi);
+            String[] parts1 = paperLine.split(Pattern.quote(paperDoi));
 
             // 论文名在第一部分，去除首尾空格
-            String paperName = parts[0].trim();
+            String paperName = parts1[0].trim();
 
             // 期刊名称、年份和月份在第二部分
             // 假设年份和月份总是在字符串的末尾，并且是连续的数字
             Pattern yearMonthPattern = Pattern.compile("\\d{4} \\d{1,2}$");
-            Matcher yearMonthMatcher = yearMonthPattern.matcher(parts[1]);
+            Matcher yearMonthMatcher = yearMonthPattern.matcher(parts1[1]);
 
             // 找到年份和月份
             String year = "";
@@ -149,11 +138,12 @@ public class FileInput {
             }
 
             // 获取期刊名，它位于DOI和年份之间
-            String paperJournal = parts[1].substring(0, parts[1].length() - year.length() - month.length() - 2).trim(); // 减去2个空格
+            String paperJournal = parts1[1].substring(0, parts1[1].length() - year.length() - month.length() - 2).trim(); // 减去2个空格
 
             Vector<String> citedPapers = new Vector<>();
             for (int j = 0; j < citedPaperCount; j++) {
                 String citedPaperDoi = reader.readLine();
+
                 citedPapers.add(citedPaperDoi);
             }
 
@@ -170,74 +160,60 @@ public class FileInput {
 //                        paper.setYear(paperYear, paper.paperStatus);
 //                    }
             paper.citingList.addAll(citedPapers);
-            paper.authorIDList.add(orcid);//考虑ID和名字都各有优劣
+            paper.authorIDList.add(authorId);//考虑ID和名字都各有优劣
+
             journal.setJournalName(paperJournal);
             journal.journalPapers.add(paper.doi);
 
 
             // 判断paper是否已经存在于datagathermanager的papers列表中，如果存在则直接添加作者，否则创建新的paper对象
-            if(dataGatherManager.paperFind(paperDoi)){
-
+            if (dataGatherManager.paperFind(paperDoi)) {
                 paper = dataGatherManager.paperGet(paperDoi);
-
-                paper.authorIDList.add(orcid);
-            }
-
-            else{
+                paper.authorIDList.add(authorId);
+            } else {
                 dataGatherManager.addPaper(paper);
+
+
             }
             dataGatherManager.addDicDP(paper);
-            dataGatherManager.addPaper(paper);
+            dataGatherManager.addPaper(paper);//应该可以删掉
+
             initDicTimeInfoDoi(dataGatherManager,paper);
-            if(dataGatherManager.journalFind(paperJournal)){
+
+            if (dataGatherManager.journalFind(paperJournal)) {
+
                 journal = dataGatherManager.journalGet(paperJournal);
+
                 journal.journalPapers.add(paper.doi);
-            }
-            else{
+            } else {
                 dataGatherManager.addJournal(journal);
-                dataGatherManager.addDicNJ(paperJournal,journal);
+                dataGatherManager.addDicNJ(paperJournal, journal);
             }
             author_papers.add(paper);
-            reader.readLine();//读取空行
+
         }
         //将论文交给其作者
         dataGatherManager.addDicAP(author, author_papers);
     }
 
-//    public static void rankJournal(DataGatherManager dataGatherManager){
-//        //  对期刊进行等级划分
-//        for (Journal item : dataGatherManager.journals) {
-//            item.setIF(0.0);//让其随机生成一个IF测试用
-//        }
-//        Collections.sort(dataGatherManager.journals);// 根据IF进行排序
-//        for (int i = 0; i < dataGatherManager.journals.size(); ++i) {
-//            if (i < dataGatherManager.journals.size() / 4) dataGatherManager.journals.get(i).setRank(1);
-//            else if (i < dataGatherManager.journals.size() / 2) dataGatherManager.journals.get(i).setRank(2);
-//            else if (i < dataGatherManager.journals.size() * 3 / 4) dataGatherManager.journals.get(i).setRank(3);
-//            else dataGatherManager.journals.get(i).setRank(4);
-//
-////            System.out.println(dataGatherManager.journals.get(i).getIF());
-////            System.out.println(dataGatherManager.journals.get(i).getRank());
-//        }
-//    }
-
     public static void initDicTimeInfoDoi(DataGatherManager dataGatherManager,Paper paper){
-            //提取论文的时间信息
-            int year = paper.publishedYear;
-            int month = paper.publishedMonth;
-            TimeInfo timeInfo = new TimeInfo(year,month);
-            String doi = paper.getDoi();
-            Vector<String> dois;
-            if(dataGatherManager.dicTimeInfoDoi.containsKey(timeInfo)) {
-                dois = dataGatherManager.dicTimeInfoDoi.get(timeInfo);
-                dois.add(doi);
-                dataGatherManager.dicTimeInfoDoi.put(timeInfo,dois);
-            }else{
-                dois = new Vector<>();
-                dois.add(doi);
-                dataGatherManager.dicTimeInfoDoi.put(timeInfo,dois);
-            }
+        //提取论文的时间信息
+        int year = paper.publishedYear;
+        int month = paper.publishedMonth;
+        TimeInfo timeInfo = new TimeInfo(year,month);
+        String doi = paper.getDoi();
+        Vector<String> dois;
+        if(dataGatherManager.dicTimeInfoDoi.containsKey(timeInfo)) {
+            dois = dataGatherManager.dicTimeInfoDoi.get(timeInfo);
+            dois.add(doi);
+            dataGatherManager.dicTimeInfoDoi.put(timeInfo,dois);
+        }else{
+            dois = new Vector<>();
+            dois.add(doi);
+            dataGatherManager.dicTimeInfoDoi.put(timeInfo,dois);
+        }
     }
+
 
     public static void init(DataGatherManager dataGatherManager) {
         // 文件路径
@@ -247,8 +223,14 @@ public class FileInput {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             String line;
             while ((line = reader.readLine()) != null) {
-                Author author = initAuthor(dataGatherManager, line, authors);
+
+                Author author = initAuthor(dataGatherManager, line, authors, reader);
+
+
                 initPaperandJournal(reader, dataGatherManager, line, author);
+
+
+
             }
             dataGatherManager.initMatrixOrder();
             reader.close();
@@ -256,19 +238,27 @@ public class FileInput {
             e.printStackTrace();
         }
 
-        for(Journal item:dataGatherManager.journals){
+        for (Journal item : dataGatherManager.journals) {
             item.setIF(dataGatherManager);
         }
     }
 
-    public static void tempInit(DataGatherManager dataGatherManager,String filePath){
+
+    public static void tempInit(DataGatherManager dataGatherManager, String filePath) {
         Vector<Author> authors = new Vector<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             String line;
+            Integer i=0;
             while ((line = reader.readLine()) != null) {
-                Author author = initAuthor(dataGatherManager, line, authors);
+
+                Author author = initAuthor(dataGatherManager, line, authors, reader);
+
+                i+=1;
+                System.out.println(i);
+
                 initPaperandJournal(reader, dataGatherManager, line, author);
+
             }
             dataGatherManager.initMatrixOrder();
             reader.close();
@@ -276,8 +266,14 @@ public class FileInput {
             e.printStackTrace();
         }
 
-        for(Journal item:dataGatherManager.journals){
+        for (Journal item : dataGatherManager.journals) {
             item.setIF(dataGatherManager);
         }
     }
+
+
+
+
 }
+
+

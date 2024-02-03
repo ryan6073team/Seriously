@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.neo4j.driver.Values.parameters;
+
 public class GraphStore {
     private static Driver driver;
 
@@ -30,7 +32,16 @@ public class GraphStore {
     public void closeDriver(){
         driver.close();
     }
-    public void saveGraphToNeo4j(String graphName, DirectedPseudograph<Author, Edge> graph) {
+
+    public static void deleteGraph(int year, int month) {
+        String graphName = year + "---" + month;
+        try (Session session = driver.session()) {
+            String deleteQuery = "MATCH (n {graphName: $graphName}) DETACH DELETE n";
+            session.run(deleteQuery, parameters("graphName", graphName));
+        }
+    }
+
+    public static void storeGraph(String graphName, DirectedPseudograph<Author, Edge> graph) {
         // 连接到默认数据库
         try (Session session = driver.session()) {
             // 可选：清空特定图的数据（根据 graphName）
@@ -41,7 +52,7 @@ public class GraphStore {
             for (Author author : graph.vertexSet()) {
                 List<String> institutions = new ArrayList<>(author.getAuthorInstitutions());
                 session.run("CREATE (:Author {graphName: $graphName, authorName: $authorName, orcid: $orcid, level: $level, ifExist: $ifExist, authorInstitutions: $authorInstitutions, authorImpact: $authorImpact, flag: $flag})",
-                        Values.parameters("graphName", graphName,
+                        parameters("graphName", graphName,
                                 "authorName", author.getAuthorName(),
                                 "orcid", author.getOrcid(),
                                 "level", author.getLevel().toString(),
@@ -58,7 +69,7 @@ public class GraphStore {
 
                 session.run("MATCH (source:Author {orcid: $sourceOrcid, graphName: $graphName}), (target:Author {orcid: $targetOrcid, graphName: $graphName}) " +
                                 "CREATE (source)-[:CITES {graphName: $graphName, citingKey: $citingKey, doi: $doi, year: $year, month: $month, citingDoi: $citingDoi}]->(target)",
-                        Values.parameters("graphName", graphName,
+                        parameters("graphName", graphName,
                                 "sourceOrcid", source.getOrcid(), "targetOrcid", target.getOrcid(),
                                 "citingKey", edge.getCitingKey(), "doi", edge.getDoi(),
                                 "year", edge.getYear(), "month", edge.getMonth(),
@@ -66,13 +77,6 @@ public class GraphStore {
             }
         }
 
-
-
-    }
-
-    public static void store(String graphName, DirectedPseudograph<Author, Edge> graph) {
-        GraphStore graphStorage = getInstance();
-        graphStorage.saveGraphToNeo4j(graphName, graph);
     }
 
     public DirectedPseudograph<Author, Edge> readGraphFromNeo4j(String graphName) {
@@ -82,7 +86,7 @@ public class GraphStore {
         try (Session session = driver.session()) {
             // 读取 Author 节点
             String readAuthorsQuery = "MATCH (a:Author {graphName: $graphName}) RETURN a";
-            Result authorResults = session.run(readAuthorsQuery, Values.parameters("graphName", graphName));
+            Result authorResults = session.run(readAuthorsQuery, parameters("graphName", graphName));
             while (authorResults.hasNext()) {
                 Record record = authorResults.next();
                 Value aValue = record.get("a");
@@ -91,7 +95,7 @@ public class GraphStore {
             }
 
             String readEdgesQuery = "MATCH (source:Author {graphName: $graphName})-[r:CITES]->(target:Author {graphName: $graphName}) RETURN source, r, target";
-            Result edgeResults = session.run(readEdgesQuery, Values.parameters("graphName", graphName));
+            Result edgeResults = session.run(readEdgesQuery, parameters("graphName", graphName));
             while (edgeResults.hasNext()) {
                 Record record = edgeResults.next();
 

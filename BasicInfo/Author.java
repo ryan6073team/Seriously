@@ -10,24 +10,11 @@ public class Author implements Comparable<Author>{
     Vector<String> authorInstitution;
     Double authorImpact = 0.0;
     boolean flag;//是否存在于数据源中
-    public Author(String _authorName,String _orcid,String _authorInstitution){
-        authorName = _authorName;
-        orcid = _orcid;
-        flag = true;//既然被有参构造，肯定是存在于数据源头中吧？
-        authorInstitution = new Vector<>();
-        authorInstitution.add(_authorInstitution);
-    }
     public Author(String _authorName,String _orcid){
         authorName = _authorName;
         orcid = _orcid;
         flag = true;//既然被有参构造，肯定是存在于数据源头中吧？
-        authorInstitution = null;
-    }
-    public Author(String _authorName,String _orcid,Vector<String> _authorInstitution){
-        authorName = _authorName;
-        orcid = _orcid;
-        flag = true;//既然被有参构造，肯定是存在于数据源头中吧？
-        authorInstitution = _authorInstitution;
+        authorInstitution = new Vector<>();
     }
 
     //我觉得需要一个papers向量数据成员，来存放一个作者的文章集合
@@ -50,6 +37,9 @@ public class Author implements Comparable<Author>{
     }
     public Vector<String> getAuthorInstitutions(){
         return authorInstitution;
+    }
+    public void addAuthorInstitution(String ins){
+            authorInstitution.add(ins);
     }
     @Override
     public int compareTo(Author o) {

@@ -55,11 +55,12 @@ public class CalGraph {
             while(outgoingIterator.hasNext()){
                 Edge edgeItem = outgoingIterator.next();
                 Author citedAuthor = mGraph.getEdgeTarget(edgeItem);
+                DataGatherManager dataGatherManager = DataGatherManager.getInstance();
                 int nowAuthorOrder = _tempMap2.get(nowAuthor.getOrcid());
                 int citedAuthorOrder = _tempMap2.get(citedAuthor.getOrcid());
                 tempMatrix[citedAuthorOrder][nowAuthorOrder]+=edgeItem.getCitingKey();
             }
-            //再处理作者引用列表为空的论文,将其设置为自引,即代表学术来源其本身
+            //再处理作者引用列表为空的论文,将其设置为自引,即代表学术来源其本身（待定）
 //            for (Paper paper:DataGatherManager.getInstance().dicAuthorPaper.get(nowAuthor)){
 //                if(paper.getCitingList().size()==0){
 //                    int nowAuthorOrder = _tempMap2.get(nowAuthor.getOrcid());
@@ -85,22 +86,36 @@ public class CalGraph {
     //会存在于转移矩阵的都是有成熟作品的作者，但同时还存在只有不成熟作品和暂未出现的作者，对于他们ans没有对应值，归一化亦与他们无关，但是TargetVector应该包含他们
     //其中前者初始值设置为0 后者初始值设置为-1
     private static double [] getTargetVector( double [][] transitionMatrix, int matrixSize, double D){
-        D = 0.85;
         int currentAuthorNum = transitionMatrix.length;
         int[] authorMark = new int[currentAuthorNum];
         int singlePointNum = 0;
         for(int i=0;i<currentAuthorNum;i++){
-            double sum=0.0;
+            //line是竖行和 row是横行和
+            double lineSum=0.0,rowSum=0.0;
             authorMark[i]=0;
+            //若引用矩阵中的某一行与某一列都为0，则证明该点为孤立点
             for(int j=0;j<currentAuthorNum;j++){
-                sum+=transitionMatrix[j][i];
+                rowSum+=transitionMatrix[i][j];
+                lineSum+=transitionMatrix[j][i];
             }
-            if(sum==0.0){
+            //如果作者的论文及没有被别人引用也没有引用别人则直接将这个孤立点从矩阵中删去
+            if(lineSum+rowSum==0.0){
                 //代表此作者在图中为孤立点
                 authorMark[i]=-1;
                 singlePointNum++;
             }
-            else if(Math.abs(sum-1.0)>0.0000001) {
+            //如果作者论文没有引用别人但是被别人引用了，将其设置为自引，
+            // 因为即使是将权重平均出去，也应当是将权重平分给写这篇论文时相关领域已经存在的所有作者，
+            // 这太难
+            // 反正不好！因为转移矩阵的1.0代表的是权重，一个本身被他人引用的影响力就比较高的作者如果把贡献权重付给自己那么他的影响力会他妈高的吓人
+            // 但是你的论文有没有引用别人的理应不能对自身影响力造成很大波动
+            else if(lineSum == 0.0){
+                for(int j=0;j<currentAuthorNum;j++){
+                    transitionMatrix[j][i] = 1.0/currentAuthorNum;
+                }
+            }
+            //寻常情况下检查归一化即可
+            else if(Math.abs(lineSum-1.0)>0.00001) {
                 System.out.println("矩阵归一化异常");
                 return null;
             }

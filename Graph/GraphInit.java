@@ -182,9 +182,17 @@ public class GraphInit {
 
 
 
-        //////////////////////开关////////////////////////////
-        //MATCH (n) DETACH DELETE n  图的清空指令
-        //GraphInit.initGraphItemstoNeo4j(graphManager,dataGatherManager,dataGatherManager.firstYear,dataGatherManager.firstMonth+1,dataGatherManager.finalYear,dataGatherManager.finalMonth);
+        //////////////////////开关//////////////////////////
+        //图的清空指令
+        //MATCH (n) DETACH DELETE n
+        //删除year month的图
+        //MATCH (n {graphName: '2015---2'})
+        //DETACH DELETE n
+        System.out.println("是(y)否(其它字符串你随便输什么都是否)需要将GraphItem初始化到neo4j中？");
+        Scanner scanner = new Scanner(System.in);
+        String x = scanner.nextLine();
+        if(x.compareTo("y")==0)
+            GraphInit.initGraphItemstoNeo4j(graphManager,dataGatherManager,dataGatherManager.firstYear,dataGatherManager.firstMonth+1,dataGatherManager.finalYear,dataGatherManager.finalMonth);
         System.out.println("完成初始图集的初始化");
         ///////////////////////////////////////////////////////
 
@@ -214,19 +222,19 @@ public class GraphInit {
         //更新impactForm
         ImpactForm.getInstance().cal_impact();
 
-        for(int i=dataGatherManager.firstYear*12+dataGatherManager.firstMonth+1;i<= dataGatherManager.startYear*12+ dataGatherManager.startMonth;i++){
-            //注意在startyear startmonth的时候就开始更新了
-            int tempyear,tempmonth;
-            if(i%12==0){
-                tempmonth = 12;
-                tempyear = i/12-1;
-            }
-            else{
-                tempmonth = i%12;
-                tempyear = i/12;
-            }
-            graphManager.updateGraph(tempyear,tempmonth);
-        }
+//        for(int i=dataGatherManager.firstYear*12+dataGatherManager.firstMonth+1;i<= dataGatherManager.startYear*12+ dataGatherManager.startMonth;i++){
+//            //注意在startyear startmonth的时候就开始更新了
+//            int tempyear,tempmonth;
+//            if(i%12==0){
+//                tempmonth = 12;
+//                tempyear = i/12-1;
+//            }
+//            else{
+//                tempmonth = i%12;
+//                tempyear = i/12;
+//            }
+//            graphManager.updateGraph(tempyear,tempmonth);
+//        }
         //deleteSinglePoint(graphManager.Graph);
     }
     //新增函数，即将x年y月的作者引用关系构成一张图并将其存储在GraphItems中
@@ -345,7 +353,7 @@ public class GraphInit {
             }
         }
         //deleteSinglePoint(GraphTemp);
-        GraphStore.store(year+"-"+month,GraphTemp);
+        GraphStore.storeGraph(year+"-"+month,GraphTemp);
         System.out.println("完成"+year+"年"+month+"月的图初始化");
         System.out.println("完成"+year+"年"+month+"月的图存储");
 

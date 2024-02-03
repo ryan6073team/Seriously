@@ -1,7 +1,7 @@
 package com.github.ryan6073.Seriously.BasicInfo;
 
 import com.github.ryan6073.Seriously.Coefficient.CoefficientStrategy;
-import com.github.ryan6073.Seriously.Graph.GraphManager;
+//import com.github.ryan6073.Seriously.Graph.GraphManager;
 import com.github.ryan6073.Seriously.Impact.CalGraph;
 import com.github.ryan6073.Seriously.TimeInfo;
 import org.jgrapht.Graph;
@@ -25,10 +25,12 @@ public class DataGatherManager {//单例模式
     public Map<TimeInfo,Vector<String>> dicTimeInfoDoi;//时间与相应论文的映射
     public Map<String,Journal> dicNameJournal;//JournalName和Journal的映射
 
-    public Vector<Paper> papers;
-    public Vector<Journal> journals;
-    public Vector<Institution> institutions;
-
+    public HashSet<Paper> papers;
+    public HashSet<Journal> journals;
+    public Map<String,Institution> institutions;
+    public HashSet<String> tempPapers=new HashSet<>();
+    public HashSet<String> tempJournals=new HashSet<>();
+    public HashSet<String> tempAuthors=new HashSet<>();
     public void initMatrixOrder(){
         dicOrcidMatrixOrder = new HashMap<>();
         int order=0;
@@ -67,10 +69,11 @@ public class DataGatherManager {//单例模式
     public void addPaper(Paper paper) {
         if(papers.contains(paper)) return;
         papers.add(paper);
+
     }
-    public void addInstitution(Institution institution) {
-        if(institutions.contains(institution)) return;
-        institutions.add(institution);
+    public void addInstitution(String institutionName,Institution institution) {
+        if(institutions.containsKey(institutionName)) return;
+        institutions.put(institutionName,institution);
         //同上
     }
     public void addDicDP(Paper paper) {
@@ -79,25 +82,13 @@ public class DataGatherManager {//单例模式
     public boolean paperFind(String doi){
         return dicDoiPaper.containsKey(doi);
     }
-    public Paper paperGet(String doi){
-        //遍历papers,找到doi对应的paper
-        for(Paper paper:papers){
-            if(paper.doi.equals(doi)) return paper;
-        }
-        return null;
+    public Paper paperGet(String doi){//要改
+        return dicDoiPaper.get(doi);
     }
     public void addDicOA(Author author) {
         dicOrcidAuthor.put(author.orcid, author);
     }
-    //    public void addDicAP(Author author, Paper paper) {
-//        if (dicAuthorPaper.containsKey(author)) {
-//            dicAuthorPaper.get(author).add(paper);
-//        } else {
-//            Vector<Paper> paperList = new Vector<>();
-//            paperList.add(paper);
-//            dicAuthorPaper.put(author, paperList);
-//        }
-//    }
+
     public void addDicAP(Author author,Vector<Paper> papers){
         dicAuthorPaper.put(author,papers);
     }
@@ -135,23 +126,21 @@ public class DataGatherManager {//单例模式
         this.dicJournalIF = new HashMap<>();//期刊与IF指数的映射
         this.dicNameJournal = new HashMap<>();//JournalName和Journal的映射
 
-        journals = new Vector<>();
-        institutions = new Vector<>();
-        papers = new Vector<>();
+        journals = new HashSet<>();
+        institutions = new HashMap<>();
+        papers = new HashSet<>();
     }
 
-    public boolean institutionFind(String authorInstitution) {
-        for(Institution institution:institutions){
-            if(institution.getInstitutionName().equals(authorInstitution)) return true;
-        }
-        return false;
+    public boolean institutionFind(String InstitutionName) {
+        return institutions.containsKey(InstitutionName);
     }
 
-    public Institution institutionGet(String authorInstitution) {
-        for(Institution institution:institutions){
-            if(institution.getInstitutionName().equals(authorInstitution)) return institution;
-        }
+    public Institution institutionGet(String InstitutionName) {
+
+        if(institutions.containsKey(InstitutionName)) return institutions.get(InstitutionName);
+
         return null;
+
     }
     public static void updateCitationLevel(){
         for(Paper paper: getInstance().papers){

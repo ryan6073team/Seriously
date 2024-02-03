@@ -70,10 +70,8 @@ public class CalImpact {
     }
     //机构影响力为平均作者影响力
     public static void initInstitutionImpact(){
-        Iterator<Institution> institutionIterator = DataGatherManager.getInstance().institutions.iterator();
         int currentAuthorsNum = 0;
-        while (institutionIterator.hasNext()){
-            Institution institutionItem = institutionIterator.next();
+        for(Institution institutionItem:DataGatherManager.getInstance().institutions.values()){
             Vector<String> authors = institutionItem.getInstitutionAuthors();
             double sumImpact=0.0;
             for(String orcid:authors){
@@ -150,9 +148,7 @@ public class CalImpact {
     }
     public static void updateInstitutionImpact(){
         // 根据现存作者进行机构影响力的计算
-        Iterator<Institution> institutionIterator = DataGatherManager.getInstance().institutions.iterator();
-        while (institutionIterator.hasNext()){
-            Institution institutionItem = institutionIterator.next();
+        for(Institution institutionItem:DataGatherManager.getInstance().institutions.values()){
             Vector<String> authors = institutionItem.getInstitutionAuthors();
             double sumImpact=0.0;
             int authorNum = 0;
