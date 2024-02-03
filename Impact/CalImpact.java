@@ -66,12 +66,13 @@ public class CalImpact {
             if(currentPapersNum!=0)
             //平均论文影响力
                 journal.setJournalImpact(sumImpact/currentPapersNum);
+            else journal.setJournalImpact(0.0);
         }
     }
     //机构影响力为平均作者影响力
     public static void initInstitutionImpact(){
         int currentAuthorsNum = 0;
-        for(Institution institutionItem:DataGatherManager.getInstance().institutions.values()){
+        for(Institution institutionItem:DataGatherManager.getInstance().dicNameInstitutions.values()){
             Vector<String> authors = institutionItem.getInstitutionAuthors();
             double sumImpact=0.0;
             for(String orcid:authors){
@@ -80,8 +81,10 @@ public class CalImpact {
                     currentAuthorsNum++;
                 }
             }
+            if(currentAuthorsNum!=0)
             //平均作者影响力
-            institutionItem.setInstitutionImpact(sumImpact/currentAuthorsNum);
+                institutionItem.setInstitutionImpact(sumImpact/currentAuthorsNum);
+            else institutionItem.setInstitutionImpact(0.0);
         }
     }
     public static void initorUpdateAuthorImpact(Vector<Vector<String>> currentPapers){
@@ -142,13 +145,15 @@ public class CalImpact {
                     paperNum++;
                 }
             }
+            if(paperNum!=0)
             //平均论文影响力
-            journalItem.setJournalImpact(sumImpact/paperNum);
+                journalItem.setJournalImpact(sumImpact/paperNum);
+            else journalItem.setJournalImpact(0.0);
         }
     }
     public static void updateInstitutionImpact(){
         // 根据现存作者进行机构影响力的计算
-        for(Institution institutionItem:DataGatherManager.getInstance().institutions.values()){
+        for(Institution institutionItem:DataGatherManager.getInstance().dicNameInstitutions.values()){
             Vector<String> authors = institutionItem.getInstitutionAuthors();
             double sumImpact=0.0;
             int authorNum = 0;
@@ -161,8 +166,10 @@ public class CalImpact {
                     authorNum++;
                 }
             }
-            //平均作者影响力
-            institutionItem.setInstitutionImpact(sumImpact/authorNum);
+            if(authorNum!=0)
+                //平均作者影响力
+                institutionItem.setInstitutionImpact(sumImpact/authorNum);
+            else institutionItem.setInstitutionImpact(0.0);
         }
     }
     public static void initAll(){

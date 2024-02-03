@@ -5,32 +5,32 @@ import java.util.Random;
 import java.util.Vector;
 
 public class Journal implements Comparable<Journal>{
-    public static Map<LevelManager.Level,Double> levelImpact;
+
     public Vector<String> journalPapers;//用DOI唯一标识
     private String journalName;
     private Double journalImpact=0.0;
-    private Double IF;
+    private Double IF=0.0;
     private int ifExist = 0;//0不存在1存在
-    private LevelManager.Level level; //  A,B,C,D,E 一共5个等级
+    private LevelManager.Level level = LevelManager.Level.E; //  A,B,C,D,E 一共5个等级
     public Journal(){journalPapers = new Vector<>();}
     public void setIfExist(int ifExist){this.ifExist = ifExist;}
     public int getIfExist(){return ifExist;}
-    public static void updateLevelImpact(){
-        int[] levelNum = new int[101];
-        for(int i=0;i<101;i++)
-            levelNum[i]=0;
-        for(Journal journal:DataGatherManager.getInstance().journals){
-            levelNum[journal.level.getIndex()]++;
-            if (!levelImpact.containsKey(journal.level))
-                levelImpact.put(journal.level, journal.getJournalImpact());
-            else {
-                double impact = levelImpact.get(journal.level) * (levelNum[journal.level.getIndex()] - 1);
-                impact += journal.getJournalImpact();
-                impact = impact / levelNum[journal.level.getIndex()];
-                levelImpact.put(journal.level, impact);
-            }
-        }
-    }
+//    public static void updateLevelImpact(){
+//        int[] levelNum = new int[101];
+//        for(int i=0;i<101;i++)
+//            levelNum[i]=0;
+//        for(Journal journal:DataGatherManager.getInstance().journals){
+//            levelNum[journal.level.getIndex()]++;
+//            if (!levelImpact.containsKey(journal.level))
+//                levelImpact.put(journal.level, journal.getJournalImpact());
+//            else {
+//                double impact = levelImpact.get(journal.level) * (levelNum[journal.level.getIndex()] - 1);
+//                impact += journal.getJournalImpact();
+//                impact = impact / levelNum[journal.level.getIndex()];
+//                levelImpact.put(journal.level, impact);
+//            }
+//        }
+//    }
     public String getJournalName(){
         return journalName;
     }

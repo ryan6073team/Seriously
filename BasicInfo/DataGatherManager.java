@@ -27,7 +27,7 @@ public class DataGatherManager {//单例模式
 
     public HashSet<Paper> papers;
     public HashSet<Journal> journals;
-    public Map<String,Institution> institutions;
+    public Map<String,Institution> dicNameInstitutions;
     public HashSet<String> tempPapers=new HashSet<>();
     public HashSet<String> tempJournals=new HashSet<>();
     public HashSet<String> tempAuthors=new HashSet<>();
@@ -72,8 +72,8 @@ public class DataGatherManager {//单例模式
 
     }
     public void addInstitution(String institutionName,Institution institution) {
-        if(institutions.containsKey(institutionName)) return;
-        institutions.put(institutionName,institution);
+        if(dicNameInstitutions.containsKey(institutionName)) return;
+        dicNameInstitutions.put(institutionName,institution);
         //同上
     }
     public void addDicDP(Paper paper) {
@@ -127,17 +127,17 @@ public class DataGatherManager {//单例模式
         this.dicNameJournal = new HashMap<>();//JournalName和Journal的映射
 
         journals = new HashSet<>();
-        institutions = new HashMap<>();
+        dicNameInstitutions = new HashMap<>();
         papers = new HashSet<>();
     }
 
     public boolean institutionFind(String InstitutionName) {
-        return institutions.containsKey(InstitutionName);
+        return dicNameInstitutions.containsKey(InstitutionName);
     }
 
     public Institution institutionGet(String InstitutionName) {
 
-        if(institutions.containsKey(InstitutionName)) return institutions.get(InstitutionName);
+        if(dicNameInstitutions.containsKey(InstitutionName)) return dicNameInstitutions.get(InstitutionName);
 
         return null;
 

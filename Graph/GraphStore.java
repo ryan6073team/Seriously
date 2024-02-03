@@ -51,32 +51,57 @@ public class GraphStore {
             // 遍历图中的节点并创建节点
             for (Author author : graph.vertexSet()) {
                 List<String> institutions = new ArrayList<>(author.getAuthorInstitutions());
-                session.run("CREATE (:Author {graphName: $graphName, authorName: $authorName, orcid: $orcid, level: $level, ifExist: $ifExist, authorInstitutions: $authorInstitutions, authorImpact: $authorImpact, flag: $flag})",
+                List<Double> institutionsImpact = new ArrayList<>();
+                for (String institution : institutions)
+                    institutionsImpact.add(DataGatherManager.getInstance().dicNameInstitutions.get(institution).getInstitutionImpact());
+                session.run("CREATE (:Author {graphName: $graphName, authorName: $authorName, orcid: $orcid, level: $level, ifExist: $ifExist, authorInstitutions: $authorInstitutions, authorInstitutionsImpact: $authorInstitutionsImpact, authorImpact: $authorImpact, flag: $flag})",
                         parameters("graphName", graphName,
                                 "authorName", author.getAuthorName(),
                                 "orcid", author.getOrcid(),
-                                "level", author.getLevel().toString(),
+                                "level", author.getLevel().toString().charAt(0)-'A'+1,
                                 "ifExist", author.getIfExist(),
                                 "authorInstitutions", institutions,
+                                "authorInstitutionsImpact", institutionsImpact,
                                 "authorImpact", author.getAuthorImpact(),
                                 "flag", author.getFlag()));
             }
+            DataGatherManager dataGatherManager = DataGatherManager.getInstance();
 
             // 遍历图中的边并创建关系
             for (Edge edge : graph.edgeSet()) {
                 Author source = graph.getEdgeSource(edge);
                 Author target = graph.getEdgeTarget(edge);
-
-                session.run("MATCH (source:Author {orcid: $sourceOrcid, graphName: $graphName}), (target:Author {orcid: $targetOrcid, graphName: $graphName}) " +
-                                "CREATE (source)-[:CITES {graphName: $graphName, citingKey: $citingKey, doi: $doi, year: $year, month: $month, citingDoi: $citingDoi}]->(target)",
+                if(dataGatherManager.dicDoiPaper.get(edge.getDoi()).getLevel()==null)
+                    System.out.println();
+                session.run("MATCH (source:Author {orcid: $sourceOrcid, graphName: $graphName}), " +
+                                "(target:Author {orcid: $targetOrcid, graphName: $graphName}) " +
+                                "CREATE (source)-[:CITES {" +
+                                "graphName: $graphName, " +
+                                "citingKey: $citingKey, " +
+                                "doi: $doi, " +
+                                "year: $year, " +
+                                "month: $month, " +
+                                "citingDoi: $citingDoi, " +
+                                "paperImpact: $paperImpact, " +
+                                "journalImpact: $journalImpact, " +
+                                "paperLife: $paperLife, " +
+                                "paperLevel: $paperLevel}]->(target)",
                         parameters("graphName", graphName,
-                                "sourceOrcid", source.getOrcid(), "targetOrcid", target.getOrcid(),
-                                "citingKey", edge.getCitingKey(), "doi", edge.getDoi(),
-                                "year", edge.getYear(), "month", edge.getMonth(),
-                                "citingDoi", edge.getCitingDoi()));
-            }
-        }
+                                "sourceOrcid", source.getOrcid(),
+                                "targetOrcid", target.getOrcid(),
+                                "citingKey", edge.getCitingKey(),
+                                "doi", edge.getDoi(),
+                                "year", edge.getYear(),
+                                "month", edge.getMonth(),
+                                "citingDoi", edge.getCitingDoi(),
+                                "paperImpact", dataGatherManager.dicDoiPaper.get(edge.getDoi()).getPaperImpact(),
+                                "journalImpact", dataGatherManager.dicNameJournal.get(dataGatherManager.dicDoiPaper.get(edge.getDoi()).getJournal()).getJournalImpact(),
+                                "paperLife", dataGatherManager.dicDoiPaper.get(edge.getDoi()).getLife(),
+                                "paperLevel", dataGatherManager.dicDoiPaper.get(edge.getDoi()).getLevel().toString().charAt(0)-'A'+1));
 
+            }
+
+        }
     }
 
     public DirectedPseudograph<Author, Edge> readGraphFromNeo4j(String graphName) {

@@ -2,7 +2,6 @@ package com.github.ryan6073.Seriously.BasicInfo;
 
 import java.util.Map;
 
-import static com.github.ryan6073.Seriously.BasicInfo.Journal.levelImpact;
 
 public class LevelManager {
     public enum Level {
