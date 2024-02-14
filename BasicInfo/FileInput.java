@@ -164,21 +164,20 @@ public class FileInput {
 
             journal.setJournalName(paperJournal);
             journal.journalPapers.add(paper.doi);
-
+//调试用
+            if(paperDoi.compareTo("10.1109/40.87568")==0)
+                System.out.println("xjy");
 
             // 判断paper是否已经存在于datagathermanager的papers列表中，如果存在则直接添加作者，否则创建新的paper对象
+            //如果paper未找到，则将paper添加到dic hashset和dicTimeInfoPapers里面，如果直接在括号外添加会导致论文的重复添加
             if (dataGatherManager.paperFind(paperDoi)) {
                 paper = dataGatherManager.paperGet(paperDoi);
                 paper.authorIDList.add(authorId);
             } else {
                 dataGatherManager.addPaper(paper);
-
-
+                dataGatherManager.addDicDP(paper);
+                initDicTimeInfoDoi(dataGatherManager,paper);
             }
-            dataGatherManager.addDicDP(paper);
-            dataGatherManager.addPaper(paper);//应该可以删掉
-
-            initDicTimeInfoDoi(dataGatherManager,paper);
 
             if (dataGatherManager.journalFind(paperJournal)) {
 

@@ -65,6 +65,9 @@ public class Paper {
     public void setCitedTimes(int inDegree) {
         citedTimes = inDegree;
     }
+    public void setCitedList(Vector<String> strings) {
+        this.citedList=strings;
+    }
     public int getPublishedYear() {
         return publishedYear;
     }

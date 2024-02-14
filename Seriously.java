@@ -14,7 +14,7 @@ public class Seriously {
 
     public static void main(String[] args) {
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
-        String file = "sample2_2.txt";
+        String file = "author_net.txt";
         FileInput.tempInit(dataGatherManager,file);
         System.out.println("完成文件初始化");
 
@@ -28,11 +28,11 @@ public class Seriously {
         GraphInit.initGraph(graphManager,dataGatherManager,dataGatherManager.firstYear,dataGatherManager.firstMonth);
         System.out.println("第一年："+dataGatherManager.firstYear+" 第一个月："+dataGatherManager.firstMonth);
 
-        System.out.println("请输入年份和月份：（从第一年的第二个月开始）");
-        int scyear,scmonth;
-        Scanner scanner = new Scanner(System.in);
-        scyear = scanner.nextInt();
-        scmonth = scanner.nextInt();
+//        System.out.println("请输入年份和月份：（从第一年的第二个月开始）");
+//        int scyear,scmonth;
+//        Scanner scanner = new Scanner(System.in);
+//        scyear = scanner.nextInt();
+//        scmonth = scanner.nextInt();
 
         //直接从start的下一个月开始更新作者的影响力，当时间推移到published year published month时，相应时间发表的论文life为1
         for(int i=dataGatherManager.firstYear*12+dataGatherManager.firstMonth+1;i<=dataGatherManager.finalYear*12+ dataGatherManager.finalMonth+13;i++) {
@@ -48,10 +48,10 @@ public class Seriously {
             }
             //更新母图并获取论文集
             Vector<Vector<String>> currentPapers = GraphManager.getInstance().updateGraph(year,month);
-            if(year==scyear&&month==scmonth) {
-                GraphStore.storeGraph(year + "---" + month, GraphManager.getInstance().Graph);
-                break;
-            }
+//            if(year==scyear&&month==scmonth) {
+//                GraphStore.storeGraph(year + "---" + month, GraphManager.getInstance().Graph);
+//                break;
+//            }
             System.out.println();
         }
         //彻底关闭driver
