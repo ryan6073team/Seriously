@@ -27,8 +27,8 @@ public class FileInput {
                 // 分割
                 String[] columns = line.split(DELIMITER);
                 dataGatherManager.dicJournalIF.put(columns[0], Double.valueOf(columns[1]));
-                // 打印行
-                System.out.println(String.join(", ", columns));
+//                // 打印行
+//                System.out.println(String.join(", ", columns));
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -61,7 +61,7 @@ public class FileInput {
                 if(!Objects.equals(institution, "")){
                     institutions.add(institution);
                     author.addAuthorInstitution(institution);
-                    }
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -106,16 +106,22 @@ public class FileInput {
         for (int i = 0; i < paperCountInt; i++) {
             String CountLine = reader.readLine();
             String paperLine = reader.readLine();
-
+//            if(paperLine.equals("A Multiple Purpose Orthonormalizing Code and its Uses 10.1145/320783.320788 J. ACM 1954 10")){
+//                System.out.println("zqf");
+//            }
             // 正则表达式匹配DOI，它以数字开始和结束
-            Pattern doiPattern = Pattern.compile("\\b(10\\S{6,})\\b");
+            Pattern doiPattern = Pattern.compile("\\b10\\.\\S{7,}\\s");
             Matcher doiMatcher = doiPattern.matcher(paperLine);
             int citedPaperCount = Integer.parseInt(CountLine);
             // 找到DOI的位置
-            String paperDoi = "";
+            String paperDoi1 = "";
             if (doiMatcher.find()) {
-                paperDoi = doiMatcher.group();
+                paperDoi1 = doiMatcher.group();
             }
+            String paperDoi=paperDoi1.trim();
+//            System.out.println(paperDoi);
+
+
 
             // 使用DOI分割数据行，这样我们可以单独获取论文名和剩余部分
             String[] parts1 = paperLine.split(Pattern.quote(paperDoi));
@@ -136,7 +142,7 @@ public class FileInput {
                 year = yearMonth[0];
                 month = yearMonth[1];
             }
-
+//            System.out.println(paperLine);
             // 获取期刊名，它位于DOI和年份之间
             String paperJournal = parts1[1].substring(0, parts1[1].length() - year.length() - month.length() - 2).trim(); // 减去2个空格
 
@@ -165,8 +171,7 @@ public class FileInput {
             journal.setJournalName(paperJournal);
             journal.journalPapers.add(paper.doi);
 //调试用
-            if(paperDoi.compareTo("10.1109/40.87568")==0)
-                System.out.println("xjy");
+
 
             // 判断paper是否已经存在于datagathermanager的papers列表中，如果存在则直接添加作者，否则创建新的paper对象
             //如果paper未找到，则将paper添加到dic hashset和dicTimeInfoPapers里面，如果直接在括号外添加会导致论文的重复添加
