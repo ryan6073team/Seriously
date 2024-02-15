@@ -51,7 +51,7 @@ public class DataGatherManager {//单例模式
         firstMonth = firstItem.month;
         for(TimeInfo item:timeInfoList){
             num+=dicTimeInfoDoi.get(item).size();
-            if(num>=dicDoiPaper.size()/2 && flag){//即startyear startmonth之前的论文数（不包含startyear和startmonth本身）恰好大于或等于总数的一半
+            if(num>=dicDoiPaper.size()/2 && flag){//即start year , start month之前的论文数（不包含start year和start month本身）恰好大于或等于总数的一半
                 startYear = item.year;
                 startMonth = item.month;
                 break;

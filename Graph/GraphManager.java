@@ -194,93 +194,91 @@ public class GraphManager { //单例
     // 将预测能力运用到作者影响力的计算上面后，这代表着我们实际上是在预测某位作者在当前状态下，他对于学术圈的贡献，
     // 也就是影响力会是多少：对于那些已经处于成熟期的论文，我们的pageRank网络已经能够处理，但对于处于青春期的论文们，
     // 我们的预测模型将更精准的判断它未来对于学术圈的贡献，而不是将眼光局限于论文现在的成绩。
-    public Vector<Vector<String>> updateGraph(int year, int month) {
-        DirectedPseudograph<Author, Edge> graphItem = getGraphItemFromNeo4j(year, month);
+    public Vector<Vector<String>> updateGraph(int year, int month){
 
-        System.out.println(year + "-" + month);
+
+        ////////////////////////////开关,已失效/////////////////////////////////////////////
+        //DirectedPseudograph<Author,Edge> graphItem = getGraphItem(year, month);
+        DirectedPseudograph<Author,Edge> graphItem = getGraphItemFromNeo4j(year,month);
+        System.out.println(year+"-"+month);
+        ///////////////////////////////////////////////////////////////////////////////
+
+
+
         DataGatherManager dataGatherManager = DataGatherManager.getInstance();
-        DirectedPseudograph<Paper, Edge> paperGraph = GraphInit.getPaperGraph();
         Vector<Vector<String>> ans;
-        if (graphItem != null && graphItem.vertexSet().size() != 0) {
+
+        //若当前时间不存在新的引用关系，则不需要更新图只需要更新现有图论文的信息即可
+            //若存在新的引用关系或者新的作者节点
+        if(graphItem != null&&graphItem.vertexSet().size()!=0) {
+            //合并点+作者激活
+            //子图的作者点包含了全部在目标时间段发表的论文的作者，可能由于暂时没有引用关系为孤立点
             for (Author author : graphItem.vertexSet()) {
                 if (!Graph.containsVertex(author)) {
                     Graph.addVertex(author);
                     author.setIfExist(1);
                 }
             }
-            Set<Paper> updatedPapers = new HashSet<>();
+            //合并边,边并不是论文的全部，存在论文暂时没有引用关系
             for (Edge edge : graphItem.edgeSet()) {
                 Graph.addEdge(graphItem.getEdgeSource(edge), graphItem.getEdgeTarget(edge), edge);
-                // 更新 paperGraph
-                Paper sourcePaper = dataGatherManager.dicDoiPaper.get(edge.getDoi());
-                // 更新 paperGraph
-                String targetPaperDoi = edge.getCitingDoi(); // 获取目标 Paper 的 DOI
-                Paper targetPaper = dataGatherManager.dicDoiPaper.get(targetPaperDoi);
-
-                if (!paperGraph.containsVertex(sourcePaper)) {
-                    paperGraph.addVertex(sourcePaper);
-                }
-
-                if (!paperGraph.containsVertex(targetPaper)) {
-                    paperGraph.addVertex(targetPaper);
-                }
-
-                Edge edge1 = new Edge(0.0,year,sourcePaper.getDoi(),targetPaper.getDoi());
-                if (!paperGraph.containsEdge(edge1)) {
-                    paperGraph.addEdge(sourcePaper, targetPaper,edge1);
-                    updatedPapers.add(sourcePaper);
-                    updatedPapers.add(targetPaper);
-                }
             }
-            for(Paper paper:updatedPapers)
-                updateCitedInfo(paper,paperGraph);
-
-            Vector<String> dois = dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year, month));
-            if (dois != null) {
-                for (String doi : dois) {
+            //激活论文
+            Vector<String> dois = dataGatherManager.dicTimeInfoDoi.get(new TimeInfo(year,month));
+            //存在目标时间段没有论文的可能
+            if(dois!=null)
+                for(String doi:dois){
                     dataGatherManager.dicDoiPaper.get(doi).setIsRead(1);
                     dataGatherManager.dicNameJournal.get(dataGatherManager.dicDoiPaper.get(doi).getJournal()).setIfExist(1);
                 }
-            }
         }
 
 
-        ans = updatePaperLifeInfo(year, month, dataGatherManager);
+        //更新现存作者影响力
+        ans = updatePaperLifeInfo(year,month, dataGatherManager);
         CalImpact.initorUpdateAuthorImpact(ans);
         System.out.println("完成作者等级和影响力更新");
 
+        //更新全部现存论文影响力
         CalImpact.updatePaperImpact();
         System.out.println("完成论文影响力更新");
 
+        //更新期刊影响力
         CalImpact.updateJournalImpact();
+        //初始化原始总图的期刊和相应的论文等级，不论论文是否出现或成熟，其等级已经确定和期刊等级一致，因此直接更新即可
         JournalKMeans.JournalkMeans(dataGatherManager);
         System.out.println("完成期刊和论文等级初始化");
-
+        //利用现存作者更新机构影响力
         CalImpact.updateInstitutionImpact();
+        //更新现存的论文引用等级
         DataGatherManager.updateCitationLevel();
         System.out.println("完成论文引用等级更新");
 
-        TimeInfo timeInfo = new TimeInfo(year, month);
-        for (TimeInfo item : dataGatherManager.dicTimeInfoDoi.keySet()) {
-            if (timeInfo.equals(item)) {
+
+        //更新Strategy的状态转移矩阵
+            //更新该年论文集
+        TimeInfo timeInfo = new TimeInfo(year,month);
+        for(TimeInfo item:dataGatherManager.dicTimeInfoDoi.keySet()){
+            if(timeInfo.equals(item)){
                 dataGatherManager.currentCoefficientStrategy.currentYearPapers.addAll(dataGatherManager.dicTimeInfoDoi.get(item));
                 break;
             }
         }
-
-        if (month == 12) {
-            if (year == dataGatherManager.startYear) {
+            //如果时间已经到了最后一个月则通过今年与去年论文集的数据更新状态转移矩阵
+        if(month==12) {
+            if(year== dataGatherManager.startYear){
                 dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year);
                 dataGatherManager.currentCoefficientStrategy.initOtherMatrixs();
-            } else {
+            }else {
                 dataGatherManager.currentCoefficientStrategy.initorUpdateTransitionMatrixItems(year);
                 dataGatherManager.currentCoefficientStrategy.updateOtherTransitionMatrixs();
             }
         }
 
+        //更新impactForm
+//        ImpactForm.getInstance().cal_impact();
         return ans;
     }
-
     //更新论文life，定期更新论文CitationLevel，当月论文life=0,返回更新范围内的成熟论文和未成熟论文
     private Vector<Vector<String>> updatePaperLifeInfo(int year, int month, DataGatherManager dataGatherManager){
         //导入已经读过了的论文
@@ -335,15 +333,5 @@ public class GraphManager { //单例
         ans.add(alive);
         ans.add(dead);
         return ans; // 0为仍保护的，1为脱离保护期的
-    }
-    private void updateCitedInfo(Paper paper, DirectedPseudograph<Paper, Edge> paperGraph) {
-        int citedCount = paperGraph.inDegreeOf(paper);
-        paper.setCitedTimes(citedCount);
-        Set<Edge> incomingEdges = paperGraph.incomingEdgesOf(paper);
-        Set<String> incomingPapers=new HashSet<>();
-        for (Edge edge : incomingEdges) {
-            incomingPapers.add(edge.getDoi());
-        }
-        paper.setCitedList(new Vector<>(incomingPapers));
     }
 }

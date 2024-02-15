@@ -11,6 +11,7 @@ public class CoefficientStrategy {
     int currentYear = 0;
     //论文等级level 年龄状态time 状态转移矩阵
     Map<Integer,double[][][][]> transitionMatrixs = new HashMap<>();
+
     //估计值
     double[][][][] estimatedMatrix = new double[LevelManager.Level.levelNum][LevelManager.PaperAgeGroup.ageGroupNum][LevelManager.CitationLevel.citationLevelNum][LevelManager.CitationLevel.citationLevelNum];
     //误差值
@@ -43,6 +44,8 @@ public class CoefficientStrategy {
         if(transitionMatrixs.containsKey(dataGatherManager.startYear-1)) {
             estimatedMatrix = transitionMatrixs.get(dataGatherManager.startYear - 1);
             //dev为全零矩阵，之前已经初始化 result无需初始化
+            System.out.println("Strategy矩阵初始化成功");
+            //打印矩阵
         }else{
             System.out.println("Strategy矩阵初始化非法");
         }

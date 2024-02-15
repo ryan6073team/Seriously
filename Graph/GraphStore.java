@@ -7,7 +7,6 @@ import com.github.ryan6073.Seriously.BasicInfo.Edge;
 import org.jgrapht.graph.DirectedPseudograph;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -250,7 +249,6 @@ public class GraphStore {
 
         return graph;
     }
-
     public static DirectedPseudograph<Author, Edge> read(String graphName) {
         GraphStore graphStorage = getInstance();
         DirectedPseudograph<Author, Edge> graph = graphStorage.readGraphFromNeo4j(graphName);
